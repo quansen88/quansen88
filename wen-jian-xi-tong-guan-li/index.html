@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>文件系统管理 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="
+文件系统管理：
+机械硬盘与固态的区别；磁盘的构造；mbr分区表；gpt分区表；热拔插硬盘；fdisk分区；非交互式分区；查看文件系统信息；挂载与卸载；自动挂载；swap管理
+
+为什么fdisk分区是从2048扇区开始的
+https://b..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">文件系统管理</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <blockquote>
+<p>文件系统管理：</p>
+<p>机械硬盘与固态的区别；磁盘的构造；mbr分区表；gpt分区表；热拔插硬盘；fdisk分区；非交互式分区；查看文件系统信息；挂载与卸载；自动挂载；swap管理</p>
+</blockquote>
+<p><strong>为什么fdisk分区是从2048扇区开始的</strong></p>
+<p>https://blog.csdn.net/han156/article/details/77431512</p>
+<p><strong>MBR分区表的备份与还原</strong></p>
+<p><a href="https://blog.51cto.com/14012942/2427746">https://blog.51cto.com/14012942/2427746</a></p>
+<h2 id="一-机械硬盘与固态硬盘">一、机械硬盘与固态硬盘</h2>
+<pre><code>	机械硬盘由多块盘片组成，它们都绕着主轴旋转。每块盘片上下方都有读写磁头悬浮在盘片上下方，它们与盘片的距离极小。在每次读写数据时盘片旋转，读写磁头被磁臂控制着不断的移动来读取其中的数据。
+
+	所有的盘片都是同时同步转动，所有的磁头也是同步移动。
+	盘内一般充着惰性气体。一旦被打开，该盘基本无法使用
+	
+	固态硬盘的存储介质分为两种，一种是采用闪存（FLASH芯片）作为存储介质，另外一种是采用DRAM作为存储介质。
+</code></pre>
+<p>1.1、区别：</p>
+<p>1、性能：固态硬盘速度快，比机械硬盘快好多倍</p>
+<p>2、抗震：固态硬盘相比机械硬盘更抗震</p>
+<p>3、噪音：固态硬盘相比机械硬盘噪音更小</p>
+<p>4、散热：机械硬盘因其物理特性，功耗比固态大，相对比固态发热严重</p>
+<p>5、重量：固态硬盘更轻，体积也更小</p>
+<p>6、数据恢复：固态硬盘数据误删，恢复的概率很小，机械硬盘恢复概率较高</p>
+<p>7、价格：有得必有失，固态硬盘价格较贵，机械相对便宜，但能用钱解决的问题都不算问题</p>
+<p>1.2、专业术语：</p>
+<blockquote>
+<p>**1、磁道（Track）：**一块机械硬盘有 好几个盘片，每个盘片正反面都有两个磁头，在盘片旋转时磁头扫过的一圈称为磁道，所有磁道都是同心圆，从盘片外圈开始向内数，磁道号从0开始逐数递加</p>
+<p><strong>2、扇区（Sector）</strong>：每个磁道以512字节等分为多个弧段，一个弧段就是一个扇区。因为外圈大，所以外圈扇区多内圈扇区少。</p>
+<p>**3、簇：**每个扇区512字节，是磁盘控制器 最小读写单元。Windows以“簇”为存储单元，一个簇是多个扇区（2,4,8,...）,一般windows分区都会指定4k对齐，及4096字节（8个扇区）</p>
+<p>**4、柱面（cylinders）：**将所有盘片相同磁道数的磁道划分为柱面。和磁道号的标记方式一样，从外向内从0开始逐数增加。</p>
+<p>**5、分区：**分区是为了在逻辑上将某些柱面隔开形成边界。它是以柱面为单位来划分的，首先划分外圈柱面，然后不断向内划分。</p>
+</blockquote>
+<p>2、为什么要划分柱面？</p>
+<p>​		之所以划分柱面，是因为所有磁盘同步旋转，所有磁头同步移动，所有的磁头在任意一个时刻总是会出在同一个磁道同一个扇区上。读写数据时，任意一段数据总是按柱面来读写的。所以盘片数越多，读写所扫的扇区数就越少，所需的时间相对就越少，性能就越好。</p>
+<p>​		盘片同步旋转，转动一个角度，外圈比内圈的线速度更快，磁头能够扫过的扇区数更多，<strong>因此读写越外圈磁道中的数据比越内圈更快</strong>。<strong>C盘速度也比后面的分区快</strong></p>
+<p>​		向磁盘写数据是从外圈柱面向内圈柱面写的，只有写完一个柱面才写下一个柱面。因此磁盘用过一段时间后存储东西的速度会有所减慢就是因为外圈柱面已经用掉了。</p>
+<p>1.3、磁盘或分区容量计算</p>
+<p>磁盘大小=磁头数(heads)×每磁道上的扇区数(sectors)×512×柱面数(cylinders)</p>
+<h2 id="二-分区">二、分区</h2>
+<h3 id="21-分区方法mbr与gpt">2.1、分区方法：MBR与GPT</h3>
+<p>​		MBR：在该扇区中第446字节之后的64字节是分区表，每个分区占用16字节，所以限制了一块磁盘最多只能有4个主分区(Primary,P)，如果多于4个区，只能将主分区少于4个，通过建立扩展分区(Extend,E)，然后在扩展分区建立逻辑分区(Logical,L)的方式来突破4个分区的限制。</p>
+<p>​		在Linux中，MBR格式的磁盘主分区号从1-4，扩展分区号从2-4，逻辑分区号从5-15，也就是最大限制是15个分区。</p>
+<p>​		例如，一块盘想分成6个分区，可以：</p>
+<ul>
+<li>1P+5L：sda1+sda5+sda6+sda7+sda8+sda9</li>
+<li>2P+4L：sda1+sda2+sda5+sda6+sda7+sda8</li>
+<li>3P+3L：sda1+sda2+sda3+sda5+sda6+sda7</li>
+</ul>
+<p>​		而GPT格式突破了MBR的限制，它不再限制只能存储4个分区表条目，而是使用了类似MBR扩展分区表条目的格式，它允许有128个主分区，这也使得它可以对超过2TB的磁盘进行分区。</p>
+<h3 id="22-分区表信息">2.2、分区表信息</h3>
+<p>​		<strong>在MBR磁盘上，分区和启动信息是保存在一起的，如果这部分数据被覆盖或破坏，只能重建MBR</strong></p>
+<figure data-type="image" tabindex="1"><img src="%E5%9B%BE%E7%89%87/1565426411399.png" alt="1565426411399" loading="lazy"></figure>
+<p>​		GPT在整个磁盘上保存多个这部分信息的副本，因此它更为健壮，并可以恢复被破坏的这部分信息。GPT还为这些信息保存了循环冗余校验码(CRC)以保证其完整和正确，如果数据被破坏，GPT会发现这些破坏，并从磁盘上的其他地方进行恢复。</p>
+<figure data-type="image" tabindex="2"><img src="%E5%9B%BE%E7%89%87/1565426496050.png" alt="1565426496050" loading="lazy"></figure>
+<h3 id="23-热拔插添加磁盘">2.3、热拔插添加磁盘</h3>
+<p>​		正常情况下，插入新的硬盘后，要重启才能识别</p>
+<p><strong>查看scsi设备信息：</strong></p>
+<pre><code>[root@centos7 ~]# lsscsi 
+[0:0:0:0]    disk    VMware,  VMware Virtual S 1.0   /dev/sda 
+[0:0:1:0]    cd/dvd  VMware,  Virtual CD-ROM   1.0   /dev/sr0 
+[0:0:2:0]    disk    VMware,  VMware Virtual S 1.0   /dev/sdb 
+[2:0:0:0]    cd/dvd  NECVMWar VMware IDE CDR10 1.00  /dev/sr1 
+</code></pre>
+<p><strong>查看主机scsi总线号</strong></p>
+<pre><code>[root@centos7 ~]# ls /sys/class/scsi_host/
+host0  host1  host2
+</code></pre>
+<p><strong>重新扫描scsi总线以热插拔方式添加新设备。</strong></p>
+<pre><code>[root@centos7 ~]# echo &quot;- - -&quot; &gt; /sys/class/scsi_host/host0/scan
+[root@centos7 ~]# echo &quot;- - -&quot; &gt; /sys/class/scsi_host/host1/scan 
+[root@centos7 ~]# echo &quot;- - -&quot; &gt; /sys/class/scsi_host/host2/scan
+[root@centos7 ~]# lsblk | grep ^sd
+sda               8:0    0  200G  0 disk 
+sdb               8:16   0   20G  0 disk 
+sdc               8:32   0   20G  0 disk 
+</code></pre>
+<h3 id="24-使用fdisk工具">2.4、使用fdisk工具</h3>
+<p>​		fdisk工具用来分MBR磁盘上的区。要分GPT磁盘上的区，可以使用gdisk。parted工具对这两种格式的磁盘分区都支持。</p>
+<p><strong>创建主分区：</strong></p>
+<blockquote>
+<p>[root@centos7 ~]# <strong>fdisk /dev/sdc</strong>				<strong># sdb后没加数字</strong><br>
+Welcome to fdisk (util-linux 2.23.2).</p>
+<p>Changes will remain in memory only, until you decide to write them.<br>
+Be careful before using the write command.</p>
+<p>Device does not contain a recognized partition table<br>
+Building a new DOS disklabel with disk identifier 0x314f0161.</p>
+<p>Command (m for help): <strong>n</strong>			<strong># 添加分区</strong><br>
+Partition type:<br>
+p   primary (0 primary, 0 extended, 4 free)<br>
+e   extended<br>
+Select (default p): <strong>p</strong>						<strong># 输入p来创建第一个主分区</strong><br>
+Partition number (1-4, default 1): <strong>1</strong>		<strong># 输入分区号，从1开始</strong><br>
+First sector (2048-41943039, default 2048):<br>
+Using default value 2048<br>
+Last sector, +sectors or +size{K,M,G} (2048-41943039, default 41943039): <strong>+1G</strong>	<strong>给第一个主分区/dev/sdc1分1G，也可以使用柱面号来指定大小</strong><br>
+Partition 1 of type Linux and of size 1 GiB is set</p>
+<p>Command (m for help): <strong>p</strong>	<strong># 第一个分区结束，p查看下已分区信息</strong></p>
+<p>Disk /dev/sdc: 21.5 GB, 21474836480 bytes, 41943040 sectors<br>
+Units = sectors of 1 * 512 = 512 bytes<br>
+Sector size (logical/physical): 512 bytes / 512 bytes<br>
+I/O size (minimum/optimal): 512 bytes / 512 bytes<br>
+Disk label type: dos<br>
+Disk identifier: 0x314f0161</p>
+<p>Device Boot      Start         End      Blocks   Id  System<br>
+/dev/sdc1            2048     2099199     1048576   83  Linux</p>
+</blockquote>
+<p><strong>新建拓展分区：</strong></p>
+<blockquote>
+<p>Command (m for help): <strong>n</strong>	<strong># 再建一个分区</strong><br>
+Partition type:<br>
+p   primary (1 primary, 0 extended, 3 free)<br>
+e   extended<br>
+Select (default p): <strong>e</strong>			<strong># 创建扩展分区</strong><br>
+Partition number (2-4, default 2): <strong>2</strong>	<strong># 扩展分区号为2</strong><br>
+First sector (2099200-41943039, default 2099200):<br>
+Last sector, +sectors or +size{K,M,G} (2099200-41943039, default 41943039): 	<strong># 剩余空间全部给扩展分区</strong><br>
+Using default value 41943039<br>
+Partition 2 of type Extended and of size 19 GiB is set</p>
+<p>Command (m for help): <strong>p</strong>	<strong>p查看下已分区信息</strong></p>
+<p>Disk /dev/sdc: 21.5 GB, 21474836480 bytes, 41943040 sectors<br>
+Units = sectors of 1 * 512 = 512 bytes<br>
+Sector size (logical/physical): 512 bytes / 512 bytes<br>
+I/O size (minimum/optimal): 512 bytes / 512 bytes<br>
+Disk label type: dos<br>
+Disk identifier: 0x314f0161</p>
+<p>Device Boot      Start         End      Blocks   Id  System<br>
+/dev/sdc1            2048     2099199     1048576   83  Linux<br>
+/dev/sdc2         2099200    41943039    19921920    5  Extended</p>
+</blockquote>
+<p><strong>新建拓展分区：</strong></p>
+<blockquote>
+<p>Command (m for help): <strong>n</strong>	<strong># 新建逻辑分区</strong><br>
+Partition type:<br>
+p   primary (1 primary, 1 extended, 2 free)<br>
+l   logical (numbered from 5)<br>
+Select (default p): <strong>l</strong>		<strong># 新建逻辑分区,如果已有3个主分区，这里连p都没有</strong><br>
+Adding logical partition 5<br>
+First sector (2101248-41943039, default 2101248):<br>
+Using default value 2101248<br>
+Last sector, +sectors or +size{K,M,G} (2101248-41943039, default 41943039): <strong>+3G</strong><br>
+Partition 5 of type Linux and of size 3 GiB is set</p>
+<p>Command (m for help): p</p>
+<p>Disk /dev/sdc: 21.5 GB, 21474836480 bytes, 41943040 sectors<br>
+Units = sectors of 1 * 512 = 512 bytes<br>
+Sector size (logical/physical): 512 bytes / 512 bytes<br>
+I/O size (minimum/optimal): 512 bytes / 512 bytes<br>
+Disk label type: dos<br>
+Disk identifier: 0x1551c479</p>
+<p>Device Boot      Start         End      Blocks   Id  System<br>
+/dev/sdc1            2048     2099199     1048576   83  Linux<br>
+/dev/sdc2         2099200    41943039    19921920    5  Extended<br>
+/dev/sdc5         2101248     8392703     3145728   83  Linux</p>
+</blockquote>
+<p><strong>分区结束，保存，不保存按q</strong></p>
+<blockquote>
+<p>Command (m for help): <strong>w</strong><br>
+The partition table has been altered!</p>
+<p>Calling ioctl() to re-read partition table.<br>
+Syncing disks.</p>
+</blockquote>
+<p><strong>分区的过程，实质上是划分柱面以及修改分区表。</strong></p>
+<p>​		上面的fdisk操作全部是<strong>在内存中执行</strong>的，必须保存生效。<strong>保存后，内核还未识别该分区</strong>，可以查看/proc/partition目录下存在的文件，这些文件是能被内核识别的分区。运行partprobe或partx命令重新读取分区表让内核识别新的分区，内核识别后才可以格式化。而且分区结束时按w保存分区表有时候会失败，提示重启，这时候运行partprobe命令可以代替重启就生效。</p>
+<pre><code>[root@centos7 ~]# partprobe /dev/sdc
+[root@centos7 ~]# lsblk /dev/sdc
+NAME   MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+sdc      8:32   0  20G  0 disk 
+├─sdc1   8:33   0   1G  0 part 
+├─sdc2   8:34   0   1K  0 part 
+└─sdc5   8:37   0   3G  0 part 
+</code></pre>
+<p><strong>使用脚本进行分区（实现非交互式分区）：</strong></p>
+<p>\n表示回车</p>
+<pre><code>echo -e &quot;n\n13142\n+1G\nw\n&quot; | fdisk /dev/sda
+</code></pre>
+<h3 id="25-gdisk分区">2.5、gdisk分区</h3>
+<h3 id="26-parted分区">2.6、parted分区</h3>
+<p>​		parted<strong>支持mbr格式和gpt格式</strong>的磁盘分区。它的强大在于可以一步到位而不需要不断的交互式输入(也可以交互式)。</p>
+<p>​		<strong>parted分区工具是实时的</strong>，所以每一步操作都是直接写入磁盘而不是写进内存，它不像fdisk/gdisk还需要w命令将内存中的结果保存到磁盘中。</p>
+<p><strong>parted实现非交互</strong></p>
+<pre><code>parted /dev/sdb mklabel msdos                 # 设置硬盘flag
+parted /dev/sdb mkpart primary ext4 1 1000    # Mbr格式分区，分别是partition type/fstype/start/end
+parted /dev/sdb mkpart 1 ext4 1M 10240M       # gpt格式分区，分别是name/fstype/start/end
+parted /dev/sdb mkpart 1 10G 15G              # 省略fstype的交互式分区
+parted /dev/sdb rm 1                          # 删除分区
+parted /dev/sdb p                             # 输出信息
+</code></pre>
+<h3 id="27-格式化分区"><strong>2.7、格式化分区</strong></h3>
+<p><strong>2.7.1 mkfs</strong></p>
+<pre><code>[root@centos7 ~]# mkfs
+mkfs         mkfs.cramfs  mkfs.ext3    mkfs.fat     mkfs.msdos   mkfs.xfs     
+mkfs.btrfs   mkfs.ext2    mkfs.ext4    mkfs.minix   mkfs.vfat 
+# 常用选项：-t -b -I -i
+</code></pre>
+<pre><code>[root@centos7 ~]# mkfs.ext4 /dev/sdc5
+mke2fs 1.42.9 (28-Dec-2013)
+Filesystem label=
+OS type: Linux
+Block size=4096 (log=2)
+Fragment size=4096 (log=2)
+Stride=0 blocks, Stripe width=0 blocks
+196608 inodes, 786432 blocks
+39321 blocks (5.00%) reserved for the super user
+First data block=0
+Maximum filesystem blocks=805306368
+24 block groups
+32768 blocks per group, 32768 fragments per group
+8192 inodes per group
+Superblock backups stored on blocks: 
+	32768, 98304, 163840, 229376, 294912
+
+Allocating group tables: done                            
+Writing inode tables: done                            
+Creating journal (16384 blocks): done
+Writing superblocks and filesystem accounting information: done
+</code></pre>
+<p><strong>2.7.2 tune2fs修改ext文件系统属性</strong></p>
+<p>比如<strong>默认CentOS6手动创建的分区没有acl功能</strong>，需要手动添加</p>
+<pre><code>[root@qqq ~]# tune2fs -o acl /dev/sda6
+</code></pre>
+<p>CentOS7默认创建的有</p>
+<h3 id="28-查看文件系统状态信息">2.8、查看文件系统状态信息：</h3>
+<p><strong>2.8.1 lsblk</strong></p>
+<p>-f会显示出分区的类型，有时候面试会问<strong>怎么看分区的类型</strong>，df -T也可以</p>
+<pre><code>[root@centos7 ~]# lsblk -f
+NAME            FSTYPE      LABEL             UUID                                   MOUNTPOINT
+sda                                                                                  
+├─sda1          xfs                           dc34c75c-1351-416c-92b6-2e57bd714a52   /boot
+├─sda2          xfs                           d8664984-16a3-466f-8ae5-5606fe1dc2ab   /
+├─sda3          xfs                           d6516311-37b9-4b6f-b841-52f172cc36ce   /data
+├─sda4                                                                               
+├─sda5          LVM2_member                   l4Yn25-zqy5-RAoC-rpup-HTOo-mteZ-MedqzH 
+│ └─centos-swap swap                          5fbabba2-faca-475d-9947-202b652c74bc   [SWAP]
+└─sda6          swap                          b98996a2-a548-4266-b636-b2cb75cd0626   
+sdb                                                                                  
+├─sdb1          ext4                          4beb8132-5ae3-447d-a0a0-23afce01dba4   
+└─sdb2          swap                          674ab673-2a05-467e-ac6d-e5bcde52d137   
+sdc                                                                                  
+├─sdc1                                                                               
+├─sdc2                                                                               
+└─sdc5                                                                               
+sr0             iso9660     CentOS_6.10_Final 2018-06-29-11-20-20-00                 /mnt
+sr1             iso9660     CentOS 7 x86_64   2018-11-26-14-22-58-00                 /var/www/html/centos6/os/x86_64
+</code></pre>
+<p><strong>2.8.2 blkid</strong></p>
+<p>常用来查看设备UUID</p>
+<pre><code>[root@centos7 ~]# blkid
+/dev/sda1: UUID=&quot;dc34c75c-1351-416c-92b6-2e57bd714a52&quot; TYPE=&quot;xfs&quot; 
+/dev/sda2: UUID=&quot;d8664984-16a3-466f-8ae5-5606fe1dc2ab&quot; TYPE=&quot;xfs&quot; 
+/dev/sda3: UUID=&quot;d6516311-37b9-4b6f-b841-52f172cc36ce&quot; TYPE=&quot;xfs&quot; 
+/dev/sda5: UUID=&quot;l4Yn25-zqy5-RAoC-rpup-HTOo-mteZ-MedqzH&quot; TYPE=&quot;LVM2_member&quot; 
+/dev/sr0: UUID=&quot;2018-06-29-11-20-20-00&quot; LABEL=&quot;CentOS_6.10_Final&quot; TYPE=&quot;iso9660&quot; PTTYPE=&quot;dos&quot; 
+/dev/sr1: UUID=&quot;2018-11-26-14-22-58-00&quot; LABEL=&quot;CentOS 7 x86_64&quot; TYPE=&quot;iso9660&quot; PTTYPE=&quot;dos&quot; 
+/dev/mapper/centos-swap: UUID=&quot;5fbabba2-faca-475d-9947-202b652c74bc&quot; TYPE=&quot;swap&quot; 
+/dev/sdb1: UUID=&quot;4beb8132-5ae3-447d-a0a0-23afce01dba4&quot; TYPE=&quot;ext4&quot; PARTLABEL=&quot;Linux filesystem&quot; PARTUUID=&quot;633007d2-21ce-4ce3-a704-f2d317a83352&quot; 
+/dev/sdb2: UUID=&quot;674ab673-2a05-467e-ac6d-e5bcde52d137&quot; TYPE=&quot;swap&quot; PARTUUID=&quot;ce575d37-8fea-4780-b97e-d0482cad0299&quot; 
+/dev/sda6: UUID=&quot;b98996a2-a548-4266-b636-b2cb75cd0626&quot; TYPE=&quot;swap&quot;
+</code></pre>
+<p><strong>2.8.3 parted /dev/sdc p</strong></p>
+<pre><code>[root@centos7 ~]# parted /dev/sdc p
+Model: VMware, VMware Virtual S (scsi)
+Disk /dev/sdc: 21.5GB
+Sector size (logical/physical): 512B/512B
+Partition Table: msdos
+Disk Flags: 
+
+Number  Start   End     Size    Type      File system  Flags
+ 1      1049kB  1075MB  1074MB  primary
+ 2      1075MB  21.5GB  20.4GB  extended
+ 5      1076MB  4297MB  3221MB  logical
+</code></pre>
+<p><strong>2.8.4 fdisk -l</strong></p>
+<pre><code>[root@centos7 ~]# fdisk /dev/sdc -l
+
+Disk /dev/sdc: 21.5 GB, 21474836480 bytes, 41943040 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disk label type: dos
+Disk identifier: 0x1551c479
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sdc1            2048     2099199     1048576   83  Linux
+/dev/sdc2         2099200    41943039    19921920    5  Extended
+/dev/sdc5         2101248     8392703     3145728   83  Linux
+</code></pre>
+<p><strong>2.8.5 file -s /dev/sdc</strong></p>
+<pre><code>[root@centos7 ~]# file -s /dev/sdc
+/dev/sdc: x86 boot sector; partition 1: ID=0x83, starthead 32, startsector 2048, 2097152 sectors; partition 2: ID=0x5, starthead 170, startsector 2099200, 39843840 sectors, extended partition table, code offset 0x0
+</code></pre>
+<p><strong>2.8.6 du</strong></p>
+<pre><code>[root@centos7 ~]# du -sh ./
+205M	./
+</code></pre>
+<p><strong>2.8.7 df</strong></p>
+<pre><code>[root@centos7 ~]# df -Th
+Filesystem     Type      Size  Used Avail Use% Mounted on
+/dev/sda2      xfs       100G  4.7G   96G   5% /
+devtmpfs       devtmpfs  974M     0  974M   0% /dev
+tmpfs          tmpfs     991M     0  991M   0% /dev/shm
+tmpfs          tmpfs     991M   23M  968M   3% /run
+tmpfs          tmpfs     991M     0  991M   0% /sys/fs/cgroup
+/dev/sda3      xfs        50G  332M   50G   1% /data
+/dev/sda1      xfs      1014M  230M  785M  23% /boot
+tmpfs          tmpfs     199M     0  199M   0% /run/user/0
+/dev/sr0       iso9660   3.8G  3.8G     0 100% /mnt
+/dev/sr1       iso9660    11G   11G     0 100% /run/media/qqq/CentOS 7 x86_64
+</code></pre>
+<p><strong>2.8.8 	dumpe2fs</strong></p>
+<p>​		有局限性，只能看ext类文件系统</p>
+<pre><code>[root@centos7 ~]# dumpe2fs /dev/sdc5 | tail -7
+dumpe2fs 1.42.9 (28-Dec-2013)
+Group 23: (Blocks 753664-786431) [INODE_UNINIT]
+  Checksum 0xdb30, unused inodes 8192
+  Block bitmap at 524295 (bg #16 + 7), Inode bitmap at 524311 (bg #16 + 23)
+  Inode table at 527904-528415 (bg #16 + 3616)
+  32768 free blocks, 8192 free inodes, 0 directories, 8192 unused inodes
+  Free blocks: 753664-786431
+  Free inodes: 188417-196608
+</code></pre>
+<h3 id="29-挂载和卸载文件系统">2.9、挂载和卸载文件系统</h3>
+<p><strong>2.9.1、mount</strong></p>
+<p><strong>mount # 将显示当前已挂载信息</strong><br>
+<strong>mount [-t 欲挂载文件系统类型 ] [-o 特殊选项] 设备名 挂载目录选项说明：</strong><br>
+<strong>-a  将/etc/fstab文件里指定的挂载选项重新挂载一遍。</strong><br>
+<strong>-t  支持ext2/ext3/ext4/vfat/fat/iso9660(光盘默认格式)。 不用-t时默认会调用blkid来获取文件系统类型。</strong><br>
+-n  不把挂载记录写在/etc/mtab文件中，一般挂载会在/proc/mounts中记录下挂载信息，然后同步到/etc/mtab，指定-n表示不同步该挂载信息。<br>
+-o  指定挂载特殊选项。下面是两个比较常用的：<br>
+<strong>loop  挂载镜像文件，如iso文件</strong><br>
+<strong>ro  只读挂载</strong><br>
+<strong>rw  读写挂载</strong><br>
+auto  相当于mount -a<br>
+dev 如果挂载的文件系统中有设备访问入口则启用它，使其可以作为设备访问入口<br>
+default rw,suid,dev,exec,auto,nouser,async,and relatime<br>
+async   异步挂载，只写到内存<br>
+sync    同步挂载，通过挂载位置写入对方硬盘<br>
+atime   修改访问时间，每次访问都修改atime会导致性能降低，所以默认是noatime<br>
+<strong>noatime 不修改访问时间，高并发时使用这个选项可以减少磁盘IO</strong><br>
+nodiratime  不修改文件夹访问时间，高并发时使用这个选项可以减少磁盘IO<br>
+exec/noexec  挂载后的文件系统里的可执行程序是否可执行，默认是可以执行exec， 优先级高于权限的限定<br>
+<strong>remount  重新挂载，此时可以不用指定挂载点。</strong><br>
+suid/nosuid 对挂载的文件系统启用或禁用suid，对于外来设备最好禁用suid<br>
+<strong>_netdev 需要网络挂载时默认将停留在挂载界面直到加载网络了。使用_netdev可以忽略网络正常挂载。如NFS开机挂载。</strong><br>
+<strong>user  允许普通用户进行挂载该目录，但只允许挂载者进行卸载该目录</strong><br>
+<strong>users  允许所有用户挂载和卸载该目录</strong><br>
+<strong>nouser  禁止普通用户挂载和卸载该目录，这是默认的，默认情况下一个目录不指定user/users时，将只有root能挂载</strong></p>
+<p>2.9.2、挂载光盘</p>
+<pre><code>mount /dev/cdrom /mnt
+# 或者
+mount /dev/sr0 /mnt
+</code></pre>
+<p>2.9.3、重新挂载</p>
+<pre><code>mount -t ext4 -o rw remount /dev/sdb1 /data1
+</code></pre>
+<p><strong>2.9.4、挂载windows的共享目录</strong></p>
+<p>​		win上共享文件的文件系统是<strong>cifs类型</strong>，要在Linux上挂载，必须得有<strong>mount.cifs</strong>命令，如果没有则安装<strong>cifs-utils</strong>包。</p>
+<p>​		<strong>新版本的win10注意事项。smb是2.0版本，要指定一下：</strong></p>
+<pre><code>[root@xuexi ~]# mount.cifs -o username=&quot;long3&quot;,password=&quot;123&quot;,vers=2.0 //192.168.100.8/test /mnt
+</code></pre>
+<p>​		<strong>旧版本就这样执行吧</strong></p>
+<pre><code>mount.cifs -o username=&quot;long3&quot;,password=&quot;123&quot; //192.168.100.8/test  /mydata
+</code></pre>
+<p><strong>2.9.5、基于ssh挂载远程目录。</strong></p>
+<p>参考：https://www.cnblogs.com/f-ck-need-u/p/9104950.html</p>
+<p><strong>2.9.6、查看某个是否是挂载点mountpoint</strong></p>
+<pre><code>[root@centos7 ~]# mountpoint /data/sdb1/
+/data/sdb1/ is a mountpoint
+[root@centos7 ~]# cat /proc/mounts
+</code></pre>
+<p><strong>文件系统需要驱动支持：没有驱动系统也无法挂载</strong></p>
+<pre><code>[root@centos7 ~]# ls /lib/modules/3.10.0-957.el7.x86_64/kernel/fs
+binfmt_misc.ko.xz  ceph    dlm    fat      gfs2   lockd          nfs_common  overlayfs  udf
+btrfs              cifs    exofs  fscache  isofs  mbcache.ko.xz  nfsd        pstore     xfs
+cachefiles         cramfs  ext4   fuse     jbd2   nfs            nls         squashfs
+root@ubutnu:~# ls /lib/modules/$(uname -r)/kernel/fs/
+9p    autofs          cachefiles  dlm    freevxfs  hfsplus  lockd       nilfs2  orangefs   quota       ubifs
+adfs  befs            ceph        efs    fscache   hpfs     minix       nls     overlayfs  reiserfs    udf
+affs  bfs             cifs        exofs  fuse      isofs    nfs         ntfs    pstore     romfs       ufs
+afs   binfmt_misc.ko  coda        f2fs   gfs2      jffs2    nfs_common  ocfs2   qnx4       shiftfs.ko  xfs
+aufs  btrfs           cramfs      fat    hfs       jfs      nfsd        omfs    qnx6       sysv
+</code></pre>
+<p><strong>2.9.7、直接挂载镜像文件</strong></p>
+<pre><code>[root@centos7 ~]# dd if=/dev/cdrom   of=/data/CentOS7.1810.x86_64.iso   bs=1M count=100  
+100+0 records in
+100+0 records out
+104857600 bytes (105 MB) copied, 3.5753 s, 29.3 MB/s
+[root@centos7 ~]# mount -o loop /data/CentOS7.1810.x86_64.iso /mnt
+mount: /dev/loop0 is write-protected, mounting read-only
+[root@centos7 ~]# lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda               8:0    0  200G  0 disk 
+├─sda1            8:1    0    1G  0 part /boot
+├─sda2            8:2    0  100G  0 part /
+├─sda3            8:3    0   50G  0 part /data
+├─sda4            8:4    0    1K  0 part 
+├─sda5            8:5    0    4G  0 part 
+│ └─centos-swap 253:0    0    4G  0 lvm  [SWAP]
+└─sda6            8:6    0    2G  0 part 
+sr0              11:0    1  3.7G  0 rom  
+sr1              11:1    1   10G  0 rom  
+loop0             7:0    0  100M  0 loop /mnt
+[root@centos7 ~]# ls /mnt/
+CentOS_BuildTag  GPL       Packages                  RPM-GPG-KEY-CentOS-6           RPM-GPG-KEY-CentOS-Testing-6
+EFI              images    RELEASE-NOTES-en-US.html  RPM-GPG-KEY-CentOS-Debug-6     TRANS.TBL
+EULA             isolinux  repodata                  RPM-GPG-KEY-CentOS-Security-6
+</code></pre>
+<p><strong>2.9.8、卸载</strong></p>
+<p>umount /mnt</p>
+<p>​		如果用户正在访问某个目录或文件，使得卸载一直显示Busy，使用fuser -v DIR可以知道谁正在访问该目录或文件。</p>
+<pre><code>[root@centos7 ~]# fuser -v /root
+                     USER        PID ACCESS COMMAND
+/root:               root       7922 ..c.. bash
+                     root       8061 ..c.. bash
+</code></pre>
+<p>​		使用-k选项kill掉正在使用目录或文件的进程，使用-km选项kill掉文件系统上的所有进程，然后再umount。</p>
+<pre><code>[root@centos7 ~]# fuser -v /mnt
+                     USER        PID ACCESS COMMAND
+/mnt:                root     kernel mount /mnt
+                     root       8061 ..c.. bash
+[root@centos7 ~]# fuser -km /mnt;umount /mnt
+/mnt:                 8061c
+</code></pre>
+<p><strong>2.9.9、写入/etc/fstab实现开机自动挂</strong></p>
+<p><strong>一定要</strong>执行mount -a测试fstab有没有问题</p>
+<p>​		其中最后两列，它们分别表示备份文件系统和开机自检，一般都可以设置为0。</p>
+<p>​		由于能用的备份工具众多，没人会在这里设置备份，所以备份列设置为0。</p>
+<p>​		最后一列是开机自检设置列，开机自检调用的是fsck程序，所有有些ext类文件系统作为&quot;/&quot;时，可能会设置为1，但是fsck是不支持xfs文件系统的，所以对于xfs文件系统而言，该项必须设置为0。</p>
+<p>其实无需考虑那么多，直接将这两列设置为0就可以了。</p>
+<p><strong>2.9.10、修复错误的/etc/fstab</strong></p>
+<p>单用户模式重新挂根</p>
+<pre><code>[root@xuexi ~]# mount -n -o remount,rw /
+</code></pre>
+<p><strong>2.9.11、按需自动挂</strong></p>
+<p><strong>安装autofs</strong></p>
+<p>使用autofs实现需要挂载时就挂载，不需要挂载时5分钟后自动卸载。但是在实际环境中基本不会使用按需挂载。</p>
+<p>autofs是一个服务程序，需要让其运行在后台，可以用来挂NFS，也可挂本地的文件系统。</p>
+<p>默认不装autofs，需要自己装。</p>
+<pre><code>[root@xuexi ~]# yum install -y autofs
+</code></pre>
+<p>autofs实现按需挂载的方式是指定监控目录，可在其配置文件/etc/auto.master中指定。</p>
+<p>/etc/auto.master里面只有两列：第一列是监控目录；第二列是记录挂载选项的文件，该文件可以随便取名。</p>
+<pre><code>[root@xuexi ~]# cat /etc/auto.master
+/share  /etc/auto.mount    # 监控/share目录，使用/etc/auto.nfs记录挂载选项
+</code></pre>
+<p>上述监控的/share目录，其实这是监控的父目录，在此目录下的目录如/share/data目录可以作为挂载点，当访问到/share/data时就被监控到，然后会按照挂载选项将挂载设备挂载到/share/data上。</p>
+<p>上述配置中配置的挂载选项文件是/etc/auto.mount，所以建立此文件，写入挂载选项。</p>
+<pre><code>[root@xuexi ~]# cat /etc/auto.mount
+#cd              -fstype=iso9660,ro,nosuid,nodev :/dev/cdrom
+
+# the following entries are samples to pique your imagination
+#linux          -ro,soft,intr           ftp.example.org:/pub/linux
+#boot           -fstype=ext2            :/dev/hda1
+#floppy         -fstype=auto            :/dev/fd0
+#floppy         -fstype=ext2            :/dev/fd0
+#e2floppy       -fstype=ext2            :/dev/fd0
+#jaz            -fstype=ext2            :/dev/sdc1
+#removable      -fstype=ext2            :/dev/hdd
+</code></pre>
+<p>该文件有3列：</p>
+<p>第一列指定的是在/etc/auto.master指定的/share下的目录/share/data，它是真正的被监控路径，也是挂载点。可使用相对路径data表示/share/data。</p>
+<p>第二列是mount的选项，前面使用一个&quot;-&quot;表示，该列可有可无。</p>
+<p>第三列是待挂载设备，可以是NFS服务端的共享目录，也可以本地设备。</p>
+<pre><code>[root@xuexi ~]# vim /etc/auto.mount
+data   -rw,bg,soft,rsize=32768,wsize=32768     192.168.100.61:/data
+</code></pre>
+<p>上面的配置表示当访问到/share/data时，自动使用参数(rw,bg,soft,rsize=32768,wsize=32768)挂载远端192.168.100.61的/data目录到/share/data上。</p>
+<p>剩下的步骤就是启动autofs服务。</p>
+<pre><code>[root@xuexi data]# /etc/init.d/autofs restart
+</code></pre>
+<h3 id="210-swap分区">2.10 swap分区</h3>
+<p><strong>查看swap</strong></p>
+<p>free -h  或swapon -s</p>
+<pre><code>[root@centos7 ~]# free -h
+              total        used        free      shared  buff/cache   available
+Mem:           1.9G        366M        1.1G         12M        500M        1.4G
+Swap:          4.0G          0B        4.0G
+[root@centos7 ~]# swapon -s
+Filename				Type		Size	Used	Priority
+/dev/dm-0                              	partition	4194300	0	-2
+</code></pre>
+<p><strong>CentOS7的swap的管理</strong></p>
+<p><a href="https://blog.51cto.com/14012942/2428343">https://blog.51cto.com/14012942/2428343</a></p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/sed-ji-ben-yong-fa/">
+                  <h3 class="post-title">
+                     sed基本用法
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

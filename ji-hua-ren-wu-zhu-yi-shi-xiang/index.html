@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> 计划任务注意事项 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="计划任务注意事项
+1、at
+这个是一次性的计划任务，应该很少用
+2、crontab
+周期性计划任务
+计划任务没有执行的原因可以通过mail邮件分析
+计划任务可以实现让指定用户执行某条命令
+# For details see man 4 cr..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> 计划任务注意事项</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="计划任务注意事项">计划任务注意事项</h1>
+<p><strong>1、at</strong></p>
+<p>这个是一次性的计划任务，应该很少用</p>
+<p><strong>2、crontab</strong></p>
+<p>周期性计划任务</p>
+<p>计划任务没有执行的原因可以通过mail邮件分析</p>
+<p>计划任务可以实现让指定用户执行某条命令</p>
+<pre><code class="language-bash"># For details see man 4 crontabs
+
+# Example of job definition:
+# .---------------- minute (0 - 59)
+# |  .------------- hour (0 - 23)
+# |  |  .---------- day of month (1 - 31)
+# |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+# |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+# |  |  |  |  |
+# *  *  *  *  * user-name  command to be executed
+</code></pre>
+<p><strong>注意事项：</strong></p>
+<ul>
+<li>1、最好在计划任务前面写上PATH=...指定PATH路径，否则经常报错找不到命令，只能绝对路径</li>
+<li>2、带有特殊字符的计划任务，比如含有百分号，最好放入shell脚本中，再写入计划任务</li>
+<li>3、crontab使用vim作为默认编辑器。见下面</li>
+</ul>
+<p><strong>良好的习惯：</strong></p>
+<pre><code class="language-bash">[root@glowing-bliss-1 ~]# crontab -l
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+35 */1 * * * /bin/bash /data/docker_stats.sh &gt;&gt; /data/docker_stats.log
+</code></pre>
+<p><strong>crontab使用vim作为默认的编辑器：</strong></p>
+<pre><code class="language-bash">[root@glowing-bliss-1 ~]# echo &quot;export EDITOR=vim&quot; &gt;&gt; /etc/profile.d/env.sh
+[root@glowing-bliss-1 ~]# . /etc/profile.d/env.sh
+</code></pre>
+<p><strong>系统的计划任务：</strong></p>
+<pre><code class="language-shell">cron.d/       cron.daily/   cron.deny     cron.hourly/  cron.monthly/ crontab       cron.weekly/
+</code></pre>
+<p>run-parts命令，可以扫描某目录，执行下面所有可以执行的文件。vim /usr/bin/run-parts</p>
+<p><strong>使用脚本写入计划任务：</strong></p>
+<p>实际写入的是/var/spool/cron/root，<strong>ubuntu</strong>是/var/spool/cron/crontabs/root</p>
+<p><strong>查看指定用户的计划任务：</strong></p>
+<p>crontab -u qqq -l</p>
+<p><strong>一次查看所有用户的计划任务：</strong></p>
+<pre><code class="language-bash">[root@imooc-nginx scripts]# cat /var/spool/cron/*
+*/15 * * * * date &amp;&gt; /tmp/qqq_date.txt
+* 1 * * * ntpdate ntp.aliyun.com &gt;/dev/null 2&gt;&amp;1
+[root@imooc-nginx scripts]# grep '' /var/spool/cron/*
+/var/spool/cron/qqq:*/15 * * * * date &amp;&gt; /tmp/qqq_date.txt
+/var/spool/cron/root:* 1 * * * ntpdate ntp.aliyun.com &gt;/dev/null 2&gt;&amp;1
+</code></pre>
+<p><strong>如何实现秒级计划任务：</strong></p>
+<p>参考：https://blog.csdn.net/weixin_37998647/article/details/78669940</p>
+<p>参考：https://www.cnblogs.com/yangxunwu1992/p/6054907.html</p>
+<p><strong>生产环境中的计划任务都必须经过测试</strong></p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/jin-cheng-guan-li/">
+                  <h3 class="post-title">
+                    进程管理
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> ws+tls+web+cdn | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="ws+tls+web+cdn
+一、ws就是websocket
+配置就是加了个streamsettings，把network配置成ws即可
+二、tls就是传输层安装协议
+也就是https证书，也就是说要有个域名
+三、web
+就是有个web页面..." />
+    <meta name="keywords" content="web" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> ws+tls+web+cdn</h2>
+            <div class="post-date">2021-05-08</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.web.com/content/experience-fragments/webdotcom/site-header/master/_jcr_content/root/header/logo.coreimg.svg/1605898468526.svg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="wstlswebcdn">ws+tls+web+cdn</h1>
+<h3 id="一-ws就是websocket">一、ws就是websocket</h3>
+<p><strong>配置就是加了个streamsettings，把network配置成ws即可</strong></p>
+<h3 id="二-tls就是传输层安装协议">二、tls就是传输层安装协议</h3>
+<p>也就是https证书，也就是说要有个域名</p>
+<h3 id="三-web">三、web</h3>
+<p>就是有个web页面用于伪装，这里用的是nginx，访问域名正常就跳到web界面，访问指定location跳转到vmess</p>
+<h3 id="四-cdn就是用到了cdn">四、cdn，就是用到了cdn</h3>
+<p>即cloudfare，找不到真实后端服务器（其实还是可以）</p>
+<h3 id="五-整个实验使用docker部署">五、整个实验使用docker部署</h3>
+<p><strong>如下图用到两个容器，一个nginx，一个vmess</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191125185133.png" alt="" loading="lazy"></figure>
+<h3 id="六-vmess的配置">六、vmess的配置</h3>
+<pre><code class="language-bash">docker run -it --name vmess ubuntu:18.04 bash
+apt update &amp;&amp; apt install curl -y
+curl -sSL https://install.direct/go.sh | bash
+</code></pre>
+<pre><code class="language-bash">#制作一个配置文件，注意端口，监听地址，uuid，alterID，path
+uuid=$(cat /proc/sys/kernel/random/uuid)
+alterID=$(cat /dev/urandom | tr -dc '0-9'| head -c2)
+path=$(cat /dev/urandom | tr -dc 'a-zA-Z0-9'| head -c7)
+</code></pre>
+<pre><code class="language-json">cat &gt; /etc/v2ray/config.json &lt;&lt;'EOF'
+{
+  &quot;inbounds&quot;: [
+    {
+      &quot;port&quot;: 12345,
+      &quot;listen&quot;:&quot;0.0.0.0&quot;,
+      &quot;protocol&quot;: &quot;vmess&quot;,
+      &quot;settings&quot;: {
+        &quot;clients&quot;: [
+          {
+            &quot;id&quot;: &quot;6f5fcf5d-05aa-4ec5-8bca-8dc573116df4&quot;,
+            &quot;alterId&quot;: 73
+          }
+        ]
+      },
+      &quot;streamSettings&quot;: {
+        &quot;network&quot;: &quot;ws&quot;,
+        &quot;wsSettings&quot;: {
+        &quot;path&quot;: &quot;/4G4B18k/&quot;
+        }
+      }
+    }
+  ],
+  &quot;outbounds&quot;: [
+    {
+      &quot;protocol&quot;: &quot;freedom&quot;,
+      &quot;settings&quot;: {}
+    }
+  ]
+}
+EOF
+</code></pre>
+<pre><code class="language-bash">/etc/init.d/v2ray restart
+</code></pre>
+<h3 id="七-nginx配置">七、nginx配置</h3>
+<pre><code class="language-bash">mkdir /data/nginx/{conf.d,ssl,www}  -p
+</code></pre>
+<p><strong>目录结构</strong></p>
+<pre><code class="language-bash">[root@openvpn conf.d]# tree -C /data/nginx/
+/data/nginx/
+├── conf.d
+│   └── bilibili.jd.com.conf
+├── ssl
+│   ├── bilibili.jd.com.crt
+│   └── bilibili.jd.com.key
+└── www
+    ├── CSS3DRenderer.html
+    └── index.html
+
+3 directories, 5 files
+</code></pre>
+<p><strong>nginx配置</strong></p>
+<p>proxy_pass那里还没经过测试，不行的话就用IP吧。<strong>注意：域名，证书，location的path</strong></p>
+<pre><code class="language-nginx">[root@openvpn conf.d]# cat bilibili.jd.com.conf 
+server {
+  listen  443 ssl;
+  server_name bilibili.jd.com;
+  root /var/www;
+  index index.html;
+  ssl_certificate       /etc/nginx/ssl/bilibili.jd.com.crt;
+  ssl_certificate_key   /etc/nginx/ssl/bilibili.jd.com.key;
+  ssl_protocols         TLSv1 TLSv1.1 TLSv1.2;
+  ssl_ciphers           HIGH:!aNULL:!MD5;
+        location /4G4B18k/ {
+        proxy_redirect off;
+        proxy_pass http://vmess:12345;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection &quot;upgrade&quot;;
+        proxy_set_header Host $http_host;
+
+        # Show realip in v2ray access.log
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+}
+</code></pre>
+<p><strong>启动nginx</strong></p>
+<pre><code class="language-bash">docker run -d --name nginx -p 443:443 -v /data/nginx/conf.d:/etc/nginx/conf.d -v /data/nginx/ssl:/etc/nginx/ssl -v /data/nginx/www:/var/www --link vmess  nginx:alpine
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/eNj_Qx9RXP/" class="tag">
+                    web
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/0tPsmegXQ/">
+                  <h3 class="post-title">
+                     JS实现网站内容的禁止复制和粘贴、另存为
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

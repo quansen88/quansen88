@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> 20191017编译安装php+apache环境 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="编译安装php+apache环境
+注意事项：
+1、主要是配合apache的，所以刚开始创建了apache用户
+
+脚本
+#!/bin/bash
+RED=&quot;\033[0;31m&quot;
+GREEN=&quot;\033[0;32m..." />
+    <meta name="keywords" content="php,apache" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> 20191017编译安装php+apache环境</h2>
+            <div class="post-date">2021-04-28</div>
+            
+              <div class="feature-container" style="background-image: url('http://httpd.apache.org/images/httpd_logo_wide_new.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="编译安装phpapache环境">编译安装php+apache环境</h1>
+<h3 id="注意事项">注意事项：</h3>
+<pre><code class="language-bash">1、主要是配合apache的，所以刚开始创建了apache用户
+</code></pre>
+<h3 id="脚本">脚本</h3>
+<pre><code class="language-bash">#!/bin/bash
+RED=&quot;\033[0;31m&quot;
+GREEN=&quot;\033[0;32m&quot;
+NO_COLOR=&quot;\033[0m&quot;
+PREFIX=/usr/local/php	#这个还是别改了，好多地方要改
+SYSCONFDIR=
+SRC=/usr/src
+FLAG=$1
+CPUS=`cat /proc/cpuinfo| grep &quot;physical id&quot;| sort| uniq| wc -l`
+CORE=`cat /proc/cpuinfo| grep &quot;cpu cores&quot;| uniq | awk '{print $4}'`
+J=$((${CPUS}*${CORE}))
+FILEURL='http://ftp.ntu.edu.tw/pub/php/distributions/php-7.3.10.tar.gz'
+
+# 判断是不是root
+judge_root() {
+    [ $(id -u) != &quot;0&quot; ] &amp;&amp; { echo -e &quot;${RED}Error:${NO_COLOR} You must be root to run this script.&quot;; exit 1; }   
+}
+
+# download 
+download_source() {
+    cd
+    yum install wget -y
+    wget ${FILEURL}
+    if [ ! &quot;$?&quot; -eq 0 ];then
+        echo &quot;download failed!&quot;
+        exit 1
+    fi
+}
+
+# install
+
+install(){
+    # Add the &quot;apache&quot; group and user,需要的话改为nginx
+    /usr/sbin/groupadd -g 48 -r apache 2&gt; /dev/null || :
+    /usr/sbin/useradd -c &quot;Apache&quot; -u 48 -g apache \
+	-s /sbin/nologin -r -d /usr/share/httpd apache 2&gt; /dev/null || : 
+    # epel
+    wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+    yum install gcc openssl-devel pcre-devel libnghttp2-devel ncurses-devel  lbzip2  bzip2 expat-devel libxml2-devel libxml2  autoconf libtool -y
+    tar xf php-7.3.10.tar.gz -C ${SRC}/
+    cd ${SRC}/php-7.3.10/
+    ./configure --prefix=/usr/local/php --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-openssl --with-freetype-dir --with-jpeg-dir --with-png-dir --with-zlib --with-config-file-path=/usr/loca/php/etc --with-config-file-scan-dir=/usr/local/php/etc/php.d --enable-mbstring --enable-xml --enable-sockets --enable-fpm --enable-maintainer-zts --disable-fileinfo
+    make -j ${J}
+    make install
+    # config
+    cd ${PREFIX}/etc/
+    cp php-fpm.conf.default php-fpm.conf
+    cd ${PREFIX}/etc/php-fpm.d
+    cp www.conf.default www.conf
+    # init file
+    cp ${SRC}/php-7.3.10/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
+    chmod +x /etc/init.d/php-fpm
+    # modify config file
+    sed -i 's@user = nobody@user = apache@' ${PREFIX}/etc/php-fpm.d/www.conf
+    sed -i 's@group = nobody@group = apache@' ${PREFIX}/etc/php-fpm.d/www.conf
+    sed -i 's@listen = 127.0.0.1:9000@listen = /var/run/php-fpm.sock@' ${PREFIX}/etc/php-fpm.d/www.conf
+    sed -i 's@;listen.mode = 0660@listen.mode = 0666@' ${PREFIX}/etc/php-fpm.d/www.conf
+    #reload
+    systemctl daemon-reload   
+}
+
+test_php(){
+    systemctl start php-fpm
+    sleep 3
+    if  ps -ef |  grep php-fpm | grep -v grep;then
+        echo -e &quot;${GREEN}Maybe php installed successfully...${NO_COLOR}&quot;
+    else
+        echo -e &quot;${RED}Maybe php installed failed...${NO_COLOR}&quot;
+    fi
+}
+
+remove_php() {
+    systemctl stop php-fpm
+    sleep 3
+    if  ps -ef |  grep php-fpm | grep -v grep;then
+        echo -e &quot;${RED}Php uninstall failed...Killing php process failed...${NO_COLOR}&quot;
+        exit 2
+    fi
+    rm -rf ${PREFIX}  ${SRC}/php-7.3.10 /etc/init.d/php-fpm
+}
+
+judge_uninstall(){
+if [ &quot;$FLAG&quot; = &quot;uninstall&quot; ];then
+    remove_php
+    exit 0
+fi
+}
+
+main() {
+    judge_uninstall
+    judge_root
+    download_source
+    install
+    test_php   
+}
+
+main
+</code></pre>
+<h3 id="编译安装httpd">编译安装httpd</h3>
+<pre><code class="language-bash">#!/bin/bash
+#**************************************************************
+#Author:                     哈啰
+#QQ:                         xxxxxxxxx
+#Date:                       2019-08-08
+#FileName:                   install_httpd.sh
+#URL:                        https://blog.51cto.com/14012942
+#Description:                The test script
+#Copyright (C):              2019 Copyright ©  站点名称  版权所有
+#************************************************************
+#set -e
+RED=&quot;\033[0;31m&quot;
+GREEN=&quot;\033[0;32m&quot;
+NO_COLOR=&quot;\033[0m&quot;
+PREFIX=/usr/local/httpd2.4.41
+SYSCONFDIR=/etc/httpd
+SRC=/usr/src
+FLAG=$1
+CPUS=`cat /proc/cpuinfo| grep &quot;physical id&quot;| sort| uniq| wc -l`
+CORE=`cat /proc/cpuinfo| grep &quot;cpu cores&quot;| uniq | awk '{print $4}'`
+J=$((${CPUS}*${CORE}))
+FILEURL='https://ftp.bit.nl/apache/httpd-2.4.41.tar.gz https://archive.apache.org/dist/apr/apr-1.7.0.tar.gz https://archive.apache.org/dist/apr/apr-util-1.6.1.tar.gz'
+
+# 判断是不是root
+judge_root() {
+    [ $(id -u) != &quot;0&quot; ] &amp;&amp; { echo -e &quot;${RED}Error:${NO_COLOR} You must be root to run this script.&quot;; exit 1; }   
+}
+
+# download 
+download_source() {
+    cd
+    yum install wget -y
+    for i in ${FILEURL};do
+    {
+        wget ${i}
+        if [ ! &quot;$?&quot; -eq 0 ];then
+            echo &quot;download failed!&quot;
+            exit 1
+        fi
+    }
+    done
+}
+
+# install
+install() {
+    # Add the &quot;apache&quot; group and user
+    /usr/sbin/groupadd -g 48 -r apache 2&gt; /dev/null || :
+    /usr/sbin/useradd -c &quot;Apache&quot; -u 48 -g apache \
+	-s /sbin/nologin -r -d /usr/share/httpd apache 2&gt; /dev/null || : 
+    wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+    yum install gcc openssl-devel pcre-devel libnghttp2-devel ncurses-devel  lbzip2  bzip2 expat-devel autoconf libtool -y
+    tar xf httpd-2.4.41.tar.gz -C ${SRC}/
+    #apr这个解压到srclib目录即可,官方文档说的很明白了,如下
+    #if you   need to use the APR and APR-Util from the apr.apache.org  project. If the latter, download the latest versions and unpack them to ./srclib/apr and ./srclib/apr-util (no  version numbers in the directory names) and use  ./configure's --with-included-apr option
+    tar xf  apr-util-1.6.1.tar.gz -C /usr/src/httpd-2.4.41/srclib/
+    tar xf apr-1.7.0.tar.gz -C /usr/src/httpd-2.4.41/srclib/
+    mv /usr/src/httpd-2.4.41/srclib/apr-util-1.6.1 /usr/src/httpd-2.4.41/srclib/apr-util
+    mv /usr/src/httpd-2.4.41/srclib/apr-1.7.0  /usr/src/httpd-2.4.41/srclib/apr
+    cd ${SRC}/httpd-2.4.41
+    ./configure \
+    --prefix=${PREFIX} \
+    --sysconfdir=${SYSCONFDIR} \
+    --enable-http2 \
+    --enable-ssl \
+    --enable-so \
+    --enable-cgi \
+    --enable-rewrite \
+    --with-zlib \
+    --with-pcre \
+    --with-included-apr \
+    --enable-modules=most \
+    --enable-mpms-shared=all \
+    --with-mpm=prefork 
+    make -j ${J}
+    make install
+    # 使用system启动就不要path变量了,不，还得要
+    echo &quot;PATH=${PREFIX}/bin:$PATH&quot; &gt;&gt; /etc/profile.d/env.sh
+    # source /etc/profile.d/env.sh
+    cat &gt; /usr/lib/systemd/system/httpd.service &lt;&lt;EOF
+[Unit]
+Description=The Apache HTTP Server
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=simple
+EnvironmentFile=${SYSCONFDIR}/httpd.conf
+ExecStart=${PREFIX}/bin/apachectl -k start  -DFOREGROUND
+ExecReload=${PREFIX}/bin/apachectl  -k graceful
+ExecStop=/usr/bin/kill -WINCH ${MAINPID}
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+    
+EOF
+    #修改apache启动的用户
+    sed  '/^Group/ s/daemon/apache/' /etc/httpd/httpd.conf  -i
+    sed  '/^User/ s/daemon/apache/' /etc/httpd/httpd.conf  -i
+    #加载一下
+    systemctl daemon-reload
+}
+
+# test_web
+test_web() {
+    #防止启动太慢，后续可以改
+    sed  '/#ServerName www.example.com/a ServerName www.example.com:80' ${SYSCONFDIR}/httpd.conf -i
+    # apachectl start
+    systemctl start httpd
+    ss -ltn | grep -q :80
+    [ &quot;$?&quot; -eq 0 ] &amp;&amp; echo -e &quot;${GREEN}May be web server is ok! \n If not ok,please check selinux and firewalld status.${NO_COLOR}&quot; || \
+        echo -e &quot;${RED}ERROR,Please check the web server.${NO_COLOR}&quot;
+}
+
+remove_httpd() {
+    # source /etc/profile.d/env.sh
+    # apachectl stop
+    systemctl stop httpd
+    rm -rf ${PREFIX} ${SYSCONFDIR} ${SRC}/httpd-2.4.41 /usr/lib/systemd/system/httpd.service 
+    sed -i '/^PATH/d' /etc/profile.d/env.sh
+}
+
+judge_uninstall(){
+if [ &quot;$FLAG&quot; = &quot;uninstall&quot; ];then
+    remove_httpd
+    exit 0
+fi
+}
+
+
+main() {
+    judge_uninstall
+    judge_root
+    download_source
+    install
+    test_web
+}
+
+main
+</code></pre>
+<h3 id="测试">测试</h3>
+<pre><code class="language-bash">cat &gt;&gt; /etc/httpd/httpd.conf &lt;&lt;'EOF'
+LoadModule proxy_module modules/mod_proxy.so
+LoadModule proxy_fcgi_module modules/mod_proxy_fcgi.so
+LoadModule proxy_fdpass_module modules/mod_proxy_fdpass.so
+ProxyRequests Off
+ProxyPassMatch ^/(.*\.php)$ unix:/var/run/php-fpm.sock|fcgi://localhost/var/www/html
+EOF
+
+sed  's/DirectoryIndex index.html/DirectoryIndex index.php index.html/' /etc/httpd/httpd.conf -i
+
+sed -r 's@/usr/local/httpd2.4.41/htdocs@/var/www/html@' /etc/httpd/httpd.conf -i
+
+mkdir /var/www/html -p
+cat &gt; /var/www/html/index.php &lt;&lt;EOF
+&lt;?
+    phpinfo();
+?&gt;
+EOF
+
+httpd -t 
+systemctl restart httpd
+</code></pre>
+<h3 id="卸载">卸载</h3>
+<pre><code class="language-bash">[root@node1 ~]# bash php-7.3.10.sh uninstall
+[root@node1 ~]# bash httpd.sh uninstall
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/Ia5w99vjh/" class="tag">
+                    php
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/4_zBWUFYwv/" class="tag">
+                    apache
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191016-yi-jian-bian-yi-an-zhuang-he-xie-zai-httpd-2441/">
+                  <h3 class="post-title">
+                    20191016一键编译安装和卸载httpd-2.4.41
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

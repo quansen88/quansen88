@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191027bash特性：cat的重定向问题 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="bash特性：cat的重定向问题
+参考：https://blog.csdn.net/networken/article/details/80564824
+参考：https://blog.csdn.net/networken/article/..." />
+    <meta name="keywords" content="bash,cat,命令" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191027bash特性：cat的重定向问题</h2>
+            <div class="post-date">2021-04-28</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="bash特性cat的重定向问题">bash特性：cat的重定向问题</h1>
+<p>参考：https://blog.csdn.net/networken/article/details/80564824</p>
+<p>参考：https://blog.csdn.net/networken/article/details/80564824</p>
+<h3 id="一-cat-testsh-eof">一、<code>cat &gt; ./test.sh &lt;&lt;EOF</code></h3>
+<p><strong>这种写法是常用的写法</strong></p>
+<h3 id="二-cat-testsh-eof或者cat-testsh-eof">二、<code>cat &gt; ./test.sh &lt;&lt;'EOF'</code>或者<code>cat &gt; ./test.sh &lt;&lt;&quot;EOF&quot;</code></h3>
+<p>当重定向的内容中有<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">符</mi><mi mathvariant="normal">号</mi><mi mathvariant="normal">时</mi><mi mathvariant="normal">，</mi><mi mathvariant="normal">要</mi><mi mathvariant="normal">把</mi></mrow><annotation encoding="application/x-tex">符号时，要把</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0em;vertical-align:0em;"></span><span class="mord cjk_fallback">符</span><span class="mord cjk_fallback">号</span><span class="mord cjk_fallback">时</span><span class="mord cjk_fallback">，</span><span class="mord cjk_fallback">要</span><span class="mord cjk_fallback">把</span></span></span></span>符号重定向到文件中，就要对EOF加引号，或者使用反斜杠（\）转义，但反斜杠不美观</p>
+<pre><code class="language-bash"> 
+</code></pre>
+<h3 id="三-eof">三、<code>&lt;&lt;-EOF</code></h3>
+<pre><code class="language-bash">If the redirection operator is &lt;&lt;-, then all leading tab characters are stripped from input  lines  and  the  line  containing  delimiter.This  allows  here-documents within shell scripts to be indented in a natural fashion.
+</code></pre>
+<p><strong>官方文档的说明可能比较模糊，但是你一定在某些脚本中看过这样的写法：</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191027184602.png" alt="" loading="lazy"></figure>
+<p><code>&lt;&lt;-EOF</code>可以让重定向的内容加上缩进让脚本更美观，并且tab缩进不写入文件</p>
+<pre><code class="language-bash">[root@node1 ~]# cat 1.sh 
+cat &gt; ./httpd.service &lt;&lt;-EOF
+	[Unit]
+	Description=The Apache HTTP Server
+	After=network.target remote-fs.target nss-lookup.target
+	
+	[Service]
+	Type=simple
+	EnvironmentFile=${SYSCONFDIR}/httpd.conf
+	ExecStart=${PREFIX}/bin/apachectl -k start  -DFOREGROUND
+	ExecReload=${PREFIX}/bin/apachectl  -k graceful
+	ExecStop=/usr/bin/kill -WINCH ${MAINPID}PrivateTmp=true[Install]
+	WantedBy=multi-user.target
+EOF
+[root@node1 ~]# bash 1.sh 
+[root@node1 ~]# cat httpd.service 
+[Unit]
+Description=The Apache HTTP Server
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=simple
+EnvironmentFile=/httpd.conf
+ExecStart=/bin/apachectl -k start  -DFOREGROUND
+ExecReload=/bin/apachectl  -k graceful
+ExecStop=/usr/bin/kill -WINCH PrivateTmp=true[Install]
+WantedBy=multi-user.target
+</code></pre>
+<p><strong>看起来美观，其实还是挺累的...</strong></p>
+<h3 id="四-cat-eof-bash直接将eof输出传递给命令"><strong>四、<code>cat &lt;&lt;EOF | bash</code>直接将EOF输出传递给命令</strong></h3>
+<pre><code class="language-bash">[root@node1 ~]# cat &lt;&lt;EOF | bash
+&gt; date
+&gt; ls
+&gt; pwd
+&gt; EOF
+Sat Oct 26 14:22:00 CST 2019
+1.sh		 httpd.service	oneinstack-full.tar.gz	reset.sh		 Sakura_frpc_linux_amd64.tar.gz
+anaconda-ks.cfg  oneinstack	original-ks.cfg		Sakura_frpc_linux_amd64  test.sh
+/root
+</code></pre>
+<h2 id="其他的一些bash特性">其他的一些bash特性</h2>
+<h3 id="一-nginx-v-grep-echo">一、<code>nginx -V |&amp; grep echo</code></h3>
+<p><strong>nginx -V的输出不是标准输出，所以nginx -V | grep echo无效，使用|&amp;可以对标准错误标准输出一起操作</strong></p>
+<pre><code class="language-bash">         [time [-p]] [ ! ] command [ [|⎪|&amp;] command2 ... ]
+ If |&amp; is  used,  the   standard  error  of  command is connected to command2's standard input through the pipe;it is shorthand for     2&gt;&amp;1 |.
+</code></pre>
+<h3 id="二-管道的返回值是最后一个命令的退出状态除非启用了pipefail">二、管道的返回值是最后一个命令的退出状态，除非启用了pipefail</h3>
+<pre><code class="language-bash">The  return  status  of  a  pipeline  is  the exit status of the last command, unless the pipefail option is   enabled.  If pipefail is enabled, the pipeline's return status is the value of the last (rightmost)  command to exit with a non-zero status, or zero if all commands exit successfully.  If the reserved word !  precedes a pipeline, the exit status of that pipeline is the logical negation of the exit status as described  above.
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/8daPbVvzt/" class="tag">
+                    bash
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/_0uM_W-sxq/" class="tag">
+                    cat
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/rSMhbg3ymJ/" class="tag">
+                    命令
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191025-tong-bu-yu-yi-bu-zu-sai-yu-fei-zu-sai-de-qu-bie/">
+                  <h3 class="post-title">
+                    20191025同步与异步，阻塞与非阻塞的区别
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

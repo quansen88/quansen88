@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190909优盘全自动安装CentOS7 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="优盘全自动安装CentOS7
+https://blog.csdn.net/q919683527/article/details/78011988
+https://blog.csdn.net/gui951753/article/details..." />
+    <meta name="keywords" content="centos" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190909优盘全自动安装CentOS7</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://assets.ubuntu.com/v1/89451f56-centos.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="优盘全自动安装centos7">优盘全自动安装CentOS7</h1>
+<p>https://blog.csdn.net/q919683527/article/details/78011988</p>
+<p>https://blog.csdn.net/gui951753/article/details/81461728</p>
+<p>https://blog.csdn.net/Eumenides_s/article/details/78040687</p>
+<p>参考：</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1568010285876.png" alt="1568010285876" loading="lazy"></figure>
+<h4 id="该脚本是可用的测试过">该脚本是可用的，测试过。。。</h4>
+<pre><code class="language-bash">[root@localhost ~]# cat U_auto_install_CentOS7_1.2.sh 
+#!/bin/bash
+StandardOutput() {
+    echo -e &quot;\033[32m$1 ... \033[0m&quot;
+}
+ErrorOutput() {
+    echo -e &quot;\033[31m$1!\033[0m&quot;
+}
+
+
+
+
+mkdir /mycdrom/CentOS7.6-mini/ -p
+#mount /dev/cdrom /mnt
+mkdir /data/iso -p
+cd /data/iso
+yum install wget -y
+wget https://mirrors.huaweicloud.com/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1810.iso
+mount /data/iso/CentOS-7-x86_64-Minimal-1810.iso /mnt
+StandardOutput &quot;复制镜像&quot;
+cp -a /mnt/* /mycdrom/CentOS7.6-mini/
+cp /mnt/{.treeinfo,.discinfo} .
+StandardOutput &quot;镜像复制完成&quot;
+
+cd  /mycdrom/CentOS7.6-mini/
+find -name TRANS.TBL -delete
+cp /mnt/repodata/*x86_64*.xml /mycdrom/CentOS7.6-mini/repodata/
+yum install createrepo -y -q
+createrepo -g /mycdrom/CentOS7.6-mini/repodata/83b61f9495b5f728989499479e928e09851199a8846ea37ce008a3eb79ad84a0-c7-minimal-x86_64-comps.xml /mycdrom/CentOS7.6-mini/
+mkdir kickstart
+cd  /mycdrom/CentOS7.6-mini/kickstart
+
+StandardOutput &quot;生成ks文件&quot;
+cat &gt; ks_CentOS7_mini.cfg &lt;&lt;'END'
+install
+keyboard 'us'
+rootpw --iscrypted $1$RCSqcPtD$v9HF8RPk2V0KkTOYhr5Wm1
+#url --url=&quot;http://mirrors.huaweicloud.com/centos/7/os/x86_64/&quot;
+cdrom
+lang en_US
+auth  --useshadow  --passalgo=sha512
+text
+firstboot --disable
+selinux --disabled
+firewall --disabled
+network  --bootproto=dhcp --device=eth0
+reboot
+timezone Asia/Shanghai
+bootloader --append=&quot;net.ifnames=0&quot; --location=mbr
+zerombr
+clearpart --all --initlabel
+part /boot --fstype=&quot;xfs&quot; --size=512
+part swap --fstype=&quot;swap&quot; --size=2048
+part / --fstype=&quot;xfs&quot; --size=102400
+%post
+sed '/^GSSAPIAuthentication/d' /etc/ssh/sshd_config -i
+sed '/^UseDNS/d' /etc/ssh/sshd_config -i
+echo &quot;GSSAPIAuthentication no&quot; &gt;&gt; /etc/ssh/sshd_config
+echo &quot;UseDNS no&quot; &gt;&gt; /etc/ssh/sshd_config
+ln -sf  /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+mkdir /root/.ssh
+cd /root/.ssh
+cat &gt; authorized_keys &lt;&lt;EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEArAgRomkl40uKp+Dz13prEbBf31cJGqVMqSir/zaxMyTZyTjd3BJc5qokWi6mBBsJ0TPEbciFAbnroy1BX/qsfSLWLAdzipp+3wsubx6gSkedT5s1G+xAOUUFoUiQMuwYwIjbAo8c+HKfDPHpzRVZ1d2vp0MbZjw6m87KftKUQvs=
+EOF
+chmod 700 /root/.ssh
+chmod 600 /root/.ssh/authorized_keys
+rm -f /etc/yum.repos.d/*
+cat &gt;&gt;/etc/yum.repos.d/my.repo&lt;&lt;eof
+[base]
+name=ali
+baseurl=http://mirrors.sohu.com/centos/7/os/x86_64/
+gpgcheck=0
+enable=1
+[epel]
+name=epel
+baseurl=http://mirrors.aliyun.com/epel/7Server/x86_64/
+enable=1
+gpgcheck=0
+eof
+%end
+%packages
+%end
+END
+
+
+
+StandardOutput &quot;生成isolinux.cfg&quot;
+#vim /mycdrom/CentOS7.6-mini/isolinux/isolinux.cfg
+cat &gt; /mycdrom/CentOS7.6-mini/isolinux/isolinux.cfg &lt;&lt;'PPP'
+default vesamenu.c32
+timeout 600
+display boot.msg
+menu clear
+menu background splash.png
+menu title CentOS 7
+menu vshift 8
+menu rows 18
+menu margin 8
+menu helpmsgrow 15
+menu tabmsgrow 13
+menu color border * #00000000 #00000000 none
+menu color sel 0 #ffffffff #00000000 none
+menu color title 0 #ff7ba3d0 #00000000 none
+menu color tabmsg 0 #ff3a6496 #00000000 none
+menu color unsel 0 #84b8ffff #00000000 none
+menu color hotsel 0 #84b8ffff #00000000 none
+menu color hotkey 0 #ffffffff #00000000 none
+menu color help 0 #ffffffff #00000000 none
+menu color scrollbar 0 #ffffffff #ff355594 none
+menu color timeout 0 #ffffffff #00000000 none
+menu color timeout_msg 0 #ffffffff #00000000 none
+menu color cmdmark 0 #84b8ffff #00000000 none
+menu color cmdline 0 #ffffffff #00000000 none
+
+label linux
+  menu label ^Install CentOS 7
+  kernel vmlinuz
+  append initrd=initrd.img ks=cdrom:/kickstart/ks_CentOS7_mini.cfg
+
+label local
+  menu label Boot from ^local drive
+  menu default
+  localboot 0xffff
+PPP
+sleep 1
+
+StandardOutput &quot;镜像制作&quot;
+cd
+yum install genisoimage -y -q
+mkisofs -R -J -T -v --no-emul-boot --boot-load-size 4 --boot-info-table -V &quot;CentOS 7.6 autoinstall&quot; -b isolinux/isolinux.bin -c isolinux/boot.cat -o /root/centos7.6_autoinstall.iso /mycdrom/CentOS7.6-mini/
+</code></pre>
+<p>光盘可以刻录到优盘或创建虚拟机</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/WsfqvhG9O/" class="tag">
+                    centos
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190909dns-shi-yan-yi-da-jian-yi-ge-jian-dan-de-dns-fu-wu-qi/">
+                  <h3 class="post-title">
+                    20190909DNS实验一：搭建一个简单的DNS服务器
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

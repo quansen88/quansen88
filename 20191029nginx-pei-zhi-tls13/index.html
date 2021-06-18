@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191029nginx配置TLS1.3 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="nginx配置TLS1.3
+重新编译nginx结合最新的openssl
+[root@node1 tmp]# wget https://github.com/openssl/openssl/archive/OpenSSL_1_1_1d.tar..." />
+    <meta name="keywords" content="nginx,openssl" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191029nginx配置TLS1.3</h2>
+            <div class="post-date">2021-04-29</div>
+            
+              <div class="feature-container" style="background-image: url('https://nginx.org/nginx.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="nginx配置tls13">nginx配置TLS1.3</h1>
+<h1 id="重新编译nginx结合最新的openssl">重新编译nginx结合最新的openssl</h1>
+<pre><code class="language-bash">[root@node1 tmp]# wget https://github.com/openssl/openssl/archive/OpenSSL_1_1_1d.tar.gz
+[root@node1 tmp]# tar xf OpenSSL_1_1_1d.tar.gz -C /usr/local/src/
+</code></pre>
+<pre><code class="language-bash">[root@node1 ~]# tar xf nginx-1.17.5.tar.gz -C /usr/local/src/
+[root@node1 ~]# cd /usr/local/src/nginx-1.17.5/
+[root@node1 nginx-1.17.5]# ./configure --help | grep openssl
+  --with-openssl=DIR                 set path to OpenSSL library sources
+  --with-openssl-opt=OPTIONS         set additional build options for OpenSSL
+[root@node1 nginx-1.17.5]# ./configure --prefix=/apps/nginx --user=nginx --group=nginx --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_stub_status_module --with-http_gzip_static_module --with-pcre --with-stream --with-stream_ssl_module --with-stream_realip_module --with-debug --add-module=/root/echo-nginx-module --with-openssl=/usr/local/src/openssl-OpenSSL_1_1_1d/
+[root@node1 nginx-1.17.5]# make -j 4
+[root@node1 nginx-1.17.5]# make install
+</code></pre>
+<pre><code class="language-bash">[root@node1 nginx-1.17.5]# /apps/nginx/sbin/nginx -V
+nginx version: nginx/1.17.5
+built by gcc 4.8.5 20150623 (Red Hat 4.8.5-39) (GCC) 
+built with OpenSSL 1.1.1d  10 Sep 2019
+TLS SNI support enabled
+configure arguments: --prefix=/apps/nginx --user=nginx --group=nginx --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_stub_status_module --with-http_gzip_static_module --with-pcre --with-stream --with-stream_ssl_module --with-stream_realip_module --with-debug --add-module=/root/echo-nginx-module --with-openssl=/usr/local/src/openssl-OpenSSL_1_1_1d/
+</code></pre>
+<p><strong><code>[root@node1 conf.d]# cat /apps/nginx/conf.d/ssl.conf</code></strong></p>
+<pre><code class="language-nginx">server {
+    listen 443 ssl;
+    server_name www.uscwifi.cn;
+    root /var/www/html;
+    index index.html;
+    ssl_certificate /apps/nginx/ssl/www.uscwifi.cn.crt;
+    ssl_certificate_key /apps/nginx/ssl/www.uscwifi.cn.key;
+    ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2 TLSv1.3;
+    ssl_ciphers ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP;
+    ssl_prefer_server_ciphers on;
+}
+</code></pre>
+<p><strong>访问效果：</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191029104340.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/ycg_qQA4v/" class="tag">
+                    nginx
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191028ngx_http_fastcgi_module-de-na-xie-shi/">
+                  <h3 class="post-title">
+                    20191028ngx_http_fastcgi_module 的那些事
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

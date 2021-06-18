@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190924数据库性能测试：sysbench用法详解 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="数据库性能测试：sysbench用法详解
+完全参考：https://www.cnblogs.com/f-ck-need-u/p/9279703.html
+1.简介和安装
+sysbench是一个很不错的数据库性能测试工具。
+官方站点：http..." />
+    <meta name="keywords" content="sysbench,mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190924数据库性能测试：sysbench用法详解</h2>
+            <div class="post-date">2021-04-26</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="数据库性能测试sysbench用法详解">数据库性能测试：sysbench用法详解</h1>
+<p>完全参考：https://www.cnblogs.com/f-ck-need-u/p/9279703.html</p>
+<h3 id="1简介和安装">1.简介和安装</h3>
+<p>sysbench是一个很不错的数据库性能测试工具。</p>
+<p>官方站点：https://github.com/akopytov/sysbench/</p>
+<p>rpm包下载：https://packagecloud.io/akopytov/sysbench/packages/el/7/sysbench-1.0.15-1.el7.centos.x86_64.rpm</p>
+<p>源码包下载：https://github.com/akopytov/sysbench/archive/1.0.17.zip</p>
+<p>如果是编译安装，需要先安装好mysql的开发包(尽管编译错误时提示的是缺少Mysql库文件)。</p>
+<pre><code class="language-bash">yum -y install mysql-community-devel
+
+tar xf 1.0.15.tar.gz
+cd sysbench-1.0.15
+./autogen.sh
+./configure
+make -j
+make install
+</code></pre>
+<p><strong>本次使用yum安装</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# curl -s https://packagecloud.io/install/repositories/akopytov/sysbench/script.rpm.sh | sudo bash
+[root@localhost ~]# yum install sysbench -y
+</code></pre>
+<pre><code class="language-bash">[root@localhost ~]# rpm -ql sysbench
+/usr/bin/sysbench
+......
+</code></pre>
+<h3 id="2sysbench使用方法">2.sysbench使用方法</h3>
+<p>以下列出了sysbench对测试mysql时常用的选项。</p>
+<pre><code class="language-bash">[root@xuexi ~]# sysbench --help
+Usage:
+  sysbench [options]... [test_lua] [lua_options] [command]
+
+Commands implemented by most tests: prepare run cleanup help
+
+通用选项：以下中括号中的值表示默认值
+  --threads=N                     指定线程数[1]
+  --events=N                      限制最大请求数，0表示不限制[0]
+  --time=N                        限制最长执行时间，0表示不限制[10]
+                    --events和--time二者选一即可
+  --forced-shutdown=STRING        达到最长执行时间后还需等待多久关闭sysbench
+                                  off表示禁用该功能[off]
+  --thread-stack-size=SIZE        每个线程使用的栈空间大小[64K]
+  --rate=N                        平均事务处理速率，0表示不限制[0]
+  --report-interval=N             每隔几秒报告一次结果，0表示禁用间隔报告[0]
+  --config-file=FILENAME          从文件中读取命令行选项
+  --tx-rate=N                     已废弃，是--rate的别名[0]
+  --max-requests=N                已废弃，是--events的别名[0]
+  --max-time=N                    已废弃，是--time的别名[0]
+  --num-threads=N                 已废弃，是--threads的别名[1]
+  --db-ps-mode=STRING             是否使用prepare模式的语句 {auto, disable} [auto]
+
+mysql相关选项：
+  --mysql-host=[LIST,...]          MySQL server host [localhost]
+  --mysql-port=[LIST,...]          MySQL server port [3306]
+  --mysql-socket=[LIST,...]        MySQL socket
+  --mysql-user=STRING              MySQL user [sbtest]
+  --mysql-password=STRING          MySQL password []
+  --mysql-db=STRING                MySQL database name [sbtest]
+  --mysql-ignore-errors=[LIST,...] 要忽略的错误代码，值可为&quot;all&quot; [1213,1020,1205]
+
+Compiled-in tests:
+  fileio - File I/O test
+  cpu - CPU performance test
+  memory - Memory functions speed test
+  threads - Threads subsystem performance test
+  mutex - Mutex performance test
+其中，command部分有4类：prepare run cleanup和help：
+
+prepare：准备数据的命令。例如，在sysbench压力测试之前，需要先准备好测试库、测试表以及测试表中的数据。具体用法见后文。
+run：表示进行压力测试。
+cleanup：清除测试时产生的数据。
+help：输出给定lua脚本的帮助信息。
+test_lua是想要使用的lua脚本，如果是rpm包安装的sysbench，则这些脚本都是/usr/share/sysbench目录下。对于一般的数据库测试，只需使用和oltp有关的lua脚本就足够。
+
+options和lua_options是不同的，options是sysbench的选项，lua_options是lua脚本的选项，lua_options应该要放在test_lua的后面(非必需，但建议)。
+
+例如，要查看oltp_common.lua的用法，可以：
+</code></pre>
+<pre><code class="language-bash">sysbench /usr/share/sysbench/oltp_common.lua help
+</code></pre>
+<h3 id="3准备测试数据">3.准备测试数据</h3>
+<p>首先创建sysbench所需数据库<code>sbtest</code>(这是sysbench默认使用的库名，必须创建测试库)。</p>
+<pre><code class="language-bash">[root@localhost ~]# mysqladmin -uroot -p123456 -S /data/mysql/3308/sock/mysql.sock create sbtest;
+</code></pre>
+<p>然后，准备测试所用的表，这些测试表放在测试库sbtest中。这里使用的lua脚本为<code>/usr/share/sysbench/oltp_common.lua</code>。</p>
+<pre><code>[root@localhost ~]# sysbench --mysql-host=127.0.0.1 \
+--mysql-port=3308 \
+--mysql-user=root \
+--mysql-password=123456 \
+--mysql-socket=/data/mysql/3308/sock/mysql.sock \
+/usr/share/sysbench/oltp_common.lua \
+--tables=10 \
+--table_size=100000 \
+prepare
+
+</code></pre>
+<p>其中<code>--tables=10</code>表示创建10个测试表，<code>--table_size=100000</code>表示每个表中插入10W行数据，<code>prepare</code>表示这是准备数的过程。</p>
+<pre><code>mysql&gt; show tables;
++------------------+
+| Tables_in_sbtest |
++------------------+
+| sbtest1          |
+| sbtest10         |
+| sbtest2          |
+| sbtest3          |
+| sbtest4          |
+| sbtest5          |
+| sbtest6          |
+| sbtest7          |
+| sbtest8          |
+| sbtest9          |
++------------------+
+10 rows in set (0.01 sec)
+
+mysql&gt; select count(*) from sbtest9;
++----------+
+| count(*) |
++----------+
+|   100000 |
++----------+
+</code></pre>
+<p>如果想要清除这10个表，可使用cleanup命令。</p>
+<pre><code>[root@localhost ~]# sysbench --mysql-host=127.0.0.1 \
+--mysql-port=3308 \
+--mysql-user=root \
+--mysql-password=123456 \
+--mysql-socket=/data/mysql/3308/sock/mysql.sock \
+/usr/share/sysbench/oltp_common.lua \
+--tables=10 \
+--table_size=100000 \
+prepare
+cleanup
+</code></pre>
+<h3 id="4数据库测试和结果分析">4.数据库测试和结果分析</h3>
+<p>稍微修改下之前准备数据的语句，就可以拿来测试了。</p>
+<p>需要注意的是，之前使用的lua脚本为<code>oltp_common.lua</code>，它是一个通用脚本，是被其它lua脚本调用的，它不能直接拿来测试。</p>
+<p>所以，我这里用<code>oltp_read_write.lua</code>脚本来做读、写测试。还有很多其它类型的测试，比如只读测试、只写测试、删除测试、大批量插入测试等等。可找到对应的lua脚本进行调用即可。</p>
+<pre><code>[root@localhost ~]# sysbench --threads=4 \
+--time=20 \
+--report-interval=5 \
+--mysql-user=root \
+--mysql-password=123456 \
+--mysql-socket=/data/mysql/3308/sock/mysql.sock \
+/usr/share/sysbench/oltp_read_write.lua \
+--tables=10 \
+--table_size=100000 \
+run
+</code></pre>
+<p>以下是测试返回的结果：</p>
+<pre><code>sysbench 1.0.17 (using bundled LuaJIT 2.1.0-beta2)
+
+Running the test with following options:
+Number of threads: 4
+Report intermediate results every 5 second(s)
+Initializing random number generator from current time
+
+
+Initializing worker threads...
+
+Threads started!
+
+####以下是每5秒返回一次的结果，统计的指标包括：
+#### 线程数、tps(每秒事务数)、qps(每秒查询数)、
+#### 每秒的读/写/其它次数、延迟、每秒错误数、每秒重连次数
+[ 5s ] thds: 4 tps: 165.62 qps: 3323.83 (r/w/o: 2327.10/664.89/331.84) lat (ms,95%): 56.84 err/s: 0.00 reconn/s: 0.00
+[ 10s ] thds: 4 tps: 202.10 qps: 4042.90 (r/w/o: 2830.87/807.62/404.41) lat (ms,95%): 48.34 err/s: 0.00 reconn/s: 0.00
+[ 15s ] thds: 4 tps: 270.13 qps: 5399.29 (r/w/o: 3779.28/1079.74/540.27) lat (ms,95%): 27.66 err/s: 0.00 reconn/s: 0.00
+[ 20s ] thds: 4 tps: 239.78 qps: 4797.24 (r/w/o: 3357.75/959.93/479.56) lat (ms,95%): 34.33 err/s: 0.00 reconn/s: 0.00
+SQL statistics:
+    queries performed:
+        read:                            61502	# 执行的读操作数量
+        write:                           17572	# 执行的写操作数量
+        other:                           8786	# 执行的其它操作数量
+        total:                           87860
+    transactions:                        4393   (219.11 per sec.)	# 执行事务的平均速率
+    queries:                             87860  (4382.21 per sec.)	# 平均每秒能执行多少次查询
+    ignored errors:                      0      (0.00 per sec.)
+    reconnects:                          0      (0.00 per sec.)
+
+General statistics:
+    total time:                          20.0464s	# 总消耗时间
+    total number of events:              4393	# 总请求数量(读、写、其它)
+
+Latency (ms):
+         min:                                    4.60
+         avg:                                   18.23
+         max:                                  290.88
+         95th percentile:                       38.25	# 采样计算的平均延迟
+         sum:                                80081.85
+
+Threads fairness:
+    events (avg/stddev):           1098.2500/30.18
+    execution time (avg/stddev):   20.0205/0.01
+</code></pre>
+<h3 id="5cpuio内存等测试">5.cpu/io/内存等测试</h3>
+<p>sysbench内置了几个测试指标。</p>
+<pre><code>Compiled-in tests:
+  fileio - File I/O test
+  cpu - CPU performance test
+  memory - Memory functions speed test
+  threads - Threads subsystem performance test
+  mutex - Mutex performance test
+</code></pre>
+<p>可直接help输出测试方法。例如，fileio测试。</p>
+<pre><code>[root@xuexi ~]# sysbench fileio help
+sysbench 1.0.15 (using bundled LuaJIT 2.1.0-beta2)
+
+fileio options:
+  --file-num=N                  number of files to create [128]
+  --file-block-size=N           block size to use in all IO operations [16384]
+  --file-total-size=SIZE        total size of files to create [2G]
+  --file-test-mode=STRING       test mode {seqwr, seqrewr, seqrd, rndrd, rndwr, rndrw}
+  --file-io-mode=STRING         file operations mode {sync,async,mmap} [sync]
+  --file-async-backlog=N        number of asynchronous operatons to queue per thread [128]
+  --file-extra-flags=[LIST,...] list of additional flags to use to open files {sync,dsync,direct} []
+  --file-fsync-freq=N           do fsync() after this number of requests (0 - don't use fsync()) [100]
+  --file-fsync-all[=on|off]     do fsync() after each write operation [off]
+  --file-fsync-end[=on|off]     do fsync() at the end of test [on]
+  --file-fsync-mode=STRING      which method to use for synchronization {fsync, fdatasync} [fsync]
+  --file-merged-requests=N      merge at most this number of IO requests if possible (0 - don't merge) [0]
+  --file-rw-ratio=N             reads/writes ratio for combined test [1.5]
+</code></pre>
+<p>例如，创建5个文件，总共1G，每个文件大概200M。</p>
+<pre><code>sysbench fileio --file-num=5 --file-total-size=1G prepare
+
+[root@localhost ~]# ls -lh test_file.*
+-rw-------. 1 root root 205M Sep 24 19:33 test_file.0
+-rw-------. 1 root root 205M Sep 24 19:33 test_file.1
+-rw-------. 1 root root 205M Sep 24 19:33 test_file.2
+-rw-------. 1 root root 205M Sep 24 19:33 test_file.3
+-rw-------. 1 root root 205M Sep 24 19:33 test_file.4
+</code></pre>
+<p>然后，运行测试。</p>
+<pre><code>[root@localhost ~]# sysbench --events=5000 \
+--threads=16 \
+fileio \
+--file-num=5 \
+--file-total-size=1G \
+--file-test-mode=rndrw \
+--file-fsync-freq=0 \
+--file-block-size=16384 \
+run
+</code></pre>
+<p>结果：</p>
+<pre><code>sysbench 1.0.17 (using bundled LuaJIT 2.1.0-beta2)
+
+Running the test with following options:
+Number of threads: 16
+Initializing random number generator from current time
+
+
+Extra file open flags: (none)
+5 files, 204.8MiB each
+1024MiB total file size
+Block size 16KiB
+Number of IO requests: 5000
+Read/Write ratio for combined random IO test: 1.50
+Calling fsync() at the end of test, Enabled.
+Using synchronous I/O mode
+Doing random r/w test
+Initializing worker threads...
+
+Threads started!
+
+
+File operations:
+    reads/s:                      2090.17
+    writes/s:                     1402.76
+    fsyncs/s:                     55.89
+
+Throughput:		# 吞吐量
+    read, MiB/s:                  32.66	# 表示读的带宽
+    written, MiB/s:               21.91	# 表示读的带宽
+
+General statistics:
+    total time:                          1.4291s
+    total number of events:              5000
+
+Latency (ms):
+         min:                                    0.00
+         avg:                                    3.46
+         max:                                  610.26
+         95th percentile:                       29.72
+         sum:                                17278.41
+
+Threads fairness:
+    events (avg/stddev):           312.5000/46.37
+    execution time (avg/stddev):   1.0799/0.20
+</code></pre>
+<p><strong>再比例cpu性能测试：</strong></p>
+<pre><code>[root@localhost ~]# sysbench cpu --threads=40 --events=10000 --cpu-max-prime=20000 run
+sysbench 1.0.17 (using bundled LuaJIT 2.1.0-beta2)
+
+Running the test with following options:
+Number of threads: 40
+Initializing random number generator from current time
+
+
+Prime numbers limit: 20000
+
+Initializing worker threads...
+
+Threads started!
+
+CPU speed:
+    events per second:   413.20
+
+General statistics:
+    total time:                          10.0461s
+    total number of events:              4152
+
+Latency (ms):
+         min:                                    2.97
+         avg:                                   94.89
+         max:                                 1701.39
+         95th percentile:                      272.27
+         sum:                               393996.27
+
+Threads fairness:
+    events (avg/stddev):           103.8000/7.03
+    execution time (avg/stddev):   9.8499/0.12
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/jEs-XaDc_/" class="tag">
+                    sysbench
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190923mysql57-bu-shu-duo-shi-li-cai-keng-ji/">
+                  <h3 class="post-title">
+                    20190923mysql5.7部署多实例踩坑记
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190923mariadb10.2快速部署一主一从 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="mariadb快速部署一主一从
+初始化机器：
+[root@localhost ~]# curl https://gitee.com/uscwifi/scripts/raw/master/reset4.0-test.sh | bash
+
+安装..." />
+    <meta name="keywords" content="mariadb,mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190923mariadb10.2快速部署一主一从</h2>
+            <div class="post-date">2021-04-26</div>
+            
+              <div class="feature-container" style="background-image: url('https://atts.w3cschool.cn/attachments/cover/cover_mariadb.png?t=1542110712&amp;imageView2/1/w/150/h/84')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="mariadb快速部署一主一从">mariadb快速部署一主一从</h1>
+<h4 id="初始化机器">初始化机器：</h4>
+<pre><code class="language-bash">[root@localhost ~]# curl https://gitee.com/uscwifi/scripts/raw/master/reset4.0-test.sh | bash
+</code></pre>
+<h4 id="安装">安装</h4>
+<pre><code class="language-bash">[root@localhost ~]# cat &gt; /etc/yum.repos.d/mariadb.repo &lt;&lt;EOF
+[mariadb]
+name=mariadb
+baseurl=https://mirrors.tuna.tsinghua.edu.cn/mariadb//mariadb-10.2.27/yum/centos7-amd64/
+enabled=1
+gpgcheck=0
+EOF
+[root@localhost ~]# yum install mariadb-server -y
+</code></pre>
+<h4 id="配置"><strong>配置：</strong></h4>
+<p><strong>主：</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# mkdir -p /data/mysql
+[root@localhost ~]# chown mysql.mysql /data/mysql
+[root@localhost ~]# vim /etc/my.cnf.d/server.cnf 
+[root@localhost ~]# grep -Ev '^($|#)' /etc/my.cnf.d/server.cnf
+[server]
+[mysqld]
+server-id=131
+log_bin=/data/mysql/mysql-bin	#data目录是数据盘，只能放data目录了
+datadir=/data/mysql
+expire_logs_days=15		#自动清理15天前的binlog，数据库保证每周全量备份一次应该够了
+[galera]
+[embedded]
+[mariadb]
+[mariadb-10.2]
+</code></pre>
+<pre><code>[root@localhost ~]# mysql_install_db --datadir=/data/mysql --user=mysql
+</code></pre>
+<pre><code class="language-bash">[root@localhost ~]# systemctl restart mysqld	#看了下service文件mysql，mysqld都是别名
+</code></pre>
+<pre><code class="language-bash">[root@localhost ~]# mysql -uroot -p
+MariaDB [(none)]&gt; grant replication slave on *.* to 'repluser'@'192.168.38.%' identified by 'WWQD88OYrqSxLg';
+MariaDB [(none)]&gt; flush privileges;
+</code></pre>
+<pre><code class="language-bash">MariaDB [(none)]&gt; show master status;
++------------------+----------+--------------+------------------+
+| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB |
++------------------+----------+--------------+------------------+
+| mysql-bin.000003 |      674 |              |                  |
++------------------+----------+--------------+------------------+
+1 row in set (0.00 sec)
+</code></pre>
+<p><strong>从：</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# mkdir -p /data/mysql
+[root@localhost ~]# chown mysql.mysql /data/mysql
+[root@localhost ~]# vim /etc/my.cnf.d/server.cnf
+[root@localhost ~]# grep -Ev '^($|#)' /etc/my.cnf.d/server.cnf
+[server]
+[mysqld]
+datadir=/data/mysql                                                                                   server-id=132
+[galera]
+[embedded]
+[mariadb]
+[mariadb-10.2]
+</code></pre>
+<pre><code class="language-bash">[root@localhost ~]# mysql_install_db --datadir=/data/mysql --user=mysql
+</code></pre>
+<pre><code class="language-bash">[root@localhost ~]# systemctl restart mysqld	#看了下service文件mysql，mysqld都是别名
+</code></pre>
+<pre><code class="language-bash">[root@localhost ~]# mysql -uroot -p
+MariaDB [(none)]&gt; CHANGE MASTER TO MASTER_HOST='192.168.38.131',MASTER_USER='repluser',MASTER_PASSWORD='WWQD88OYrqSxLg',MASTER_PORT=3306,MASTER_LOG_FILE='mysql-bin.000003',MASTER_LOG_POS=674,MASTER_CONNECT_RETRY=10;
+MariaDB [(none)]&gt; start slave;
+</code></pre>
+<pre><code class="language-bash">MariaDB [(none)]&gt; show slave status\G
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for master to send event
+                  Master_Host: 192.168.38.131
+                  Master_User: repluser
+                  Master_Port: 3306
+                Connect_Retry: 10
+              Master_Log_File: mysql-bin.000003
+          Read_Master_Log_Pos: 674
+               Relay_Log_File: localhost-relay-bin.000002
+                Relay_Log_Pos: 555
+        Relay_Master_Log_File: mysql-bin.000003
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+            		...........
+             Master_Server_Id: 131
+                   Using_Gtid: No
+                Parallel_Mode: conservative
+                    SQL_Delay: 0
+          SQL_Remaining_Delay: NULL
+      Slave_SQL_Running_State: Slave has read all relay log; waiting for the slave I/O thread to update it
+1 row in set (0.00 sec)
+</code></pre>
+<h4 id="测试">测试：</h4>
+<pre><code class="language-bash">#主
+MariaDB [(none)]&gt; create database dba;
+Query OK, 1 row affected (0.01 sec)
+#从
+MariaDB [(none)]&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| dba                |
+| information_schema |
+| mysql              |
+| performance_schema |
+| test               |
++--------------------+
+5 rows in set (0.00 sec)
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/zgPyc3UB6/" class="tag">
+                    mariadb
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190922-yi-jian-zi-qian-ca-zheng-shu-jiao-ben/">
+                  <h3 class="post-title">
+                    20190922一键自签CA证书脚本
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

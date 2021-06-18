@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>openssl rsautl和openssl pkeyutl(文件的非对称加密) | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="20190901openssl rsautl和openssl pkeyutl(文件的非对称加密)
+openssl rsautl和openssl pkeyutl(文件的非对称加密
+rsautl是rsa的工具，相当于rsa、dgst的部分功能集..." />
+    <meta name="keywords" content="openssl,证书,linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">openssl rsautl和openssl pkeyutl(文件的非对称加密)</h2>
+            <div class="post-date">2021-04-23</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>20190901openssl rsautl和openssl pkeyutl(文件的非对称加密)</p>
+<h1 id="openssl-rsautl和openssl-pkeyutl文件的非对称加密">openssl rsautl和openssl pkeyutl(文件的非对称加密</h1>
+<p>rsautl是rsa的工具，相当于rsa、dgst的部分功能集合，可用于<font color=red><strong>生成数字签名、验证数字签名、加密和解密文件</strong></font>。</p>
+<p>pkeyutl是非对称加密的通用工具，大体上和rsautl的用法差不多，所以此处只解释rsautl。</p>
+<pre><code class="language-bash">openssl rsautl [-in file] [-out file] [-inkey file] [-pubin] [-certin] [-passin arg] [-sign] [-verify] [-encrypt] [-decrypt] [-hexdump]
+
+openssl pkeyutl [-in file] [-out file] [-sigfile file] [-inkey file] [-passin arg] [-pubin] [-certin] [-sign] [-verify] [-encrypt] [-decrypt] [-hexdump]
+
+共同的选项说明：
+-in file：指定输入文件
+-out file：指定输出文件
+-inkey file：指定密钥输入文件，默认是私钥文件，指定了&quot;-pubin&quot;则表示为公钥文件，使用&quot;-certin&quot;则表示为包含公钥的证书文件
+-pubin：指定&quot;-inkey file&quot;的file是公钥文件
+-certin：使用该选项时，表示&quot;-inkey file&quot;的file是包含公钥的证书文件
+-passin arg：传递解密密码。若验证签名时实用的公钥或私钥文件是被加密过的，则需要传递密码来解密。密码的格式见&quot;openssl 密码格式&quot;
+【功能选项：】
+-sign：签名并输出签名结果，注意，该选项需要提供RSA私钥文件
+-verify：使用验证签名文件
+-encrypt：使用公钥加密文件
+-decrypt：使用私钥解密文件
+【输出格式选项：】
+-hexdump：以hex方式输出
+
+ 
+openssl pkeyutl选项说明：
+sigfile file：待验证的签名文件
+</code></pre>
+<p>rsautl命令的用法和rsa、dgst不太一样。首先，它的前提是已经有非对称密钥，所有的命令操作都用到公钥或私钥来处理；再者，该命令使用-in选项来指定输入文件，而不像dgst一样可以把输入文件放在命令的结尾；最后，该命令使用的密钥文件、签名文件、证书文件都通过-inkey选项指定，再通过各功能的选项搭配来实现对应的功能。</p>
+<p><strong><font color=red>注意rsautl和pkeyutl的缺陷是默认只能对短小的文件进行操作，否则将报类似如下的错误信息。</font>font&gt;</strong></p>
+<pre><code class="language-bash">140341340976968:error:0406C06E:rsa routines:RSA_padding_add_PKCS1_type_1:data too large for key size:rsa_pk1.c:73:
+</code></pre>
+<p>因为这两个工具签名和验证签名的功能和openssl dgst命令差不多，且自身又有缺陷，所以就不举例说明。此处仅给出对短小文件的非对称加密和解密示例。</p>
+<p><strong>1、使用公钥加密b.txt文件，注意待加密文件b.txt必须是短小文件，且不建议使用-hexdump输出，否则解密时可能超出文件的长度。</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl genrsa -out genrsa.pri
+root@qqq:~# openssl rsa -in genrsa.pri   -pubout -out rsa.pub
+#疯狂报错，必须很小的文件
+root@qqq:~# openssl rsautl -encrypt -in b.txt -out b_crypt.txt  -inkey rsa.pub -pubin 
+</code></pre>
+<p>查看非对称加密后的文件b_crypt.txt。</p>
+<pre><code class="language-bash">root@qqq:~# cat b_crypt.txt 
+BP!¼G페ĿgϘ萎ز¿㛾7!P⨌텅嗭ԥKE
+Cksウ7軤ͧɩV¤£⧕ޱgՕ c@«¤x§E¼4H§H⒳°«ŀI¼轩AɝϚ2K²N    K';a䲘6ŝ|.µc' 8]J)=«º÷y̓¨°®̡9lq䛧%
+#¿ws¬ᓶ䆩&lt;&lt;=ے׾堡߄$ѻCǕ䮟root@qqq:~#
+</code></pre>
+<p><strong>2、使用私钥解密b_crypt.txt文件</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl rsautl -decrypt -in b_crypt.txt -out b_decrypt.txt -inkey genrsa.pri 
+root@qqq:~# cat b_decrypt.txt 
+ro7VPPvmcNrpU0hEKarNLKGK9/uVswDbPje17EMc
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/cx2hRHr8nL/" class="tag">
+                    证书
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190901openssl-reqsheng-cheng-zheng-shu-qing-qiu-he-zi-jian-ca2/">
+                  <h3 class="post-title">
+                    20190901openssl req（生成证书请求和自建CA）2
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

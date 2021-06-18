@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> testsrv脚本（SysV脚本） | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="testsrv脚本（SysV脚本）
+一、说明：
+​		CentOS7已经使用Systemd来管理服务，推荐使用Systemd来管理服务。ubuntu18.04现在也是Systemd管理服务。
+​		init.d是CentOS6时候常用的，不..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> testsrv脚本（SysV脚本）</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="testsrv脚本sysv脚本">testsrv脚本（SysV脚本）</h1>
+<h3 id="一-说明">一、说明：</h3>
+<p>​		CentOS7已经使用Systemd来管理服务，推荐使用Systemd来管理服务。ubuntu18.04现在也是Systemd管理服务。</p>
+<p>​		init.d是CentOS6时候常用的，不过现在，CentOS6，CentOS7，ubuntu16.04，ubuntu18.04照样可以用。</p>
+<p>​		该脚本一般都放在/etc/rc.d/init.d目录下</p>
+<p>​		该脚本可以接收start，stop，status，reload，restart等参数来管理服务</p>
+<p>​		基本上都会加载/etc/rc.d/init.d/functions，这个文件中有一些比较好用的函数</p>
+<p>​		#chkconfig和#describe这两行都要写上，describe这个现在貌似可以不用写了。</p>
+<p>​		<code>#chkconfig:2345 96 07</code>——必须写明，2345代表在这些模式下，开启testsrv功能，96代表开启编号为96 07代表关闭时的编号，相当于创建了一个软连接，这个不要和已有的编号重复，/etc/rc.d/rc5.d/看已有的编号</p>
+<p>​		再说明一下，CentOS7现在不使用init0-6来管理用户模式，也用systemd管理</p>
+<h3 id="二-题目">二、题目</h3>
+<p>编写服务脚本/root/bin/testsrv.sh，完成如下要求</p>
+<p>(1) 脚本可接受参数：start, stop, restart, status</p>
+<p>(2) 如果参数非此四者之一，提示使用格式后报错退出</p>
+<p>(3) 如是start:则创建/var/lock/subsys/SCRIPT_NAME, 并显示“启动成功”  考虑：如果事先已经启动过一次，该如何处理？</p>
+<p>(4) 如是stop:则删除/var/lock/subsys/SCRIPT_NAME, 并显示“停止完成”  考虑：如果事先已然停止过了，该如何处理？</p>
+<p>(5) 如是restart，则先stop, 再start  考虑：如果本来没有start，如何处理？</p>
+<p>(6) 如是status, 则如果/var/lock/subsys/SCRIPT_NAME文件存在，则显示“SCRIPT_NAME is running...”，如果/var/lock/subsys/SCRIPT_NAME文件不存在，则显示“SCRIPT_NAME is stopped...”</p>
+<p>(7)在所有模式下禁止启动该服务，可用chkconfig 和 service命令管理  说明：SCRIPT_NAME为当前脚本名</p>
+<h3 id="三-脚本">三、脚本</h3>
+<pre><code class="language-shell">[root@imooc-nginx init.d]# cat /etc/init.d/testsrv 
+#!/bin/bash
+# chkconfig: 2345 10 90
+# description: testsrv
+#
+. /etc/init.d/functions
+
+
+check_running(){
+    [ -e /var/lock/subsys/`basename $0` ] &amp;&amp;
+        STAT=0 ||
+        STAT=1
+}
+
+do_status(){
+    check_running
+    if [ &quot;$STAT&quot; = &quot;1&quot; ];then
+        action &quot;`basename $0` is stopped...&quot; false
+    else
+        action &quot;`basename $0` is running...&quot; true
+    fi
+}
+
+do_start(){
+    check_running
+    if [ &quot;$STAT&quot; = &quot;0&quot; ];then
+        action &quot;`basename $0` 正在运行，取消操作...&quot; true
+        exit 0
+    elif [ &quot;$STAT&quot; = &quot;1&quot; ];then
+        touch /var/lock/subsys/`basename $0`
+    fi
+    check_running
+    if [ &quot;$STAT&quot; = &quot;0&quot; ];then
+        action &quot;`basename $0` 启动成功...&quot; true
+    elif [ &quot;$STAT&quot; = &quot;1&quot; ];then
+        action &quot;`basename $0` 启动失败...&quot; false
+        exit 20
+    fi
+}
+
+
+do_stop(){
+    check_running
+    if [ &quot;$STAT&quot; = &quot;0&quot; ];then
+        rm -f /var/lock/subsys/`basename $0`
+        check_running
+        if [ &quot;$STAT&quot; = &quot;1&quot; ];then
+            action &quot;`basename $0` 停止成功...&quot; true
+        elif  [ &quot;$STAT&quot; = &quot;0&quot; ];then
+            action &quot;`basename $0` 停止失败...&quot; false
+            exit 10
+        fi
+    fi
+}
+
+
+do_restart(){
+    check_running
+    if [ &quot;$STAT&quot; = &quot;0&quot; ];then
+        action &quot;`basename $0` 已经运行，正在重新启动...&quot; true
+        do_stop
+        do_start
+    elif [ &quot;$STAT&quot; = &quot;1&quot; ];then
+        action &quot;`basename $0` 没有运行，正在启动...&quot; true
+        do_start
+    fi
+}
+
+
+
+
+case &quot;$1&quot; in 
+    start|stop|status|restart)
+        do_$1
+        ;;
+    *)
+        echo &quot;缺少参数: start|stop|status|restart&quot;
+        ;;
+esac
+</code></pre>
+<h3 id="四-操作">四、操作</h3>
+<p><strong>CentOS7操作</strong></p>
+<pre><code class="language-bash">[root@imooc-nginx init.d]# mv testsrv.sh testsrv
+#将testsrv加入SysV服务
+[root@imooc-nginx init.d]# chkconfig --add testsrv 
+[root@imooc-nginx init.d]# chkconfig --list testsrv 
+
+注：该输出结果只显示 SysV 服务，并不包含
+原生 systemd 服务。SysV 配置数据
+可能被原生 systemd 配置覆盖。 
+
+      要列出 systemd 服务，请执行 'systemctl list-unit-files'。
+      查看在具体 target 启用的服务请执行
+      'systemctl list-dependencies [target]'。
+
+testsrv        	0:关	1:关	2:开	3:开	4:开	5:开	6:关
+#上面可以看到testsrv加入到了2345模式下开机启动，和配置文件中写的一样
+#将该服务在345模式下关闭
+[root@imooc-nginx init.d]# chkconfig --level 345 testsrv off
+[root@imooc-nginx init.d]# chkconfig --list testsrv 
+
+注：该输出结果只显示 SysV 服务，并不包含
+原生 systemd 服务。SysV 配置数据
+可能被原生 systemd 配置覆盖。 
+
+      要列出 systemd 服务，请执行 'systemctl list-unit-files'。
+      查看在具体 target 启用的服务请执行
+      'systemctl list-dependencies [target]'。
+
+testsrv        	0:关	1:关	2:开	3:关	4:关	5:关	6:关
+</code></pre>
+<p><strong>启动关闭玩玩</strong></p>
+<figure data-type="image" tabindex="1"><img src="%E5%9B%BE%E7%89%87/1566898703978.png" alt="1566898703978" loading="lazy"></figure>
+<h3 id="五-脚本详解">五、脚本详解</h3>
+<p>​		<strong>再说一下，CentOS7推荐systemd来管理服务，不建议用SysV管理</strong></p>
+<p>​		chkconfig 2345 10 90表示服务在2345四个模式下开启testsrv功能，10表示开启编号为96，07表示关闭的编号。</p>
+<p>​		这个编号要注意下，不能和其他重复了，init 1是单用户模式，该模式下绝大部分服务都是开机关闭的（K打头），/etc/rc.d/rc1.d/下面自己看看吧，<strong>选一个没用的开启编号</strong>。init 5是桌面图形化模式，很多服务是启动的，可以看看/etc/rc.d/rc5.d/下面哪些开启编号（S打头）占用了，<strong>选择一个关闭的编号</strong></p>
+<p>​		如果不想该服务在任何模式下启动，那么把2345变成-</p>
+<p>​		<strong>同时再说明一下：CentOS7不采用init0-6来管理启动模式，使用Systemd管理</strong></p>
+<h3 id="六-chkconfig用法">六、chkconfig用法</h3>
+<p>这个现在也就是CentOS6用了，CentOS7虽然命令还在，但已经不用来管理服务了</p>
+<p><strong>查看所有服务的开机启动情况</strong></p>
+<pre><code class="language-bash">[root@qqq init.d]# chkconfig --list
+</code></pre>
+<p><strong>查看atd服务的开启启动情况</strong></p>
+<pre><code class="language-bash">#2 3 4 5模式下开机启动
+[root@qqq init.d]# chkconfig --list atd
+atd            	0:off	1:off	2:on	3:on	4:on	5:on	6:off
+</code></pre>
+<p><strong>禁止atd服务2 3 4 5 模式下启动</strong></p>
+<pre><code>[root@qqq init.d]# chkconfig --list atd
+atd            	0:off	1:off	2:off	3:off	4:off	5:off	6:off
+</code></pre>
+<p><strong>新写了个testsrv，加入SysV</strong></p>
+<pre><code class="language-bash">chkconfig --add testsrv
+</code></pre>
+<p><strong>删除应该是del</strong></p>
+<p><strong>七、CentOS6的ntsysV命令</strong></p>
+<p>修改程序启动开机启动</p>
+<pre><code class="language-bash">ntsysV
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/shell-jiao-ben-ppt-jiao-ben/">
+                  <h3 class="post-title">
+                     SHELL脚本PPT脚本
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

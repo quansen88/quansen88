@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190905ntp和chronyd 时间同步服务 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="ntp和chronyd
+立即同步时间的坏处，影响某些计划任务执行
+一、立即同步时间
+方法一：
+ntpdate ntp.aliyun.com
+
+方法二：重启ntp服务
+方法三：重启chrony服务
+二、查看ntp和chrony状态
+[root..." />
+    <meta name="keywords" content="ntp,chronyd" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190905ntp和chronyd 时间同步服务</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://res.cloudinary.com/canonical/image/fetch/f_auto,q_auto,fl_sanitize,w_40,h_40/https://assets.ubuntu.com/v1/ea34f006-Multipass+logomark_rgb.svg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="ntp和chronyd">ntp和chronyd</h1>
+<p>立即同步时间的坏处，影响某些计划任务执行</p>
+<p><strong>一、立即同步时间</strong></p>
+<p>方法一：</p>
+<pre><code class="language-bash">ntpdate ntp.aliyun.com
+</code></pre>
+<p>方法二：重启ntp服务</p>
+<p>方法三：重启chrony服务</p>
+<p><strong>二、查看ntp和chrony状态</strong></p>
+<pre><code class="language-bash">[root@textbox ~]# chronyc  sources -v
+210 Number of sources = 1
+
+  .-- Source mode  '^' = server, '=' = peer, '#' = local clock.
+ / .- Source state '*' = current synced, '+' = combined , '-' = not combined,
+| /   '?' = unreachable, 'x' = time may be in error, '~' = time too variable.
+||                                                 .- xxxx [ yyyy ] +/- zzzz
+||      Reachability register (octal) -.           |  xxxx = adjusted offset,
+||      Log2(Polling interval) --.      |          |  yyyy = measured offset,
+||                                \     |          |  zzzz = estimated error.
+||                                 |    |           \
+MS Name/IP address         Stratum Poll Reach LastRx Last sample               
+===============================================================================
+^* localhost                     3   6    17     2    +62us[ +661us] +/-   88ms
+[root@textbox ~]# 
+</code></pre>
+<pre><code class="language-bash">[root@textbox ~]# ntpq -p
+     remote           refid      st t when poll reach   delay   offset  jitter
+==============================================================================
+*localhost       119.28.206.193   3 u   41   64  177    0.784    1.195 3656236
+</code></pre>
+<p><strong>三、ntp做服务端的设置</strong></p>
+<pre><code class="language-bash">#注释原来的ntp服务器，原来的ntp服务器都是centos.org美国的
+[root@textbox ~]# sed   '/^server/s/^/#/' /etc/ntp.conf -i
+#添加两个aliyun的
+[root@textbox ~]# sed '1a server ntp.aliyun.com iburst'  /etc/ntp.conf -i
+[root@textbox ~]# sed '1a server ntp1.aliyun.com iburst'  /etc/ntp.conf -i
+#重启服务
+[root@textbox ~]# systemctl restart ntpd
+#ntp就这么简单，就可以当服务器使用了
+[root@textbox ~]# ntpq -p
+     remote           refid      st t when poll reach   delay   offset  jitter
+==============================================================================
++120.25.115.20   10.137.53.7      2 u    4   64   17   42.560   -8.795   6.944
+*203.107.6.88    100.107.25.114   2 u    4   64   17   15.542   -7.021   6.460
+#123端口，udp
+[root@textbox ~]# ss -lutnp | grep ntp
+udp    UNCONN     0      0      192.168.38.140:123                   *:*                   users:((&quot;ntpd&quot;,pid=61668,fd=19))
+udp    UNCONN     0      0      127.0.0.1:123                   *:*                   users:((&quot;ntpd&quot;,pid=61668,fd=18))
+udp    UNCONN     0      0         *:123                   *:*                   users:((&quot;ntpd&quot;,pid=61668,fd=16))
+udp    UNCONN     0      0      fe80::69d0:5288:fda9:93ae%ens33:123                  :::*                   users:((&quot;ntpd&quot;,pid=61668,fd=21))
+udp    UNCONN     0      0       ::1:123                  :::*                   users:((&quot;ntpd&quot;,pid=61668,fd=20))
+udp    UNCONN     0      0        :::123                  :::*                   users:((&quot;ntpd&quot;,pid=61668,fd=17))
+#用另一台服务器测试
+[root@linux5 ~]# ntpdate 192.168.38.140
+ 5 Sep 09:17:25 ntpdate[28423]: adjust time server 192.168.38.140 offset -0.007790 sec
+</code></pre>
+<p><strong>四、chrony服务端配置</strong></p>
+<p>设置项比ntp多</p>
+<pre><code class="language-bash">[root@imooc-nginx ~]# sed '/^server/s/^/#/' /etc/chrony.conf -i
+[root@imooc-nginx ~]# sed '1a server ntp.aliyun.com iburst' /etc/chrony.conf -i
+[root@imooc-nginx ~]# sed '1a server 0.cn.pool.ntp.org iburst' /etc/chrony.conf -i
+[root@imooc-nginx ~]# sed '1a server ntp1.aliyun.com iburst' /etc/chrony.conf -i
+#即使当前时服务器未与指定ntp完成时间同步，照样提供服务
+[root@imooc-nginx ~]# sed '1a local stratum 10' /etc/chrony.conf -i
+#允许哪些服务器同步
+[root@imooc-nginx ~]# sed '1a allow 192.168.0.0/16' /etc/chrony.conf -i
+[root@imooc-nginx ~]# systemctl restart chronyd
+[root@imooc-nginx ~]# systemctl enable chronyd
+#查看chronyd状态
+[root@imooc-nginx ~]# chronyc sources -v
+210 Number of sources = 3
+
+  .-- Source mode  '^' = server, '=' = peer, '#' = local clock.
+ / .- Source state '*' = current synced, '+' = combined , '-' = not combined,
+| /   '?' = unreachable, 'x' = time may be in error, '~' = time too variable.
+||                                                 .- xxxx [ yyyy ] +/- zzzz
+||      Reachability register (octal) -.           |  xxxx = adjusted offset,
+||      Log2(Polling interval) --.      |          |  yyyy = measured offset,
+||                                \     |          |  zzzz = estimated error.
+||                                 |    |           \
+MS Name/IP address         Stratum Poll Reach LastRx Last sample               
+===============================================================================
+^+ 120.25.115.20                 2   6    17     4   +766us[ +591us] +/-   21ms
+^- 111.230.189.174               2   6    17     4    +98us[  +98us] +/-   49ms
+^* 203.107.6.88                  2   6    17     4   -187us[ -361us] +/-   16ms
+#测试
+[root@textbox ~]# ntpdate 192.168.38.154
+ 5 Sep 09:33:25 ntpdate[61810]: adjust time server 192.168.38.154 offset -0.010546 sec
+</code></pre>
+<p><strong>五、自动同步时间两种方式</strong></p>
+<p>1、ntpdate ntp.aliyun.com写入计划任务，每小时同步一次</p>
+<p>2、所有服务器chrony都开启，其中一台做时间服务器，其他服务器的server都指向它</p>
+<p><strong>六、设置时区</strong></p>
+<pre><code class="language-bash">[root@textbox ~]# timedatectl set-timezone Asia/Shanghai
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/Vz4mUVl9Y/" class="tag">
+                    ntp
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/_44TCfBC6u/" class="tag">
+                    chronyd
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190904-bian-yi-an-zhuang-httpd2425-bing-bian-xie-systemd-jiao-ben/">
+                  <h3 class="post-title">
+                    20190904编译安装httpd2.4.25并编写systemd脚本
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

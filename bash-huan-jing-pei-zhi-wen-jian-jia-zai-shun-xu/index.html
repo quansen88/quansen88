@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> bash环境配置文件加载顺序 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="bash环境配置文件加载顺序
+一、测试方法：
+[root@c7 yum.repos.d]#echo &quot;echo '/etc/profile goes'&quot; &gt;&gt;/etc/profile
+[root@c7 yum..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> bash环境配置文件加载顺序</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="bash环境配置文件加载顺序">bash环境配置文件加载顺序</h1>
+<h3 id="一-测试方法">一、测试方法：</h3>
+<pre><code>[root@c7 yum.repos.d]#echo &quot;echo '/etc/profile goes'&quot; &gt;&gt;/etc/profile
+[root@c7 yum.repos.d]#echo &quot;echo '~/.bash_profile goes'&quot; &gt;&gt;~/.bash_profile
+[root@c7 yum.repos.d]#echo &quot;echo '~/.bashrc goes'&quot; &gt;&gt;~/.bashrc
+[root@c7 yum.repos.d]#echo &quot;echo '/etc/bashrc goes'&quot; &gt;&gt;/etc/bashrc
+[root@c7 yum.repos.d]#echo &quot;echo '/etc/profile.d/test.sh goes'&quot; &gt;&gt;/etc/profile.d/test.sh
+[root@c7 yum.repos.d]#chmod +x /etc/profile.d/test.sh
+</code></pre>
+<h3 id="二-通过xshell登录交互式-登录式">二、通过xshell登录（交互式、登录式）</h3>
+<p><strong>/etc/profile.d/test.sh -&gt; /etc/profile -&gt; /etc/bashrc -&gt; ~/.bashrc -&gt; ~/.bash_profil</strong></p>
+<pre><code>[C:\Users\24305]$ ssh 192.168.38.137
+
+
+Connecting to 192.168.38.137:22...
+Connection established.
+To escape to local shell, press 'Ctrl+Alt+]'.
+
+Last login: Mon Aug 12 04:55:09 2019
+/etc/profile.d/test.sh goes
+/etc/profile goes
+/etc/bashrc goes
+~/.bashrc goes
+~/.bash_profile goes
+</code></pre>
+<h3 id="三-su-root交互式-非登录式su-root就是登录式了">三、su  root（交互式、非登录式;su - root就是登录式了）</h3>
+<p>-表示--login，加上后为登录式，并且切换环境变量</p>
+<p>/etc/profile.d/test.sh -&gt; /etc/bashrc -&gt; ~/.bashrc</p>
+<pre><code>[root@c7 ~]#su root
+/etc/profile.d/test.sh goes
+/etc/bashrc goes
+~/.bashrc goes
+[root@c7 ~]# echo $PS1;shopt login_shell
+\[cat /etc/centos-release|grep -oE [[:digit:]]|head -1`m\][\u@\h \W]\$\[\]
+login_shell    	off
+</code></pre>
+<h3 id="四-bash交互式非登录式">四、bash（交互式，非登录式）</h3>
+<p>执行bash进入子shell，为交互式，非登录式，和上面一样</p>
+<h3 id="五-总结">五、总结：</h3>
+<p><strong>交互式登录式：</strong></p>
+<figure data-type="image" tabindex="1"><img src="%E5%9B%BE%E7%89%87/1565664337195.png" alt="1565664337195" loading="lazy"></figure>
+<p><strong>交互式非登录式</strong></p>
+<figure data-type="image" tabindex="2"><img src="%E5%9B%BE%E7%89%87/1565664372306.png" alt="1565664372306" loading="lazy"></figure>
+<p><strong>非交互、非登录式：几乎执行所有的shell脚本都不会特意带上&quot;--login&quot;选项，因此shell脚本不会加载任何bash环境配置文件，除非手动配置了变量BASH_ENV</strong></p>
+<p><strong>特殊：远程shell方式启动的bash，它虽然属于非交互、非登录式，但会加载~/.bashrc，所以还会加载/etc/bashrc，由于是非登录式，所以最终还会加载/etc/profile.d/*.sh，只不过因为是非交互式而使得执行的结果全部重定向到了/dev/null中</strong></p>
+<h2 id="搞不懂系列">搞不懂系列</h2>
+<pre><code>[root@centos7 ~]# echo $-
+himBH
+[root@centos7 ~]# ssh root@192.168.38.137 echo haha
+root@192.168.38.137's password: 
+/etc/profile.d/test.sh goes
+/etc/bashrc goes
+~/.bashrc goes
+haha
+[root@centos7 ~]# ssh root@192.168.38.137 'echo $PS1;shopt login_shell'
+root@192.168.38.137's password: 
+/etc/profile.d/test.sh goes
+/etc/bashrc goes
+~/.bashrc goes
+\[cat /etc/centos-release|grep -oE [[:digit:]]|head -1`m\][\u@\h \W]\$\[\]
+login_shell    	off
+[root@centos7 ~]# ssh root@192.168.38.137 'echo $-'
+root@192.168.38.137's password: 
+/etc/profile.d/test.sh goes
+/etc/bashrc goes
+~/.bashrc goes
+hBc   # ？？？
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/lvm/">
+                  <h3 class="post-title">
+                    LVM
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

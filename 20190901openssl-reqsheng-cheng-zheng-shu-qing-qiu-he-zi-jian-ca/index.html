@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190901openssl rsapkey | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="openssl rsa/pkey
+openssl rsa和openssl pkey分别是RSA密钥的处理工具和通用非对称密钥处理工具，它们用法基本一致，所以只举例说明openssl rsa。
+它们的用法很简单，基本上就是输入和输出私钥或公钥..." />
+    <meta name="keywords" content="openssl,证书" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190901openssl rsapkey</h2>
+            <div class="post-date">2021-04-23</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="openssl-rsapkey">openssl rsa/pkey</h1>
+<p>openssl rsa和openssl pkey分别是RSA密钥的处理工具和通用非对称密钥处理工具，它们用法基本一致，所以只举例说明openssl rsa。</p>
+<p>它们的用法很简单，基本上就是输入和输出私钥或公钥的作用。</p>
+<pre><code class="language-bash">openssl rsa [-in filename] [-passin arg] [-passout arg] [-out filename] [-des|-des3|-idea] [-text] [-noout] [-pubin] [-pubout] [-check]
+openssl pkey [-passin arg] [-passout arg] [-in filename] [-out filename] [-cipher] [-text] [-noout] [-pubin] [-pubout]
+ 
+【openssl rsa选项说明：】
+-in filename ：指定密钥输入文件。默认读取的是私钥，若指定&quot;-pubin&quot;选项将表示读取公钥。将从该文件读取密钥，不指定时将从stdin读取。
+-out filename：指定密钥输出文件。默认输出私钥，若指定&quot;-pubin&quot;或&quot;-pubout&quot;选项都将输出公钥。不指定将输出到stdout。
+-pubin：指定该选项时，将显式表明从&quot;-in filename&quot;的filename中读取公钥，所以filename必须为公钥文件。
+      ：不指定该选项时，默认是从filename中读取私钥。公钥文件可以通过文件中的公钥标识符
+      ：&quot;-----BEGIN PUBLIC KEY-----&quot;和&quot;-----END PUBLIC KEY-----&quot;来辨别。
+-pubout：指定该选项时，将显示表明从&quot;-in filename&quot;的filename中提取公钥并输出，所以filename文件必须是私钥文件。
+       ：不指定该选项时，默认输出私钥。当设置了&quot;-pubin&quot;时，默认也设置了&quot;-pubout&quot;。
+       ：私钥文件可以通过文件中的私钥标识符&quot;-----BEGIN PRIVATE KEY-----&quot;和&quot;-----END PRIVATE KEY-----&quot;来辨别。
+-noout ：控制不输出任何密钥信息。
+-text  ：转换输入和输出的密钥文件格式为纯文本格式。
+-check ：检查RSA密钥是否完整未被修改过，只能检测私钥，因为公钥来源于私钥。因此选项-&quot;in filename&quot;的filename文件只能是私钥文件。
+-des|-des3|-idea：加密输出文件，使得每次读取输出文件时都需要提供密码。
+-passin arg ：传递解密密钥文件的密码。密码格式见openssl密码格式。
+-passout arg：指定加密输出文件的密码。
+
+【openssl pkey选项说明：】
+-cipher：等价于openssl rsa的&quot;-des|-des3|-idea&quot;，例如&quot;-cipher des3&quot;。
+</code></pre>
+<p><strong>1、创建一个rsa私钥文件genrsa.pri，然后从中提取rsa公钥到rsa.pub文件中。</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl  genrsa -out genrsa.pri
+root@qqq:~# openssl rsa -in genrsa.pri -pubout -out rsa.pub
+#看看
+root@qqq:~# cat rsa.pub
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA78NpyjHZULVckV2jPjg9
+YXdYNqBt752HisVCBcbW6vi/Kv+T5qjwyrVFschoi+c35sl+gDiXWisTpb3TagoT
+SZyXZ7LoOlLUd/WSaxESCxDXxxN6lW8ZTk5QVv1qmPjmrNioNucKlhEHIxTNAfb8
+HWpE3zWc8UB2ZqvGxH2WgbjnjxVs7lYMcmWgS7DKzQb5zWhHgchdAiw+Uq8FQR31
+gFGGXo6FU//r66AfXLyyrbGoSv0uDTmexBcI8Iil7mF/6+3z158/zHpErUwuxNmA
+fqSdIYPJeNhtOAsNvBOBZVWHbLHcoE5Vy43lrycDS94JB2IRZ4Ar8PC0bvgu/whn
+0QIDAQAB
+-----END PUBLIC KEY-----
+</code></pre>
+<p><strong>2、创建一个加密的rsa私钥文件genrsaK.pri，然后从此文件输出公钥至文件rsaK.pub。</strong></p>
+<pre><code class="language-bash]">root@qqq:~# openssl genrsa -out genrsaK.pri -des3 -passout pass:123456 
+</code></pre>
+<p>此时将提示输入密码才能读取该私钥文件</p>
+<pre><code class="language-bash">root@qqq:~# openssl rsa -in genrsaK.pri -pubout -out rsaK.pub 
+Enter pass phrase for genrsaK.pri:
+</code></pre>
+<p>可以使用&quot;-passin&quot;传递解密的密码。</p>
+<pre><code class="language-bash">root@qqq:~# openssl rsa -in genrsaK.pri -pubout -out rsaK.pub -passin pass:123456
+</code></pre>
+<p><strong>3、移除私钥文件或公钥文件的密码。只需直接输出到新文件即可。以已加密的私钥文件genrsaK.pri为例</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl rsa -in genrsaK.pri -out genrsak.pri
+</code></pre>
+<p><strong>4、check检测私钥文件的一致性，查看私钥文件被修改过</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl rsa -in genrsaK.pri -check
+Enter pass phrase for genrsaK.pri:
+RSA key ok
+</code></pre>
+<p>现在随便修改下私钥文件，再检测。</p>
+<pre><code class="language-bash">root@qqq:~# openssl rsa -in genrsaK.pri -check
+Enter pass phrase for genrsaK.pri:
+RSA key error: n does not equal p q
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/cx2hRHr8nL/" class="tag">
+                    证书
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190901openssl-passwd/">
+                  <h3 class="post-title">
+                    20190901openssl passwd
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

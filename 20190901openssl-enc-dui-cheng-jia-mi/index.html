@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190901openssl enc对称加密 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="openssl enc对称加密
+对称加密工具。了解对称加密的原理后就很简单了，原理部分见下文。
+openssl enc -ciphername [-in filename] [-out filename] [-pass arg] [-e] ..." />
+    <meta name="keywords" content="openssl,证书" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190901openssl enc对称加密</h2>
+            <div class="post-date">2021-04-23</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="openssl-enc对称加密">openssl enc对称加密</h1>
+<p>对称加密工具。了解对称加密的原理后就很简单了，原理部分见下文。</p>
+<pre><code class="language-bash">openssl enc -ciphername [-in filename] [-out filename] [-pass arg] [-e] [-d] [-a/-base64] [-k password] [-S salt] [-salt] [-md] [-p/-P]
+
+选项说明：
+
+-ciphername：指定对称加密算法(如des3)，可独立于enc直接使用，如openssl des3或openssl enc -des3。推荐在enc后使用，这样不依赖于硬件
+
+-in filename ：输入文件，不指定时默认是stdin
+
+-out filename：输出文件，不指定时默认是stdout
+
+-e：对输入文件加密操作，不指定时默认就是该选项
+
+-d：对输入文件解密操作，只有显示指定该选项才是解密
+
+-pass：传递加、解密时的明文密码。若验证签名时实用的公钥或私钥文件是被加密过的，则需要传递密码来解密。密码的格式见&quot;openssl 密码格式&quot;
+
+-k     ：已被&quot;-pass&quot;替代，现在还保留是为了兼容老版本的openssl
+
+-base64：在加密后和解密前进行base64编码或解密，不指定时默认是二进制。注意，编码不是加解密的一部分，而是加解密前后对数据的格式&quot;整理&quot;
+
+-a：等价于-base64
+
+-salt：单向加密时使用salt复杂化单向加密的结果，此为默认选项，且使用随机salt值
+
+-S salt：不使用随机salt值，而是自定义salt值，但只能是16进制范围内字符的组合，即&quot;0-9a-fA-F&quot;的任意一个或多个组合
+
+-p：打印加解密时salt值、key值和IV初始化向量值（也是复杂化加密的一种方式），解密时还输出解密结果，见后文示例
+
+-P：和-p选项作用相同，但是打印时直接退出工具，不进行加密或解密操作
+
+-md：指定单向加密算法，默认md5。该算法是拿来加密key部分的，见后文分析。
+</code></pre>
+<p>支持的单向加密算法有：</p>
+<pre><code class="language-bash">-md4            to use the md4 message digest algorithm
+-md5            to use the md5 message digest algorithm
+-ripemd160      to use the ripemd160 message digest algorithm
+-sha            to use the sha message digest algorithm
+-sha1           to use the sha1 message digest algorithm
+-sha224         to use the sha224 message digest algorithm
+-sha256         to use the sha256 message digest algorithm
+-sha384         to use the sha384 message digest algorithm
+-sha512         to use the sha512 message digest algorithm
+-whirlpool      to use the whirlpool message digest algorithm
+</code></pre>
+<p>支持的对称加密算法有：</p>
+<pre><code class="language-bsh">-aes-128-cbc               -aes-128-cbc-hmac-sha1     -aes-128-cfb             
+-aes-128-cfb1              -aes-128-cfb8              -aes-128-ctr             
+-aes-128-ecb               -aes-128-gcm               -aes-128-ofb             
+-aes-128-xts               -aes-192-cbc               -aes-192-cfb             
+-aes-192-cfb1              -aes-192-cfb8              -aes-192-ctr             
+-aes-192-ecb               -aes-192-gcm               -aes-192-ofb             
+-aes-256-cbc               -aes-256-cbc-hmac-sha1     -aes-256-cfb             
+-aes-256-cfb1              -aes-256-cfb8              -aes-256-ctr             
+-aes-256-ecb               -aes-256-gcm               -aes-256-ofb             
+-aes-256-xts               -aes128                    -aes192                  
+-aes256                    -bf                        -bf-cbc                  
+-bf-cfb                    -bf-ecb                    -bf-ofb                  
+-blowfish                  -camellia-128-cbc          -camellia-128-cfb        
+-camellia-128-cfb1         -camellia-128-cfb8         -camellia-128-ecb        
+-camellia-128-ofb          -camellia-192-cbc          -camellia-192-cfb        
+-camellia-192-cfb1         -camellia-192-cfb8         -camellia-192-ecb        
+-camellia-192-ofb          -camellia-256-cbc          -camellia-256-cfb        
+-camellia-256-cfb1         -camellia-256-cfb8         -camellia-256-ecb        
+-camellia-256-ofb          -camellia128               -camellia192             
+-camellia256               -cast                      -cast-cbc                
+-cast5-cbc                 -cast5-cfb                 -cast5-ecb               
+-cast5-ofb                 -des                       -des-cbc                 
+-des-cfb                   -des-cfb1                  -des-cfb8                
+-des-ecb                   -des-ede                   -des-ede-cbc             
+-des-ede-cfb               -des-ede-ofb               -des-ede3                
+-des-ede3-cbc              -des-ede3-cfb              -des-ede3-cfb1           
+-des-ede3-cfb8             -des-ede3-ofb              -des-ofb                
+-des3                      -desx                      -desx-cbc                
+-id-aes128-GCM             -id-aes128-wrap            -id-aes128-wrap-pad      
+-id-aes192-GCM             -id-aes192-wrap            -id-aes192-wrap-pad      
+-id-aes256-GCM             -id-aes256-wrap            -id-aes256-wrap-pad      
+-id-smime-alg-CMS3DESwrap  -idea                      -idea-cbc                 
+-idea-cfb                  -idea-ecb                  -idea-ofb                
+-rc2                       -rc2-40-cbc                -rc2-64-cbc              
+-rc2-cbc                   -rc2-cfb                   -rc2-ecb                 
+-rc2-ofb                   -rc4                       -rc4-40                  
+-rc4-hmac-md5              -seed                      -seed-cbc                
+-seed-cfb                  -seed-ecb                  -seed-ofb
+</code></pre>
+<p>在给出openssl enc命令用法示例之前，先解释下对称加密和解密的原理和过程。</p>
+<p>对称加解密时，它们使用的密码是完全相同的，例如&quot;123456&quot;，但这是密码，且是明文密码，非常不安全，所以应该对此简单密码进行复杂化。最直接的方法是使用单向加密计算出明文密码的hash值，单向加密后新生成的密码已经比较安全(称之为密钥比较好)，可以作为对称加密时的对称密钥。另外，由于同一单向加密算法对相同明文密码的计算结果是完全一致的，这样解密时使用相同的单向加密算法就能计算出完全相同的密钥，也就是解密时的对称密钥。如果想要更安全，还可以在对称加密后对加密文件进行重新编码，如使用&quot;base64&quot;、二进制或hex编码方式进行编码，但对应的在解密前就需要先解码，解码后才能解密。</p>
+<p>所以，将对称加、解密的机制简单概括如下：</p>
+<p>对称加密机制：根据指定的单向加密算法，对输入的明文密码进行单向加密(默认是md5)，得到固定长度的加密密钥，即对称密钥，再根据指定的对称加密算法，使用对称密钥加密文件，最后重新编码加密后的文件。<strong>即单向加密明文密码结果作为对称密钥、使用对称密钥加密文件、对文件重新编码。</strong></p>
+<p>对称解密机制：<strong>先解码文件，再根据单向加密算法对解密时输入的明文密码计算得到对称密钥，依此对称密钥对称解密解码后的文件。</strong></p>
+<p>**因此，解密过程中使用的解码方式、单向加密和对称加密算法都必须一致，且输入的密码必须是正确密码。**但需要注意的一点是，解密时可以不指定salt，因为加密时使用的salt会记录下来，解密时可以读取该salt。</p>
+<p><strong>1、首先测试openssl enc的编码功能。由于未指定密码选项&quot;-k&quot;或&quot;-pass&quot;，所以仅仅只进行编码而不进行加密，因此也不会提示输入密码</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl enc -a -in test.txt -out test_base64.txt 
+root@qqq:~# cat test_base64.txt 
+IyAvZXRjL2ZzdGFiOiBzdGF0aWMgZmlsZSBzeXN0ZW0gaW5mb3JtYXRpb24uCiMK
+IyBVc2UgJ2Jsa2lkJyB0byBwcmludCB0aGUgdW5pdmVyc2FsbHkgdW5pcXVlIGlk
+ZW50aWZpZXIgZm9yIGEKIyBkZXZpY2U7IHRoaXMgbWF5IGJlIHVzZWQgd2l0aCBV
+VUlEPSBhcyBhIG1vcmUgcm9idXN0IHdheSB0byBuYW1lIGRldmljZXMKIyB0aGF0
+IHdvcmtzIGV2ZW4gaWYgZGlza3MgYXJlIGFkZGVkIGFuZCByZW1vdmVkLiBTZWUg
+ZnN0YWIoNSkuCiMKIyA8ZmlsZSBzeXN0ZW0+IDxtb3VudCBwb2ludD4gICA8dHlw
+ZT4gIDxvcHRpb25zPiAgICAgICA8ZHVtcD4gIDxwYXNzPgojIC8gd2FzIG9uIC9k
+ZXYvc2RhMSBkdXJpbmcgaW5zdGFsbGF0aW9uClVVSUQ9ZTJjMDFhYWItMTk4Yy00
+YWU4LWIxMWEtY2Y3MGM2NTJjNzRiIC8gICAgICAgICAgICAgICBleHQ0ICAgIGVy
+cm9ycz1yZW1vdW50LXJvIDAgICAgICAgMQovc3dhcGZpbGUgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICBub25lICAgICAgICAgICAgc3dhcCAgICBzdyAg
+ICAgICAgICAgICAgMCAgICAgICAwCg==
+</code></pre>
+<p><strong>再以base64格式进行解码。</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl enc -a -d -in test_base64.txt 
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# &lt;file system&gt; &lt;mount point&gt;   &lt;type&gt;  &lt;options&gt;       &lt;dump&gt;  &lt;pass&gt;
+# / was on /dev/sda1 during installation
+UUID=e2c01aab-198c-4ae8-b11a-cf70c652c74b /               ext4    errors=remount-ro 0       1
+/swapfile                                 none            swap    sw              0       0
+</code></pre>
+<p><strong>2、测试使用des3对称加密算法加密test.txt文件</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl enc -a -des3 -in test.txt -out test.1 -pass pass:123456 -md md5
+*** WARNING : deprecated key derivation used.
+Using -iter or -pbkdf2 would be better.
+root@qqq:~# cat test.1
+U2FsdGVkX1+u+gI6xm+haEoz3qrRg2RnB+lC0yinLUjuHqGiQKSq0TdbStOMkuD6
+5uf6kY69CSKmqOmmW6dIjW0yjAGN5eSYmEVuj3urHsxLxahn9NAFXDROQRZRG25d
+je2UrJwx2HPPWPif/2TLjHBMLejinODdgHy7wUzz1DLzb59gdss4MeHaL6bTOQbi
+ncJQ3E8159aNUHkdtfceAfAgVOXQn+aw0Dgp8PtDHYu3x3avPowxU3GPXytAccH+
+23nAeDW9QQ7m82jxfw5Nqzip26o0++qoZg/1jsPmAoVIlFEaBJDhJ7E/8AnX6MX0
+jnT4Jdxygh6djVrJsYowdvRkWDtXJrg3abHnD+jITD2bkTbwkTn8BUzhGpYaL/Nn
+6JSS66qZ+AWbxMyIHmoNnZa4pqBqVal6j+SQyLj1j+HUiuC7kIK8pGEpyEa532Ks
+HaGcHzPXlimQrft4qOOJtoE8eMkmK2aQhZSTaLq+OLVl5zIXEfh3Bpo0STL7k4YH
+ZJ/btkkEnwbR7GbAN0Sc3BNrjmqp6OAxVIKrcrwnpn92M8vcECU9e0vh17svfapB
+4apvrr1rngtpGLICztfs0ZO2+EUKSk01rBZGDrlg9d0n3nUzs7VnpjUTrDRysWGF
+CXxIN74kNxC8revr/vrl+Q9HC9Q94bo3dLz/82g0hgdLVAmP3hvutw5W94+wZjr4
+yJal6JqXznqLOri6bXy3EfEBnu3qAK9LBREjfPlwuO/oANyjeqKCrQ==
+</code></pre>
+<p><strong>解密文件test.1</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl enc -a -des3 -d -in test.1 -out test.2 -pass pass:123456 -md md5
+*** WARNING : deprecated key derivation used.
+Using -iter or -pbkdf2 would be better.
+root@qqq:~# cat test.2
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# &lt;file system&gt; &lt;mount point&gt;   &lt;type&gt;  &lt;options&gt;       &lt;dump&gt;  &lt;pass&gt;
+# / was on /dev/sda1 during installation
+UUID=e2c01aab-198c-4ae8-b11a-cf70c652c74b /               ext4    errors=remount-ro 0       1
+/swapfile                                 none            swap    sw              0       0
+</code></pre>
+<p><strong>3、加密时带上点盐salt。其实不写时默认就已经加入了，只不过是加入随机盐值。使用-S可以指定明确要使用的盐的值。但是盐的值只能是16进制范围内字符的组合，即&quot;0-9a-fA-F&quot;的任意一个或多个组合</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl enc -a -des3 -S 'Fabc' -in test.txt -out test.1 -pass pass:123456 -md md5
+hex string is too short, padding with zero bytes to length
+*** WARNING : deprecated key derivation used.
+Using -iter or -pbkdf2 would be better.
+</code></pre>
+<p><strong>解密。解密时不用指定salt值，即使指定了也不会影响解密结果</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl enc -a -des3 -d -in test.1 -pass pass:123456 -md md5
+*** WARNING : deprecated key derivation used.
+Using -iter or -pbkdf2 would be better.
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# &lt;file system&gt; &lt;mount point&gt;   &lt;type&gt;  &lt;options&gt;       &lt;dump&gt;  &lt;pass&gt;
+# / was on /dev/sda1 during installation
+UUID=e2c01aab-198c-4ae8-b11a-cf70c652c74b /               ext4    errors=remount-ro 0       1
+/swapfile                                 none            swap    sw              0       0
+</code></pre>
+<pre><code class="language-bash">root@qqq:~# openssl enc -a -des3 -d -S 'fdshadg' -in test.1 -pass pass:123456 -md md5
+*** WARNING : deprecated key derivation used.
+Using -iter or -pbkdf2 would be better.
+# /etc/fstab: static file system information.
+#
+# Use 'blkid' to print the universally unique identifier for a
+# device; this may be used with UUID= as a more robust way to name devices
+# that works even if disks are added and removed. See fstab(5).
+#
+# &lt;file system&gt; &lt;mount point&gt;   &lt;type&gt;  &lt;options&gt;       &lt;dump&gt;  &lt;pass&gt;
+# / was on /dev/sda1 during installation
+UUID=e2c01aab-198c-4ae8-b11a-cf70c652c74b /               ext4    errors=remount-ro 0       1
+/swapfile                                 none            swap    sw              0       0
+</code></pre>
+<p><strong>4、在测试下&quot;-p&quot;和&quot;-P&quot;选项的输出功能。小写字母p不仅输出密钥算法结果，还输出加解密的内容，而大写字母P则只输出密钥算法结果</strong></p>
+<p>加密时的情况。</p>
+<pre><code class="language-bash">root@qqq:~# openssl enc -a -des3 -S 'Fabc' -in test.txt -out test.1 -pass pass:123456 -md md5 -p
+hex string is too short, padding with zero bytes to length
+*** WARNING : deprecated key derivation used.
+Using -iter or -pbkdf2 would be better.
+salt=FABC000000000000
+key=885FC58E6C822AEFC8032B4B98FA0355F8482BD654739F3D
+iv =5128FDED01EE1499
+</code></pre>
+<p>其中key就是单向加密明文密码后得到的对称密钥，iv是密码运算时使用的向量值。</p>
+<p>再看解密时的情况，此处加上了salt。</p>
+<pre><code class="language-bah">root@qqq:~# openssl enc -a -des3 -S 'Fabc' -in test.1 -pass pass:123456 -md md5 -P
+hex string is too short, padding with zero bytes to length
+*** WARNING : deprecated key derivation used.
+Using -iter or -pbkdf2 would be better.
+salt=FABC000000000000
+key=885FC58E6C822AEFC8032B4B98FA0355F8482BD654739F3D
+iv =5128FDED01EE1499
+</code></pre>
+<p>若解密时不指定salt，或者随意指定salt，结果如下</p>
+<pre><code class="language-bash">root@qqq:~# openssl enc -a -des3 -d -in test.1 -pass pass:123456 -md md5 -P
+*** WARNING : deprecated key derivation used.
+Using -iter or -pbkdf2 would be better.
+salt=FABC000000000000
+key=885FC58E6C822AEFC8032B4B98FA0355F8482BD654739F3D
+iv =5128FDED01EE1499
+
+root@qqq:~# openssl enc -a -des3 -S 'FabM' -d -in test.1 -pass pass:123456 -md md5 -P
+*** WARNING : deprecated key derivation used.
+Using -iter or -pbkdf2 would be better.
+salt=FABC000000000000
+key=885FC58E6C822AEFC8032B4B98FA0355F8482BD654739F3D
+iv =5128FDED01EE1499
+</code></pre>
+<p>可见，解密时，只要指定和加密时相同编码格式和单向加密算法，密钥的结果就是一样的，且解密时明确指定salt是无意义的，因为它可以读取到加密时使用的salt。</p>
+<p>甚至，解密时指定不同的对称加密算法，密钥结果也是一样的。</p>
+<p>由此，能推理出对称加密时使用的对称密钥和对称算法是毫无关系的。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/cx2hRHr8nL/" class="tag">
+                    证书
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190901openssl-dhparam/">
+                  <h3 class="post-title">
+                    20190901openssl dhparam
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

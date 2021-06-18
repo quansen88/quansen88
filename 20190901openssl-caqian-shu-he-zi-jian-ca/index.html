@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190901openssl ca(签署和自建CA) | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="openssl ca(签署和自建CA)
+自建CA总结：
+#建立数据库索引文件和序列文件
+[root@linux5 ~]# touch /etc/pki/CA/index.txt
+[root@linux5 ~]# echo &quot;01&..." />
+    <meta name="keywords" content="openssl,证书" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190901openssl ca(签署和自建CA)</h2>
+            <div class="post-date">2021-04-23</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="openssl-ca签署和自建ca">openssl ca(签署和自建CA)</h1>
+<h2 id="自建ca总结">自建CA总结：</h2>
+<pre><code class="language-bash">#建立数据库索引文件和序列文件
+[root@linux5 ~]# touch /etc/pki/CA/index.txt
+[root@linux5 ~]# echo &quot;01&quot; &gt; /etc/pki/CA/serial
+#生成私钥
+[root@linux5 ~]# openssl genrsa -out /etc/pki/CA/private/cakey.pem		
+#创建CA请求文件
+[root@linux5 ~]# openssl req -new -key /etc/pki/CA/private/cakey.pem -out rootCA.csr
+#自签署
+[root@linux5 ~]# openssl ca -selfsign -in rootCA.csr
+#把自签的证书放到/etc/pki/CA/下
+[root@linux5 ~]# cp /etc/pki/CA/newcerts/01.pem /etc/pki/CA/cacert.pem
+</code></pre>
+<h2 id="然后使用该ca给老王颁发证书总结">然后使用该CA给老王颁发证书总结</h2>
+<pre><code class="language-bash">#老王生成私钥
+[wang@linux5 ~]$ (umask 077 openssl genrsa -out wangkey.pem)	#小括号开启子shell，控制证书权限为600
+#老王生成请求文件
+[wang@linux5 ~]$ openssl req -new -key wangkey.pem -out wangwangwang.csr
+#老王将证书请求文件发给CA机构（国家，域名，组织必须和subject一致，原因是/etc/pki/tls/openssl.cnf控制的，有需要可以改）
+[wang@linux5 ~]$ scp wangwangwang.csr root@192.168.38.146:/root/
+#CA帮忙签，可以使用-out wangwangwang.crt来指定证书生成目录，此处没指定
+[root@linux5 ~]# openssl ca -in wangwangwang.csr 
+#CA将证书发给老王
+[root@linux5 ~]# scp /etc/pki/CA/newcerts/02.pem wang@192.168.38.146:~/
+</code></pre>
+<hr>
+<p>证书请求文件使用CA的私钥签署之后就是证书，签署之后将证书发给申请者就是颁发证书。在签署时，为了保证证书的完整性和一致性，还应该对签署的证书生成数字摘要，即使用单向加密算法。</p>
+<p><strong>在配置文件中指定了签署证书时所需文件的结构，默认openssl.cnf中的结构要求如下</strong></p>
+<pre><code class="language-bash">[ CA_default ]
+dir             = /etc/pki/CA             # 定义路径变量
+certs           = $dir/certs              # 已颁发证书的保存目录
+database        = $dir/index.txt          # 数据库索引文件
+new_certs_dir   = $dir/newcerts           # 新签署的证书保存目录
+certificate     = $dir/cacert.pem         # CA证书路径名
+serial          = $dir/serial             # 当前证书序列号
+private_key     = $dir/private/cakey.pem  # CA的私钥路径名
+</code></pre>
+<p>其中目录/etc/pki/CA/{certs,newcerts,private}在安装openssl后就默认存在，所以无需独立创建，但证书的database文件index.txt和序列文件serial必须创建好，且序列号文件中得先给定一个序号，如&quot;01&quot;</p>
+<h3 id="创建数据库索引文件和序列文件">创建数据库索引文件和序列文件</h3>
+<pre><code class="language-bash">[root@linux5 ~]# touch /etc/pki/CA/index.txt
+[root@linux5 ~]# echo &quot;01&quot; &gt; /etc/pki/CA/serial
+</code></pre>
+<h3 id="创建私钥">创建私钥</h3>
+<p>另外，要签署证书请求，需要CA自己的私钥文件以及CA自己的证书，先创建好CA的私钥，存放位置为配置文件中private_key所指定的值，默认为/etc/pki/CA/private/cakey.pem。</p>
+<pre><code class="language-bash">[root@linux5 ~]# openssl genrsa -out /etc/pki/CA/private/cakey.pem
+</code></pre>
+<h3 id="使用openssl-ca自建ca"><strong>使用openssl ca自建CA</strong></h3>
+<p>要提供CA自己的证书，测试环境下CA只能自签署，使用&quot;openssl req -x509&quot;、&quot;openssl x509&quot;和&quot;openssl ca&quot;都可以自签署证书请求文件，此处仅介绍openssl ca命令自身自签署的方法。</p>
+<p>先创建CA的证书请求文件，建议使用CA的私钥文件/etc/pki/CA/private/cakey.pem来创建待自签署的证书请求文件，虽非必须，但方便管理。创建请求文件时，其中Country Name、State or Province Name、Organization Name和Common Name默认是必须提供的。</p>
+<h3 id="创建ca的证书请求文件">创建CA的证书请求文件</h3>
+<pre><code class="language-bash">[root@linux5 ~]# openssl req -new -key /etc/pki/CA/private/cakey.pem -out rootCA.csr
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:CN   
+State or Province Name (full name) []:BJ
+Locality Name (eg, city) [Default City]:BJ
+Organization Name (eg, company) [Default Company Ltd]:MG
+Organizational Unit Name (eg, section) []:IT
+Common Name (eg, your name or your server's hostname) []:www.baidu.com
+Email Address []:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+</code></pre>
+<h3 id="然后使用openssl-ca命令自签署该证书请求文件">然后使用openssl ca命令自签署该证书请求文件。</h3>
+<p>如果有两次交互式询问则表示自签署将成功，如果失败，则考虑数据库文件index.txt是否创建、序列号文件serial是否存在且有序号值、私钥文件cakey.pem是否路径正确、创建证书请求文件时是否该提供的没有提供等情况。</p>
+<pre><code class="language-bash">[root@linux5 ~]# openssl ca -selfsign -in rootCA.csr
+Using configuration from /etc/pki/tls/openssl.cnf
+Check that the request matches the signature
+Signature ok
+Certificate Details:
+        Serial Number: 1 (0x1)
+        Validity
+            Not Before: Sep  1 12:18:39 2019 GMT
+            Not After : Aug 31 12:18:39 2020 GMT
+        Subject:
+            countryName               = CN
+            stateOrProvinceName       = BJ
+            organizationName          = MG
+            organizationalUnitName    = IT
+            commonName                = www.baidu.com
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Comment: 
+                OpenSSL Generated Certificate
+            X509v3 Subject Key Identifier: 
+                78:5F:19:3D:9B:CD:5D:60:5A:00:E5:DA:95:7D:4C:EC:2C:20:B1:3F
+            X509v3 Authority Key Identifier: 
+                keyid:78:5F:19:3D:9B:CD:5D:60:5A:00:E5:DA:95:7D:4C:EC:2C:20:B1:3F
+
+Certificate is to be certified until Aug 31 12:18:39 2020 GMT (365 days)
+Sign the certificate? [y/n]:y
+
+
+1 out of 1 certificate requests certified, commit? [y/n]y
+Write out database with 1 new entries
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 1 (0x1)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=CN, ST=BJ, O=MG, OU=IT, CN=www.baidu.com
+        Validity
+            Not Before: Sep  1 12:18:39 2019 GMT
+            Not After : Aug 31 12:18:39 2020 GMT
+        Subject: C=CN, ST=BJ, O=MG, OU=IT, CN=www.baidu.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:b8:1d:69:b1:34:dc:9d:68:77:3d:9a:66:62:74:
+                    f4:45:46:80:64:78:21:a5:b0:b5:7c:89:9a:6e:72:
+                    2f:01:2a:e7:30:57:1c:cd:3b:5e:e5:97:b9:a5:80:
+                    7d:87:5d:6a:59:8c:5f:b9:0c:6f:d4:33:05:63:c2:
+                    ff:50:12:11:29:7b:5f:e6:74:4a:11:c5:97:71:c4:
+                    67:63:2d:36:d2:6f:b4:3a:7c:59:4a:80:79:35:b6:
+                    e6:9f:c9:7b:82:18:11:95:19:c8:37:f7:9a:28:00:
+                    98:6c:a3:73:00:01:4f:fe:7b:8e:d8:c5:82:06:c2:
+                    c8:9e:44:8d:36:ca:05:0e:50:8a:17:32:05:91:18:
+                    d1:e8:9b:a5:52:43:88:3f:99:01:84:7e:8b:c2:46:
+                    23:d0:c1:91:a8:9e:f5:ef:c8:91:22:06:9e:b0:30:
+                    1f:8c:f9:3e:f5:30:8c:27:95:54:05:03:82:ac:70:
+                    f9:30:f9:0e:a2:8f:e6:9a:53:b5:f4:82:f1:ab:17:
+                    6a:22:f9:b2:c4:0b:8d:6e:49:51:35:f9:dd:8c:4f:
+                    eb:ee:ba:f0:08:1d:70:fd:90:11:47:0d:34:bd:b2:
+                    3e:71:c5:a7:d5:c9:61:88:79:76:2a:59:74:b2:32:
+                    fd:37:a4:2e:e0:8b:2f:98:76:ae:ae:19:57:23:93:
+                    cb:3d
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Comment: 
+                OpenSSL Generated Certificate
+            X509v3 Subject Key Identifier: 
+                78:5F:19:3D:9B:CD:5D:60:5A:00:E5:DA:95:7D:4C:EC:2C:20:B1:3F
+            X509v3 Authority Key Identifier: 
+                keyid:78:5F:19:3D:9B:CD:5D:60:5A:00:E5:DA:95:7D:4C:EC:2C:20:B1:3F
+
+    Signature Algorithm: sha256WithRSAEncryption
+         33:c4:da:33:67:d6:f8:c5:80:17:c0:db:b2:dd:5a:4e:f2:0c:
+         3a:21:fa:f6:da:86:0a:b3:66:fe:31:23:ed:00:8d:2a:0f:26:
+         c5:0b:9b:af:1c:0b:31:ba:60:d6:d7:24:74:29:0f:3a:8a:a1:
+         1f:f2:e9:de:96:1f:05:19:50:67:2f:5e:20:0b:8a:21:f4:95:
+         3b:30:88:2b:7c:2c:13:c9:b5:b4:17:c7:0c:84:20:0d:68:d8:
+         4d:31:ad:03:77:66:11:d3:96:68:38:d4:48:75:e3:2c:3a:fe:
+         ad:63:2b:89:61:9b:7e:07:97:c0:45:20:e7:4c:f4:1a:c3:6e:
+         49:81:16:33:f1:79:74:d3:f5:08:2c:21:42:b4:bd:65:a3:c2:
+         9d:56:7d:a8:3f:52:d0:55:94:ba:69:45:28:2a:05:13:4b:a2:
+         d5:00:dd:47:3d:92:27:7e:b0:23:f6:5a:96:0e:9b:e7:fd:7f:
+         57:3a:f0:43:88:05:60:73:db:3d:d8:f0:0e:90:97:18:94:f1:
+         53:56:e0:e6:0c:5a:60:f7:bb:86:bf:70:82:b2:d2:2a:64:c0:
+         b1:a6:13:69:ee:ae:ce:d6:8b:fa:b2:05:42:69:79:74:2a:6b:
+         04:e9:29:cc:55:6d:7d:4a:0f:43:63:2a:83:bb:de:0d:09:dd:
+         fa:f5:9c:70
+-----BEGIN CERTIFICATE-----
+MIIDjjCCAnagAwIBAgIBATANBgkqhkiG9w0BAQsFADBMMQswCQYDVQQGEwJDTjEL
+MAkGA1UECAwCQkoxCzAJBgNVBAoMAk1HMQswCQYDVQQLDAJJVDEWMBQGA1UEAwwN
+d3d3LmJhaWR1LmNvbTAeFw0xOTA5MDExMjE4MzlaFw0yMDA4MzExMjE4MzlaMEwx
+CzAJBgNVBAYTAkNOMQswCQYDVQQIDAJCSjELMAkGA1UECgwCTUcxCzAJBgNVBAsM
+AklUMRYwFAYDVQQDDA13d3cuYmFpZHUuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOC
+AQ8AMIIBCgKCAQEAuB1psTTcnWh3PZpmYnT0RUaAZHghpbC1fImabnIvASrnMFcc
+zTte5Ze5pYB9h11qWYxfuQxv1DMFY8L/UBIRKXtf5nRKEcWXccRnYy020m+0OnxZ
+SoB5Nbbmn8l7ghgRlRnIN/eaKACYbKNzAAFP/nuO2MWCBsLInkSNNsoFDlCKFzIF
+kRjR6JulUkOIP5kBhH6LwkYj0MGRqJ7178iRIgaesDAfjPk+9TCMJ5VUBQOCrHD5
+MPkOoo/mmlO19ILxqxdqIvmyxAuNbklRNfndjE/r7rrwCB1w/ZARRw00vbI+ccWn
+1clhiHl2Kll0sjL9N6Qu4IsvmHaurhlXI5PLPQIDAQABo3sweTAJBgNVHRMEAjAA
+MCwGCWCGSAGG+EIBDQQfFh1PcGVuU1NMIEdlbmVyYXRlZCBDZXJ0aWZpY2F0ZTAd
+BgNVHQ4EFgQUeF8ZPZvNXWBaAOXalX1M7CwgsT8wHwYDVR0jBBgwFoAUeF8ZPZvN
+XWBaAOXalX1M7CwgsT8wDQYJKoZIhvcNAQELBQADggEBADPE2jNn1vjFgBfA27Ld
+Wk7yDDoh+vbahgqzZv4xI+0AjSoPJsULm68cCzG6YNbXJHQpDzqKoR/y6d6WHwUZ
+UGcvXiALiiH0lTswiCt8LBPJtbQXxwyEIA1o2E0xrQN3ZhHTlmg41Eh14yw6/q1j
+K4lhm34Hl8BFIOdM9BrDbkmBFjPxeXTT9QgsIUK0vWWjwp1Wfag/UtBVlLppRSgq
+BRNLotUA3Uc9kid+sCP2WpYOm+f9f1c68EOIBWBz2z3Y8A6QlxiU8VNW4OYMWmD3
+u4a/cIKy0ipkwLGmE2nurs7Wi/qyBUJpeXQqawTpKcxVbX1KD0NjKoO73g0J3fr1
+nHA=
+-----END CERTIFICATE-----
+Data Base Updated
+</code></pre>
+<h3 id="自签署成功后在etcpkica目录下将生成一系列文件">自签署成功后，在/etc/pki/CA目录下将生成一系列文件。</h3>
+<pre><code class="language-bash">[root@linux5 ~]# tree -C /etc/pki/CA
+/etc/pki/CA
+|-- certs
+|-- crl
+|-- index.txt
+|-- index.txt.attr
+|-- index.txt.old
+|-- newcerts
+|   `-- 01.pem
+|-- private
+|   `-- cakey.pem
+|-- serial
+`-- serial.old
+</code></pre>
+<p>其中newcerts目录下的01.pem即为刚才自签署的证书文件，因为它是CA自身的证书，所以根据配置文件中的&quot;certificate=$dir/cacert.pem&quot;项，应该将其放入/etc/pki/CA目录下，且命名为cacert.pem，只有这样以后才能签署其它证书请求。</p>
+<h3 id="将自签证书放到etcpkica目录下面">将自签证书放到/etc/pki/CA/目录下面</h3>
+<pre><code class="language-bash">[root@linux5 ~]# cp /etc/pki/CA/newcerts/01.pem /etc/pki/CA/cacert.pem
+</code></pre>
+<p>至此，自建CA就完成了，</p>
+<h3 id="查看下数据库索引文件和序列号文件">查看下数据库索引文件和序列号文件。</h3>
+<pre><code class="language-bash">[root@linux5 ~]# cat /etc/pki/CA/index.txt
+V	200831121839Z		01	unknown	/C=CN/ST=BJ/O=MG/OU=IT/CN=www.baidu.com
+</code></pre>
+<p>那么，下次签署证书请求时，序列号将是&quot;02&quot;。</p>
+<hr>
+<h1 id="自签ca命令总结">自签CA命令总结</h1>
+<pre><code class="language-bash">[root@linux5 ~]# touch /etc/pki/CA/index.txt
+[root@linux5 ~]# echo &quot;01&quot; &gt; /etc/pki/CA/serial
+[root@linux5 ~]# openssl genrsa -out /etc/pki/CA/private/cakey.pem
+[root@linux5 ~]# openssl req -new -key /etc/pki/CA/private/cakey.pem -out rootCA.csr
+[root@linux5 ~]# openssl ca -selfsign -in rootCA.csr
+[root@linux5 ~]# cp /etc/pki/CA/newcerts/01.pem /etc/pki/CA/cacert.pem
+</code></pre>
+<p>以上过程是完全读取默认配置文件创建的，其实很多过程是没有那么严格的，openssl ca命令自身可以指定很多选项覆盖配置文件中的项，但既然提供了默认的配置文件及目录结构，为了方便管理，仍然建议完全采用配置文件中的项。</p>
+<hr>
+<h2 id="给老王颁发个证书">给老王颁发个证书</h2>
+<h3 id="1-老王生成自己的私钥">1、老王生成自己的私钥</h3>
+<pre><code class="language-bash">[wang@linux5 ~]$ openssl genrsa -out wangkey.pem
+</code></pre>
+<h3 id="2-老王生成证书请求文件">2、老王生成证书请求文件</h3>
+<pre><code class="language-bash">[wang@linux5 ~]$ openssl req -new -key wangkey.pem -out wangwangwang.csr
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [XX]:CN
+State or Province Name (full name) []:BJ
+Locality Name (eg, city) [Default City]:BJ
+Organization Name (eg, company) [Default Company Ltd]:MG
+Organizational Unit Name (eg, section) []:
+Common Name (eg, your name or your server's hostname) []:www.wangwangwang.com
+Email Address []:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+</code></pre>
+<p>其中Country Name、State or Province Name、Organization Name和Common Name必须提供，且前三者必须和CA的subject中的对应项完全相同。这些是由配置文件中的匹配策略决定的。</p>
+<p>&quot;match&quot;表示openssl ca要签署的证书请求文件中的项要和CA证书中的项匹配，即要相同，&quot;supplied&quot;表示必须要提供的项，&quot;optional&quot;表示可选项，所以可以留空。</p>
+<pre><code class="language-bash">[ ca ]
+default_ca      = CA_default            # The default ca section
+[ CA_default ]
+policy          = policy_match
+[ policy_match ]
+countryName             = match
+stateOrProvinceName     = match
+organizationName        = match
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+</code></pre>
+<h3 id="3-laowang将请求文件发给ca">3、laowang将请求文件发给CA</h3>
+<pre><code class="language-bash">[wang@linux5 ~]$ scp wangwangwang.csr root@192.168.38.146:/root/
+</code></pre>
+<h3 id="4-ca帮忙签">4、CA帮忙签</h3>
+<pre><code class="language-bash">[root@linux5 ~]# openssl ca -in wangwangwang.csr 
+Using configuration from /etc/pki/tls/openssl.cnf
+Check that the request matches the signature
+Signature ok
+Certificate Details:
+        Serial Number: 2 (0x2)
+        Validity
+            Not Before: Sep  1 12:52:13 2019 GMT
+            Not After : Aug 31 12:52:13 2020 GMT
+        Subject:
+            countryName               = CN
+            stateOrProvinceName       = BJ
+            organizationName          = MG
+            commonName                = www.wangwangwang.com
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Comment: 
+                OpenSSL Generated Certificate
+            X509v3 Subject Key Identifier: 
+                5C:B0:F3:C6:8B:F0:96:40:73:5C:B6:A8:2F:E4:DF:8C:2E:5B:C5:C5
+            X509v3 Authority Key Identifier: 
+                keyid:78:5F:19:3D:9B:CD:5D:60:5A:00:E5:DA:95:7D:4C:EC:2C:20:B1:3F
+
+Certificate is to be certified until Aug 31 12:52:13 2020 GMT (365 days)
+Sign the certificate? [y/n]:y
+
+
+1 out of 1 certificate requests certified, commit? [y/n]y
+Write out database with 1 new entries
+Certificate:
+    Data:
+        Version: 3 (0x2)
+        Serial Number: 2 (0x2)
+    Signature Algorithm: sha256WithRSAEncryption
+        Issuer: C=CN, ST=BJ, O=MG, OU=IT, CN=www.baidu.com
+        Validity
+            Not Before: Sep  1 12:52:13 2019 GMT
+            Not After : Aug 31 12:52:13 2020 GMT
+        Subject: C=CN, ST=BJ, O=MG, CN=www.wangwangwang.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                Public-Key: (2048 bit)
+                Modulus:
+                    00:d5:44:3a:e8:1e:de:4b:06:df:24:bc:4e:99:f3:
+                    9a:a0:1c:84:e2:b2:32:cf:9d:f3:a1:e1:1e:9b:65:
+                    d3:84:96:f1:73:7f:88:32:ea:d7:fa:c9:35:82:60:
+                    86:b0:b1:33:b9:45:a9:a9:62:33:7d:b7:23:56:08:
+                    d2:00:ef:c1:e4:e1:bb:ca:e7:a7:26:de:43:76:e1:
+                    07:7f:92:06:b4:88:61:6a:38:27:88:e4:5e:82:c4:
+                    90:b4:88:b2:46:bf:3a:6f:44:95:01:94:be:33:be:
+                    62:74:bd:7c:01:d1:3f:a3:95:26:d4:21:87:de:2d:
+                    e2:f9:96:09:25:6b:19:aa:30:c8:c9:68:7c:73:fe:
+                    35:0e:b5:7c:68:6c:2e:3d:99:40:d8:b4:ee:cc:88:
+                    a2:53:b3:1e:31:ac:f5:ce:ad:5c:93:b9:ba:eb:fb:
+                    d2:0c:46:90:8b:fc:ae:b9:42:dd:d1:00:61:96:47:
+                    1a:3f:58:df:7f:c1:b6:ee:ca:b5:5e:4f:91:ca:3d:
+                    4e:8a:39:36:58:26:a2:7e:97:a2:72:89:27:ef:9d:
+                    2b:4e:4d:cc:91:bf:2e:66:f3:25:8f:f4:6f:97:da:
+                    2b:6a:d1:64:2d:f9:c6:4f:72:6b:59:d0:96:48:6e:
+                    4b:58:97:6e:78:0e:57:75:a1:da:c4:85:90:d4:08:
+                    cd:45
+                Exponent: 65537 (0x10001)
+        X509v3 extensions:
+            X509v3 Basic Constraints: 
+                CA:FALSE
+            Netscape Comment: 
+                OpenSSL Generated Certificate
+            X509v3 Subject Key Identifier: 
+                5C:B0:F3:C6:8B:F0:96:40:73:5C:B6:A8:2F:E4:DF:8C:2E:5B:C5:C5
+            X509v3 Authority Key Identifier: 
+                keyid:78:5F:19:3D:9B:CD:5D:60:5A:00:E5:DA:95:7D:4C:EC:2C:20:B1:3F
+
+    Signature Algorithm: sha256WithRSAEncryption
+         25:f1:7a:b5:e2:8f:25:6e:90:1d:dc:40:7e:73:8d:88:84:3c:
+         72:ea:15:3f:fe:93:a5:e9:e3:f3:3f:d2:47:75:39:72:55:98:
+         89:a7:99:ee:07:fb:03:a6:4d:84:fa:49:7b:98:07:2e:7b:53:
+         c4:16:5e:30:1f:6e:62:ba:a8:b0:01:07:bc:a0:82:1f:7f:a3:
+         77:36:74:f5:d1:e6:7e:fe:e1:0d:05:d6:b2:28:76:2d:21:57:
+         73:67:37:91:40:a2:4b:74:e3:b7:39:10:32:f2:8f:03:34:be:
+         2d:c3:d7:c9:84:00:39:1f:44:dc:08:cc:5f:91:ec:7a:72:48:
+         4b:5e:f8:de:a2:ed:29:c9:d0:48:ca:9c:a5:d9:48:31:c2:52:
+         d2:6d:2c:14:b6:7c:c7:f3:9b:16:7e:0e:e2:26:0d:03:57:92:
+         e2:a0:fa:11:ed:26:cd:1e:ef:8c:c5:03:1c:80:91:af:06:4a:
+         2b:78:42:1a:23:02:1b:d7:67:4f:0d:ec:07:7c:6d:1b:9f:85:
+         38:c9:69:22:2f:e4:d0:bf:91:26:73:20:e5:fa:09:b1:30:80:
+         de:ad:97:c0:53:3c:02:a1:5b:5f:4a:55:4f:b3:cf:fb:6b:24:
+         95:82:2c:45:71:39:70:c4:2b:44:68:b6:5e:d7:6f:23:f5:fb:
+         46:31:93:f9
+-----BEGIN CERTIFICATE-----
+MIIDiDCCAnCgAwIBAgIBAjANBgkqhkiG9w0BAQsFADBMMQswCQYDVQQGEwJDTjEL
+MAkGA1UECAwCQkoxCzAJBgNVBAoMAk1HMQswCQYDVQQLDAJJVDEWMBQGA1UEAwwN
+d3d3LmJhaWR1LmNvbTAeFw0xOTA5MDExMjUyMTNaFw0yMDA4MzExMjUyMTNaMEYx
+CzAJBgNVBAYTAkNOMQswCQYDVQQIDAJCSjELMAkGA1UECgwCTUcxHTAbBgNVBAMM
+FHd3dy53YW5nd2FuZ3dhbmcuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
+CgKCAQEA1UQ66B7eSwbfJLxOmfOaoByE4rIyz53zoeEem2XThJbxc3+IMurX+sk1
+gmCGsLEzuUWpqWIzfbcjVgjSAO/B5OG7yuenJt5DduEHf5IGtIhhajgniORegsSQ
+tIiyRr86b0SVAZS+M75idL18AdE/o5Um1CGH3i3i+ZYJJWsZqjDIyWh8c/41DrV8
+aGwuPZlA2LTuzIiiU7MeMaz1zq1ck7m66/vSDEaQi/yuuULd0QBhlkcaP1jff8G2
+7sq1Xk+Ryj1Oijk2WCaifpeicokn750rTk3Mkb8uZvMlj/Rvl9oratFkLfnGT3Jr
+WdCWSG5LWJdueA5XdaHaxIWQ1AjNRQIDAQABo3sweTAJBgNVHRMEAjAAMCwGCWCG
+SAGG+EIBDQQfFh1PcGVuU1NMIEdlbmVyYXRlZCBDZXJ0aWZpY2F0ZTAdBgNVHQ4E
+FgQUXLDzxovwlkBzXLaoL+TfjC5bxcUwHwYDVR0jBBgwFoAUeF8ZPZvNXWBaAOXa
+lX1M7CwgsT8wDQYJKoZIhvcNAQELBQADggEBACXxerXijyVukB3cQH5zjYiEPHLq
+FT/+k6Xp4/M/0kd1OXJVmImnme4H+wOmTYT6SXuYBy57U8QWXjAfbmK6qLABB7yg
+gh9/o3c2dPXR5n7+4Q0F1rIodi0hV3NnN5FAokt047c5EDLyjwM0vi3D18mEADkf
+RNwIzF+R7HpySEte+N6i7SnJ0EjKnKXZSDHCUtJtLBS2fMfzmxZ+DuImDQNXkuKg
++hHtJs0e74zFAxyAka8GSit4QhojAhvXZ08N7Ad8bRufhTjJaSIv5NC/kSZzIOX6
+CbEwgN6tl8BTPAKhW19KVU+zz/trJJWCLEVxOXDEK0Rotl7XbyP1+0Yxk/k=
+-----END CERTIFICATE-----
+Data Base Updated
+</code></pre>
+<h3 id="5-签署完成查看下目录结构">5、签署完成，查看下目录结构</h3>
+<pre><code class="language-bash">[root@linux5 ~]# tree -C /etc/pki/CA
+/etc/pki/CA
+|-- cacert.pem
+|-- certs
+|-- crl
+|-- index.txt
+|-- index.txt.attr
+|-- index.txt.attr.old
+|-- index.txt.old
+|-- newcerts
+|   |-- 01.pem
+|   `-- 02.pem
+|-- private
+|   `-- cakey.pem
+|-- serial
+`-- serial.old
+</code></pre>
+<h3 id="6-其中02pem就是刚才签署成功的证书将此证书发送给申请者即表示颁发完成">6、其中&quot;02.pem&quot;就是刚才签署成功的证书，将此证书发送给申请者即表示颁发完成。</h3>
+<h3 id="7-再看下数据库索引文件和序列号文件">7、再看下数据库索引文件和序列号文件</h3>
+<pre><code class="language-bash">[root@linux5 ~]# cat /etc/pki/CA/index.txt
+V	200831121839Z		01	unknown	/C=CN/ST=BJ/O=MG/OU=IT/CN=www.baidu.com
+V	200831125213Z		02	unknown	/C=CN/ST=BJ/O=MG/CN=www.wangwangwang.com
+[root@linux5 ~]# cat /etc/pki/CA/serial
+03
+</code></pre>
+<hr>
+<h2 id="给老王颁发证书总结">给老王颁发证书总结</h2>
+<pre><code class="language-bash">#老王生成私钥
+[wang@linux5 ~]$ openssl genrsa -out wangkey.pem
+#老王生成请求文件
+[wang@linux5 ~]$ openssl req -new -key wangkey.pem -out wangwangwang.csr
+#老王将证书请求文件发给CA机构（国家，域名，组织必须和subject一致）
+[wang@linux5 ~]$ scp wangwangwang.csr root@192.168.38.146:/root/
+#CA帮忙签
+[root@linux5 ~]# openssl ca -in wangwangwang.csr 
+#CA将证书发给老王
+[root@linux5 ~]# scp /etc/pki/CA/newcerts/02.pem wang@192.168.38.146:~/
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/cx2hRHr8nL/" class="tag">
+                    证书
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190831-zhi-zuo-yi-ge-zui-xiao-de-centos6-xi-tong/">
+                  <h3 class="post-title">
+                    20190831制作一个最小的CentOS6系统
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

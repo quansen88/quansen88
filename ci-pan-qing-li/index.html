@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>磁盘清理 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="20200729磁盘清理
+一、查看下哪个分区磁盘利用率高
+sudo su - #切换root权限
+
+df -h # 查看分区磁盘利用率
+
+二、统计哪个目录最大
+用到的命令
+ du -h --max-depth=1 / --exclude=/..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">磁盘清理</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="20200729磁盘清理">20200729磁盘清理</h2>
+<h3 id="一-查看下哪个分区磁盘利用率高">一、查看下哪个分区磁盘利用率高</h3>
+<pre><code class="language-bash">sudo su - #切换root权限
+
+df -h # 查看分区磁盘利用率
+</code></pre>
+<h3 id="二-统计哪个目录最大">二、统计哪个目录最大</h3>
+<p><strong>用到的命令</strong></p>
+<pre><code class="language-bash"> du -h --max-depth=1 / --exclude=/boot --exclude=/dev --exclude=/proc --exclude=/sys --exclude=/run --exclude=/var| sort -h #统计：查看目录文件大小，并按大小排序
+ 
+du -sh /var/log/ #统计：查看指定文件大小
+tail -10000 linux.log &gt; linux.log #查看linux.log尾部10000行，重定向到linux.log文件，（即 仅保留linux.log最后一万行日志）
+</code></pre>
+<p><strong>结果如下：</strong></p>
+<pre><code class="language-bash">[root@kube-node-2]:~# du -h --max-depth=1 / --exclude=/boot --exclude=/dev --exclude=/proc --exclude=/sys --exclude=/run --exclude=/var| sort -h0	/data
+0	/media
+0	/srv
+16K	/compass
+24K	/mnt
+136K	/tmp
+35M	/home
+37M	/etc
+224M	/root
+1.9G	/usr
+4.4G	/opt
+6.5G	/
+[root@kube-node-2]:~# du -sh /var/log/
+2.0G	/var/log/
+[root@kube-node-2]:~# du -sh /var --exclude=/var/lib/docker --exclude=/var/lib/kubelet
+3.5G	/var
+[root@kube-node-2]:~# lsof 2&gt;/dev/null | grep delete
+COMMAND       PID     TID           USER   FD      TYPE             DEVICE   SIZE/OFF                 NODE NAME
+omiagent    36683                   root    5w      REG                8,2 2361008374             33692389 /var/opt/microsoft/scx/log/scx.log (deleted)
+omiagent    36683   37001           root    5w      REG                8,2 2361008374             33692389 /var/opt/microsoft/scx/log/scx.log (deleted)
+omiagent    36683   37012           root    5w      REG                8,2 2361008374             33692389 /var/opt/microsoft/scx/log/scx.log (deleted)
+omiagent    36683   37170           root    5w      REG                8,2 2361008374             33692389 /var/opt/microsoft/scx/log/scx.log (deleted)
+omiagent    36683   97100           root    5w      REG                8,2 2361008374             33692389 /var/opt/microsoft/scx/log/scx.log (deleted)
+omiagent    36683   97155           root    5w      REG                8,2 2361008374             33692389 /var/opt/microsoft/scx/log/scx.log (deleted)
+omiagent    36683 3843814           root    5w      REG                8,2 2361008374             33692389 /var/opt/microsoft/scx/log/scx.log (deleted)
+</code></pre>
+<p>查得omiagent是azure自带的进程，kill -1了算了</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/devopsapple/PictureGo/raw/master/img/image-20200628112106467.png" alt="image-20200628112106467" loading="lazy"></figure>
+<pre><code class="language-bash">[root@kube-node-2]:~# kill -1 36683
+[root@kube-node-2]:~# lsof 2&gt;/dev/null | grep delete
+[root@kube-node-2]:~# df -h | egrep -v 'kubelet|docker'
+Filesystem                                         Size  Used Avail Use% Mounted on
+/dev/sda2                                           30G   24G  6.2G  80% /
+devtmpfs                                            14G     0   14G   0% /dev
+tmpfs                                               14G     0   14G   0% /dev/shm
+tmpfs                                               14G  5.6M   14G   1% /run
+tmpfs                                               14G     0   14G   0% /sys/fs/cgroup
+/dev/sda1                                          497M  134M  364M  27% /boot
+/dev/sdb1                                           55G   53M   53G   1% /mnt/resource
+tmpfs                                              2.8G     0  2.8G   0% /run/user/1002
+tmpfs                                              2.8G     0  2.8G   0% /run/user/1012
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/ming-ling-git-kai-qi-dai-li-jia-su/">
+                  <h3 class="post-title">
+                    命令git开启代理加速
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

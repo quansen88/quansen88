@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> 脚本进阶一 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="脚本进阶一
+一、for循环的第二种写法：
+众所周知，for有两种写法
+
+第一种：for i in k8s-node{1..3};do setenforce 0;done
+第二种写法：C语言风格
+
+直接写怎么用：
+#for后必须写两个括号，又..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> 脚本进阶一</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="脚本进阶一">脚本进阶一</h1>
+<p><strong>一、for循环的第二种写法：</strong></p>
+<p>众所周知，for有两种写法</p>
+<ul>
+<li>第一种：for i in k8s-node{1..3};do setenforce 0;done</li>
+<li>第二种写法：C语言风格</li>
+</ul>
+<p><strong>直接写怎么用：</strong></p>
+<pre><code>#for后必须写两个括号，又称双小括号写法
+[root@linux1 ~]# cat for_2.sh 
+#!/bin/bash
+
+for ((i=1,sum=0;i&lt;=100;i++));do
+    let sum+=i
+done
+echo &quot;sum=${sum}&quot;
+[root@linux1 ~]# bash for_2.sh
+sum=5050
+</code></pre>
+<p><strong>二、while循环</strong></p>
+<p>我喜欢这样写,一直循环然后用break退出</p>
+<pre><code>[root@linux1 ~]# cat while_sum.sh
+#!/bin/bash
+i=1
+sum=0
+while true;do
+    let sum+=i
+    let i++
+    if [ $i -gt 100 ];then
+        break
+    fi
+done
+echo &quot;sum=${sum}&quot;
+[root@linux1 ~]# bash  while_sum.sh 
+sum=5050
+</code></pre>
+<p><strong>while的高级用法：读取标准输入的内容实现循环</strong></p>
+<pre><code>[root@linux1 ~]# cat while_2.sh
+#!/bin/bash
+while read line
+do
+    echo $line
+done &lt; /etc/fstab
+[root@linux1 ~]# bash while_2.sh
+
+#
+# /etc/fstab
+# Created by anaconda on Thu Aug 8 19:04:39 2019
+#
+# Accessible filesystems, by reference, are maintained under '/dev/disk'
+# See man pages fstab(5), findfs(8), mount(8) and/or blkid(8) for more info
+#
+/dev/mapper/centos-root / xfs defaults 0 0
+UUID=3778e6e0-8f51-4843-8b8f-239c8b5e826b /boot xfs defaults 0 0
+/dev/mapper/centos-home /home xfs defaults 0 0
+/dev/mapper/centos-swap swap swap defaults 0 0
+</code></pre>
+<p><strong>并且看网友的资料说，上面写法中wile使用重定向机制，fstab文件内容被重定向给了整个while语句，这个特性要注意下</strong></p>
+<p>**while的注意事项1：**管道传递内容：echo &quot;abc xyz&quot; | while read line  ；do {};done   众所周知管道会开启子shell，子shell内的数组，变量，函数在函数外部均不生效</p>
+<pre><code class="language-bahs">#!/bin/bash
+echo &quot;abc xyz&quot; | while read line
+do
+    new_var=$line
+done
+echo new_var is null: $new_var?
+</code></pre>
+<p><strong>三、until循环</strong></p>
+<pre><code class="language-bash">until CONDITION; do  循环体 
+done 
+
+进入条件： CONDITION 为false 
+退出条件： CONDITION 为true 
+</code></pre>
+<p><strong>四、continue特殊用法</strong></p>
+<p>continue [N]:提前结束第N层<strong>的本轮循环</strong>，最内层为第一层</p>
+<p>默认N为1，只退一层循环。比如复杂的代码套了好几层的话，continue 2可以直接提前结束两层的循环，<strong>直接进入下一轮判断</strong>，continue候面的代码不执行了</p>
+<p><strong>五、break用法</strong></p>
+<p>break [N]：提前结束第N层循环，最内层为第1层</p>
+<p><strong>注意：<strong>这个直接结束第N层所有循环了，而continue只是</strong>结束第N层的本轮循环</strong></p>
+<p><strong>六、shift命令</strong></p>
+<p>shift [n]</p>
+<p>很重要，脚本中经常用到。将参数列表左移n次</p>
+<pre><code class="language-bash">[root@linux1 ~]# cat shift.sh 
+#!/bin/bash
+#判断脚本参数是否为0，不为0则执行循环
+while [ $# -ne 0 ];do
+    echo $1  #打印第一个参数
+    shift		#所有参数左移，第一个参数被挤走，第二个参数变成第一个参数
+done
+[root@linux1 ~]# ./shift.sh a b c d f
+a
+b
+c
+d
+f
+</code></pre>
+<p><strong>七、select循环与菜单</strong></p>
+<p>select经常与case一起用；还有就是PS3作为提示符；还有就是要配合break或exit退出循环</p>
+<pre><code class="language-shell">[root@linux1 ~]# cat select.sh 
+#!/bin/bash
+PS3=&quot;你想干啥：&quot;
+select choice in eating wc sleep quit
+do
+    case $choice in
+        eating)
+            echo &quot;you can eat some food now.&quot;
+            ;;
+        wc)
+            echo &quot;you can go go to wc now.&quot;
+            ;;
+        sleep)
+            echo &quot;you can go to sleep now.&quot;
+            ;;
+        quit)
+            exit 0
+    esac
+done
+</code></pre>
+<p><strong>效果</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# bash select.sh
+1) eating
+2) wc
+3) sleep
+4) quit
+你想干啥：1
+you can eat some food now.
+你想干啥：2
+you can go go to wc now.
+你想干啥：3
+you can go to sleep now.
+你想干啥：4
+</code></pre>
+<p><strong>八、函数</strong></p>
+<p>载入函数：</p>
+<ul>
+<li><strong>.</strong> filename</li>
+<li>source filename</li>
+</ul>
+<p><strong>九、删除函数</strong></p>
+<p><strong>可以使用unset删除</strong></p>
+<p>比如：一个简单的函数,执行没有问题</p>
+<pre><code class="language-bash">[root@linux1 ~]# cat function.sh
+#!/bin/bash
+hi(){
+    echo hi
+}
+hi
+[root@linux1 ~]# bash function.sh
+hi
+</code></pre>
+<p>中间加一行unset,就报错了，因为函数被删除了</p>
+<pre><code class="language-bash">[root@linux1 ~]# cat function.sh
+#!/bin/bash
+hi(){
+    echo hi
+}
+unset hi
+hi
+[root@linux1 ~]# bash function.sh
+function.sh: line 6: hi: command not found
+</code></pre>
+<p><strong>还可以通过定义空函数实现，这是我在系统中的脚本中发现的</strong></p>
+<pre><code class="language-bash"># ubuntu的/lib/lsb/init-functions
+# Pre&amp;Post empty function declaration, to be overriden from /lib/lsb/init-functions.d/*
+log_daemon_msg_pre () { :; } 
+log_daemon_msg_post () { :; }
+log_begin_msg_pre () { :; }
+log_begin_msg_post () { :; }
+log_end_msg_pre () { :; }
+log_end_msg_post () { :; }
+log_action_msg_pre () { :; }
+log_action_msg_post () { :; }
+log_action_begin_msg_pre () { :; }
+log_action_begin_msg_post () { :; }
+log_action_end_msg_pre () { :; }
+log_action_end_msg_post () { :; }
+</code></pre>
+<p><strong>十、函数变量的生存时间</strong></p>
+<p>环境变量：当前shell和子shell有效</p>
+<p>本地变量：只在当前shell进程中有效，包括脚本函数</p>
+<p>局部变量：函数的生命周期，函数结束时变量销毁</p>
+<p><strong>局部变量的定义：local AGE=20</strong></p>
+<p><strong>十一、函数的递归</strong></p>
+<p>联想到fork炸弹</p>
+<pre><code class="language-bash">:(){:|:&amp;};:
+</code></pre>
+<p>脚本实现</p>
+<pre><code class="language-absh">cat bomb.sh
+#!/bin/bash
+./$0|./$0&amp;
+</code></pre>
+<p><strong>十二、信号的捕捉trap</strong></p>
+<p><strong>看另一篇文章</strong></p>
+<p><strong>十四、数组</strong></p>
+<p>声明数组（两者不可相互转换）：</p>
+<ul>
+<li>declare -a ARRAY_NAME   索引数组</li>
+<li>declare -A ARRAY_NAME   关联数组</li>
+</ul>
+<p>数组元素赋值：</p>
+<ul>
+<li>ARRAY_NAME=(&quot;VAL1&quot; &quot;VAL2&quot; &quot;VAL3&quot; ...)</li>
+<li>read -a ARRAY    交互式赋值</li>
+</ul>
+<p>显示所有普通数组</p>
+<p>declare -a</p>
+<p><strong>引用数组</strong></p>
+<ul>
+<li>
+<p>引用数组元素</p>
+<pre><code class="language-bash">${ARRAY_NAME[INDEX]}  注意：省略[INDEX]表示引用下标为0的元素
+</code></pre>
+</li>
+<li>
+<p>引用数组所有元素</p>
+</li>
+<li>
+<p>获取数组的长度</p>
+</li>
+<li>
+<p>删除数组中某个元素。</p>
+</li>
+<li>
+<p>删除整个数组</p>
+</li>
+</ul>
+<p><strong>关联数组必须先声明后调用</strong></p>
+<p><strong>数组这一块看另一篇文章吧</strong></p>
+<p><strong>十三、字符串处理</strong></p>
+<p><strong>看另一篇文章吧</strong></p>
+<p><strong>十四、eval命令</strong></p>
+<p>​		eval命令将会首先扫描命令行进行所有的置换，然后再执行该命令。该命令 适用于那些一次扫描无法实现其功能的变量.该命令对变量进行两次扫描</p>
+<pre><code class="language-bash">[root@linux1 ~]# CMD=whoami
+[root@linux1 ~]# echo $CMD
+whoami
+[root@linux1 ~]# eval $CMD
+root
+[root@linux1 ~]# n=10
+[root@linux1 ~]# echo {1..$n}
+{1..10}
+[root@linux1 ~]# eval echo {1..$n}
+1 2 3 4 5 6 7 8 9 10
+</code></pre>
+<p><strong>十五、创建临时文件或目录</strong></p>
+<pre><code class="language-bash">[root@linux1 tmp]# mktemp XXXXX
+saXhh
+[root@linux1 tmp]# mktemp XXXXX
+SALVc
+[root@linux1 tmp]# mktemp -d XXXXX
+ltweX
+[root@linux1 tmp]# mktemp -d XXXXX
+OUXqe
+[root@linux1 tmp]# ll
+total 0
+drwx------. 2 root root 6 Aug 27 15:09 ltweX
+drwx------. 2 root root 6 Aug 27 15:09 OUXqe
+-rw-------. 1 root root 0 Aug 27 15:09 SALVc
+-rw-------. 1 root root 0 Aug 27 15:09 saXhh
+[root@linux1 tmp]# mktemp -d `date +%T_%F`_XXXXX
+15:10:40_2019-08-27_2QIKq
+</code></pre>
+<p><strong>十六、install命令</strong></p>
+<p><strong>该命令很强大，相当于多个命令的组合：cp，chmod，chown，mkdir等</strong></p>
+<p>可以自行看帮助，make install用的就是这个install</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/ji-hua-ren-wu-zhu-yi-shi-xiang/">
+                  <h3 class="post-title">
+                     计划任务注意事项
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>auth_basic_module | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="auth_basic_module
+参考：http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html
+Syntax:	auth_basic string | off;
+Defa..." />
+    <meta name="keywords" content="nginx" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">auth_basic_module</h2>
+            <div class="post-date">2021-04-29</div>
+            
+              <div class="feature-container" style="background-image: url('https://nginx.org/nginx.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="auth_basic_module">auth_basic_module</h1>
+<p>参考：http://nginx.org/en/docs/http/ngx_http_auth_basic_module.html</p>
+<pre><code class="language-bash">Syntax:	auth_basic string | off;
+Default:	
+auth_basic off;
+Context:	http, server, location, limit_except
+</code></pre>
+<pre><code class="language-bash">Syntax:	auth_basic_user_file file;
+Default:	—
+Context:	http, server, location, limit_except
+</code></pre>
+<p>密码文件格式,密码支持明文和密文，密文使用openssl passwd或htpasswd生成</p>
+<pre><code class="language-bash"># comment
+name1:password1
+name2:password2:comment
+name3:password3
+</code></pre>
+<h3 id="案例一">案例一：</h3>
+<pre><code class="language-bash">[root@imooc-nginx ~]# openssl passwd
+Password: 
+Verifying - Password: 
+M1tFMmI.C8cHM
+[root@imooc-nginx ~]# cat &gt; /etc/nginx/passwd &lt;&lt;EOF
+&gt; admin:M1tFMmI.C8cHM
+&gt; EOF
+</code></pre>
+<p>**[root@imooc-nginx ~]# cat /etc/nginx/conf.d/www.uscwifi.cn.conf **</p>
+<pre><code class="language-nginx">server {
+    listen 80;
+    listen 443 ssl;
+    server_name www.uscwifi.cn;
+    auth_basic pleaseinputpasswd;
+    auth_basic_user_file /etc/nginx/passwd;
+    if ($scheme = http){
+        return 301  https://$server_name$request_uri;
+    }
+    root /var/www/html;
+    index index.html;
+    access_log /var/log/nginx/www.uscwifi.cn-access.log;
+    error_log /var/log/nginx/www.uscwifi.cn-error.log;
+    ssl_certificate /etc/nginx/ssl/www.uscwifi.cn.crt;
+    ssl_certificate_key /etc/nginx/ssl/www.uscwifi.cn.key;
+    ssl_protocols       SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers         ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS;
+}
+</code></pre>
+<pre><code class="language-bash">[root@imooc-nginx ~]# nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[root@imooc-nginx ~]# nginx -s reload
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191031083426.png" alt="" loading="lazy"></figure>
+<h3 id="案例二">案例二：</h3>
+<p>我发现当http段和server段中都加auth_basic认证时，只有server生效</p>
+<pre><code class="language-bash">[root@imooc-nginx ~]# openssl passwd
+Password: 
+Verifying - Password: 
+aJ7gzbKcmiru6
+[root@imooc-nginx ~]# cat &gt; /etc/nginx/passwd2 &lt;&lt;EOF
+&gt; admin:aJ7gzbKcmiru6
+&gt; EOF
+</code></pre>
+<p>**[root@imooc-nginx ~]# cat /etc/nginx/nginx.conf **</p>
+<pre><code class="language-nginx">user  nginx;
+worker_processes  auto;
+
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$http_user_agent' '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+                      '$status $body_bytes_sent &quot;$http_referer&quot; '
+                      '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    gzip  on;
+
+    auth_basic &quot;please input passwd&quot;;
+    auth_basic_user_file /etc/nginx/passwd2;
+
+    include /etc/nginx/conf.d/*.conf;
+}
+</code></pre>
+<pre><code class="language-bash">[root@imooc-nginx ~]# nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[root@imooc-nginx ~]# nginx -s reload
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191031084413.png" alt="" loading="lazy"></figure>
+<h3 id="案例三还可以写在location内">**案例三：还可以写在location内</h3>
+<pre><code class="language-bash">[root@imooc-nginx conf.d]# openssl passwd -1
+Password: 
+Verifying - Password: 
+$1$Jcc.l37e$bTv2EBFCAmQ4n/woecntJ0
+[root@imooc-nginx conf.d]# cat &gt; /etc/nginx/passwd &lt;&lt;'EOF'
+admin:$1$Jcc.l37e$bTv2EBFCAmQ4n/woecntJ0
+EOF
+#不写了
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/ycg_qQA4v/" class="tag">
+                    nginx
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191030nginx-quan-zhan-https/">
+                  <h3 class="post-title">
+                    20191030nginx全站https
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

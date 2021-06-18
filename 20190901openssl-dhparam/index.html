@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190901openssl dhparam | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="openssl dhparam
+openssl dhparam用于生成和管理dh文件。dh(Diffie-Hellman)是著名的密钥交换协议，或称为密钥协商协议，它可以保证通信双方安全地交换密钥。但注意，它不是加密算法，所以不提供加密功能..." />
+    <meta name="keywords" content="openssl,证书" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190901openssl dhparam</h2>
+            <div class="post-date">2021-04-23</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="openssl-dhparam">openssl dhparam</h1>
+<p>openssl dhparam用于生成和管理dh文件。dh(Diffie-Hellman)是著名的密钥交换协议，或称为密钥协商协议，它可以保证通信双方安全地交换密钥。但注意，它不是加密算法，所以不提供加密功能，仅仅只是保护密钥交换的过程。在openvpn中就使用了该交换协议。关于dh算法的整个过程，见下文。</p>
+<p>openssl dhparam命令集合了老版本的openssl dh和openssl gendh，后两者可能已经失效了，即使存在也仅表示未来另有用途。</p>
+<pre><code class="language-bash">openssl dhparam [-in filename] [-out filename] [-dsaparam] [-noout] [-text] [-rand file(s)] [numbits]
+选项说明：
+-in filename：从filename文件中读取密钥交换协议参数。
+-out filename：输出密钥交换协议参数到filename文件。
+-dsaparam：指定此选项将使用dsa交换协议替代dh交换协议。虽然生成速度更快，但更不安全。
+-noout：禁止输出任何信息。
+-text：以文本格式输出dh协议。
+-rand：指定随机数种子文件。
+numbits：指定生成的长度。
+</code></pre>
+<p>注意，dh协议文件生成速度随长度增长而急剧增长，使用随机数种子可以加快生成速度。</p>
+<p>例如：生成1024长度的交换协议文件，其消耗的时间如下：一次比一次块。</p>
+<pre><code class="language-bash">root@qqq:/tmp# rm -f dh.pem 
+root@qqq:/tmp# time openssl dhparam -out dh.pem 1024
+Generating DH parameters, 1024 bit long safe prime, generator 2
+This is going to take a long time
+.......................................................................................................+..............+.........
+real	0m26.343s
+user	0m22.260s
+sys	0m4.069s
+#第二次
+real	0m19.337s
+user	0m16.773s
+sys	0m2.523s
+#第三次
+real	0m8.215s
+user	0m7.057s
+sys	0m1.150s
+#第四次
+real	0m4.393s
+user	0m3.804s
+sys	0m0.588s
+</code></pre>
+<p>但是生成2048位长度的交换协议文件，其消耗时间如下</p>
+<pre><code class="language-bash">root@qqq:~# time openssl dhparam -out dh.pem 2048
+Generating DH parameters, 2048 bit long safe prime, generator 2
+This is going to take a long time
+................................
+...
+real	0m20.879s
+user	0m19.845s
+sys	0m1.023s
+第二次
+real	3m45.448s
+user	3m33.500s
+sys	0m11.884s
+</code></pre>
+<p>而使用了64位随机数种子的同样命令如下：</p>
+<pre><code class="language-bash">#ubuntu系统报错
+root@qqq:/tmp# time openssl dhparam -rand rand.seed -out dh.pem 2048
+Can't load rand.seed into RNG
+140357500408256:error:2406F079:random number generator:RAND_load_file:Cannot open file:../crypto/rand/randfile.c:88:Filename=rand.seed
+
+real	0m0.006s
+user	0m0.000s
+sys	0m0.006s
+#CentOS7第一次
+real	0m5.491s
+user	0m5.006s
+sys	0m0.061s
+#第二次
+real	0m18.492s
+user	0m16.683s
+sys	0m0.089s
+</code></pre>
+<p>openssl命令实现的是各种算法和加密功能，它的cpu的使用率会非常高，再结合dhparam，可以使得openssl dhparam作为一个不错的cpu压力测试工具，并且可以长时间飙高cpu使用率。</p>
+<p><strong>DH密钥协商过程：</strong></p>
+<p>密钥交换协议(DH)的大概过程是这样的(了解即可，可网上搜索完整详细的过程)：</p>
+<p>(1).双方协商一个较大的质数并共享，这个质数是种子数。</p>
+<p>(2).双方都协商好一个加密生成器(一般是AES)。</p>
+<p>(3).双方各自提出另一个质数，这次双方提出的质数是互相保密的。这个质数被认为是私钥(不是非对称加密的私钥)。</p>
+<p>(4).双方使用自己的私钥(即各自保密的质数)、加密生成器以及种子数(即共享的质数)派生出一个公钥(由上面的私钥派生而来，不是非对称加密的公钥)。</p>
+<p>(5).双方交换派生出的公钥。</p>
+<p>(6).接收方使用自己的私钥(各自保密的质数)、种子数(共享的质数)以及接收到的对方公钥计算出共享密钥(session key)。尽管双方的session key是使用对方的公钥以及自己的私钥计算的，但因为使用的算法，能保证双方计算出的session key相同。</p>
+<p>(7).这个session key将用于加密后续通信。例如，ssh连接过程中，使用host key对session key进行签名，然后验证指纹来完成主机认证的过程(见https://www.cnblogs.com/f-ck-need-u/p/7129122.html#blog131)。</p>
+<p>在此可见，在计算session key过程中，双方使用的公钥、私钥是相反的。但因为DH算法的原因，它能保证双方生成的session key是一致的。而且因为双方在整个过程中是完全平等的，没有任何一方能掌控协商的命脉，再者session key没有在网络上进行传输，使得使用session key做对称加密的数据传输是安全的。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/cx2hRHr8nL/" class="tag">
+                    证书
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190901openssl-dgstsheng-cheng-he-yan-zheng-shu-zi-qian-ming/">
+                  <h3 class="post-title">
+                    20190901openssl dgst(生成和验证数字签名)
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

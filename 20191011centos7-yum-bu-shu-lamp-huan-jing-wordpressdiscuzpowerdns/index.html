@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191011CentOS7 yum部署lamp环境（wordpress,discuz,powerdns） | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="CentOS7 yum部署lamp环境（wordpress,discuz,powerdns）
+注意事项：
+
+1、服务器内核参数等调优：生产环境必须要做
+**2、httpd工作模式：**可以选择event模型，CentOS7默认prefork..." />
+    <meta name="keywords" content="lamp,wordpress,discuz,powerdns,centos" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191011CentOS7 yum部署lamp环境（wordpress,discuz,powerdns）</h2>
+            <div class="post-date">2021-04-27</div>
+            
+              <div class="feature-container" style="background-image: url('https://cn.bing.com/th?id=AMMS_45ecee4ec8b1be154c1d4061f0f65bc8&amp;w=110&amp;h=110&amp;c=7&amp;rs=1&amp;qlt=80&amp;pcl=f9f9f9&amp;o=6&amp;cdv=1&amp;dpr=1.38&amp;pid=16.1')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="centos7-yum部署lamp环境wordpressdiscuzpowerdns">CentOS7 yum部署lamp环境（wordpress,discuz,powerdns）</h1>
+<p><strong>注意事项：</strong></p>
+<blockquote>
+<p><strong>1、服务器内核参数等调优</strong>：生产环境必须要做</p>
+<p>**2、httpd工作模式：**可以选择event模型，CentOS7默认prefork模型，CentOS8默认event模型（修改方法：/etc/httpd/conf.modules.d/00-mpm.conf）</p>
+<p>**3、mysql的配置文件调优：**数据库保存位置，二进制日志，禁止DNS解析，buffer缓存，缓冲区大小，最大线程数，慢查询等等，必须要改。</p>
+<p>**4、httpd和php结合的方式：**有模块和fastcgi两种，下面使用fascgi；apache换成nginx也一样，使用fastcgi</p>
+<p>**5、php调优：**使用socket文件而不是监听端口，php-fpm线程数（不要太大，根据需要改，可以设置为‘<strong>内存/50</strong>’），php错误日志，脚本运行的最长时间，脚本使用最大内存，上传文件最大值等等（一般修改www.conf）</p>
+<p>**6、虚拟主机设置https：**安装mod_ssl并修改对应子配置文件，httpd一个IP仅支持一个https，nginx可以支持多个</p>
+<p><strong>7、</strong>...</p>
+</blockquote>
+<p><strong>安装httpd</strong></p>
+<pre><code class="language-bash">yum install httpd -y
+# 不然启动很慢
+sed  '/#ServerName www.example.com/a ServerName www.example.com:80' /etc/httpd/conf/httpd.conf -i
+systemctl start httpd &amp;&amp; systemctl enable httpd
+</code></pre>
+<p><strong>安装mysql并修改初始密码</strong></p>
+<pre><code class="language-bash">rpm -Uvh https://dev.mysql.com/get/mysql80-community-release-el7-2.noarch.rpm
+yum install yum-utils -y
+sudo yum-config-manager --disable mysql80-community
+sudo yum-config-manager --enable mysql57-community
+yum makecache
+yum install mysql-community-server -y
+cat &gt; /etc/my.cnf &lt;&lt;EOF
+[mysqld]
+socket=/var/lib/mysql/mysql.sock
+datadir=/data/mysql
+log-bin
+server-id=1
+expire-logs-days=15
+binlog-format=row
+symbolic-links=0
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+EOF
+DB_PASSWORD=`cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 24`
+mkdir /data/mysql -p
+mysqld --initialize --datadir=/data/mysql --user=mysql
+systemctl start mysqld &amp;&amp; systemctl enable mysqld
+mysqladmin -uroot -p$(grep &quot; temporary password&quot; /var/log/mysqld.log | awk '{print $NF}') password ${DB_PASSWORD}
+</code></pre>
+<p><strong>安装php</strong></p>
+<pre><code class="language-bash">curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+yum install https://mirrors.huaweicloud.com/remi/enterprise/remi-release-7.rpm -y
+
+yum install php73-php php73-php-mysqlnd php73-php-fpm php73-php-xml php73-php-bcmath php73-php-mbstring php73-php-xmlrpc php73-php-soap php73-php-common  php73-php-devel php73-php-gd php73-php-pecl-mcrypt php73-php-pecl-memcache php73-php-pecl-memcached  php73-php-opcache -y
+systemctl start php73-php-fpm &amp;&amp; systemctl enable php73-php-fpm
+</code></pre>
+<p><strong>下载wordpress</strong></p>
+<pre><code class="language-bash">wget https://cn.wordpress.org/latest-zh_CN.tar.gz -O wordpress-zh_CN.tar.gz
+tar xf wordpress-zh_CN.tar.gz -C /var/www/html/
+chown apache -R /var/www/html/wordpress
+</code></pre>
+<p><strong>配置虚拟主机</strong></p>
+<pre><code class="language-bash"># 修改httpd.conf，优先index.php
+sed  's/DirectoryIndex index.html/DirectoryIndex index.php index.html/' /etc/httpd/conf/httpd.conf -i
+cat &gt; /etc/httpd/conf.d/wordpress.conf &lt;&lt;'EOF'
+&lt;VirtualHost *:80&gt;
+  ServerName wordpress.example.cn
+  DirectoryIndex index.php
+  ProxyRequests Off
+  ProxyPassMatch ^/(.*\.php)$  fcgi://127.0.0.1:9000/var/www/html/wordpress/$1
+  DocumentRoot &quot;/var/www/html/wordpress&quot;
+  &lt;Directory /var/www/html/wordpress&gt;
+    Options None 
+    AllowOverride None
+    Require all granted
+  &lt;/Directory&gt;
+  ErrorLog &quot;/var/log/httpd/wordpress-error.log&quot;
+  TransferLog &quot;/var/log/httpd/wordpress-access.log&quot;
+&lt;/VirtualHost&gt;
+EOF
+#httpd -t
+systemctl restart httpd
+</code></pre>
+<p><strong>创建wordpress数据库账户</strong></p>
+<pre><code class="language-bash">DB_WORDPRESS_PASSWORD=`cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 24`
+mysql -uroot -p${DB_PASSWORD} -e &quot;create user wordpress@'localhost' identified by '${DB_WORDPRESS_PASSWORD}';create database wordpress character set utf8 collate utf8_bin;grant all privileges on wordpress.* to wordpress@'localhost';flush privileges;&quot;
+</code></pre>
+<p><strong>修改wordpress配置文件</strong></p>
+<pre><code class="language-bash">cp -a /var/www/html/wordpress/{wp-config-sample.php,wp-config.php}
+sed -i &quot;s@database_name_here@wordpress@&quot; /var/www/html/wordpress/wp-config.php
+sed -i &quot;s@username_here@wordpress@&quot; /var/www/html/wordpress/wp-config.php
+sed -i &quot;s@password_here@${DB_WORDPRESS_PASSWORD}@&quot; /var/www/html/wordpress/wp-config.php
+sed -i &quot;s@localhost@localhost@&quot; /var/www/html/wordpress/wp-config.php
+</code></pre>
+<p><strong>浏览器可以访问了，屏幕打印mysql密码：</strong></p>
+<pre><code class="language-bash">echo -e &quot;\033[1;31m 你的数据库密码是 $DB_PASSWORD \033[0m&quot;
+</code></pre>
+<p><strong>配置phpmyadmin</strong></p>
+<pre><code class="language-bash"># phpmyadmin要注意版本问题，CentOS7默认源安装php为5.4，最新的phpmyadmin需要高版本的php
+wget https://files.phpmyadmin.net/phpMyAdmin/4.9.1/phpMyAdmin-4.9.1-all-languages.tar.gz
+tar xf phpMyAdmin-4.9.1-all-languages.tar.gz 
+mv phpMyAdmin-4.9.1-all-languages /var/www/html/wordpress/pma
+chown apache -R /var/www/html/wordpress/pma
+
+#可以访问了：http://192.168.38.136/pma/
+# ![](https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191010212657.png)
+</code></pre>
+<p><strong>配置discuz</strong></p>
+<pre><code class="language-bash">#一个虚拟机（一个IP）部署多个业务，可以基于域名或端口
+#配置mysql
+DB_DISCUZ_PASSWORD=`cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 24`
+mysql -uroot -p${DB_PASSWORD} -e &quot;create user discuz@'localhost' identified by '${DB_DISCUZ_PASSWORD}';create database discuz character set utf8 collate utf8_bin;grant all privileges on discuz.* to discuz@'localhost';flush privileges;&quot;
+
+#下载源代码
+yum install git -y
+git clone https://gitee.com/ComsenzDiscuz/DiscuzX.git
+cp DiscuzX/upload /var/www/html/discuz -a
+chown -R apache /var/www/html/discuz
+rm -rf DiscuzX
+
+#生成虚拟主机配置文件
+cat &gt; /etc/httpd/conf.d/discuz.conf &lt;&lt;'EOF'
+&lt;VirtualHost *:80&gt;
+  ServerName discuz.example.cn
+  ProxyRequests Off
+  ProxyPassMatch ^/(.*\.php)$  fcgi://127.0.0.1:9000/var/www/html/discuz/$1
+  DocumentRoot &quot;/var/www/html/discuz&quot;
+  &lt;Directory /var/www/html/discuz&gt;
+    Options None 
+    AllowOverride None
+    Require all granted
+  &lt;/Directory&gt;
+  ErrorLog &quot;/var/log/httpd/discuz-error.log&quot;
+  TransferLog &quot;/var/log/httpd/discuz-access.log&quot;
+&lt;/VirtualHost&gt;
+EOF
+
+#复制discuz的配置文件
+cp /var/www/html/discuz/config/{config_global_default.php,config_global.php} -a
+cp /var/www/html/discuz/config/{config_ucenter_default.php,config_ucenter.php} -a
+
+#打开web页面手动修改数据库名和密码
+echo -e &quot;\033[1;31m DISCUZ的数据库名是 discuz \033[0m&quot;
+echo -e &quot;\033[1;31m DISCUZ的数据库登陆用户名是 discuz \033[0m&quot;
+echo -e &quot;\033[1;31m DISCUZ的数据库密码是 $DB_DISCUZ_PASSWORD \033[0m&quot;
+echo -e &quot;\033[1;31m discuz的数据库地址是 localhost \033[0m&quot;
+</code></pre>
+<p><strong>部署phpwind</strong></p>
+<p><strong>部署powerdns</strong></p>
+<pre><code class="language-bash">#powerdns数据库不能使用utf8字符集，必须使用latin1，否则建表报错
+#参考http://powerdns.13854.n7.nabble.com/Column-length-too-big-for-column-content-td10664.html
+#参考：https://blog.csdn.net/MemoryOY/article/details/89252282
+
+#创建powerdns数据库和授权用户
+DB_POWERDNS_PASSWORD=`cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 24`
+mysql -uroot -p${DB_PASSWORD} -e &quot;create user powerdns@'localhost' identified by '${DB_POWERDNS_PASSWORD}';create database powerdns character set utf8 collate utf8_bin;grant all privileges on powerdns.* to powerdns@'localhost';flush privileges;&quot;
+mysql -uroot -p${DB_PASSWORD} -e &quot;alter database powerdns default CHARACTER SET latin1;&quot;
+#创建完成后确认下该用户能否连接数据库
+
+#导入表结构
+#表结构语句：https://doc.powerdns.com/md/authoritative/backend-generic-mysql/#default-schema
+
+#yum安装pdns(可以直接从epel源装)
+# 或者使用这个源（curl -o /etc/yum.repos.d/powerdns-auth-master.repo https://repo.powerdns.com/repo-files/centos-auth-master.repo）
+curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+yum install  -y pdns pdns-backend-mysql
+
+#配置pdns.conf
+sed -n 250,254p /etc/pdns/pdns.conf
+launch=gmysql
+gmysql-host=localhost
+gmysql-user=powerdns
+gmysql-password=5jIXfISFu5W8pq8lVy3qUvtL
+gmysql-dbname=powerdns
+
+#启动pdns，启动后看下服务是否正常，53端口有没有，数据库配错了就起不来
+systemctl enable pdns
+systemctl start pdns
+
+#下载poweradmin源码
+ git clone https://github.com/poweradmin/poweradmin.git
+ mv poweradmin /var/www/html/
+ chown -R apache /var/www/html/poweradmin
+
+#配置httpd文件,使用hosts域名解析
+&lt;VirtualHost *:80&gt;
+  ServerName poweradmin.example.cn
+  ProxyRequests Off
+  ProxyPassMatch ^/(.*\.php)$  fcgi://127.0.0.1:9000/var/www/html/poweradmin/$1
+  DocumentRoot &quot;/var/www/html/poweradmin&quot;
+  &lt;Directory /var/www/html/poweradmin&gt;
+    Options None 
+    AllowOverride None
+    Require all granted
+  &lt;/Directory&gt;
+  ErrorLog &quot;/var/log/httpd/poweradmin-error.log&quot;
+  TransferLog &quot;/var/log/httpd/poweradmin-access.log&quot;
+&lt;/VirtualHost&gt;
+EOF
+systemctl restart httpd
+
+#打开浏览器访问http://poweradmin.example.cn/install一步步配置
+#第一步选择语言，第三步填数据库信息和超管密码，第四步创建poweradmin用户，第五步创建数据库和用户（前面已经创建，不用管了），第六步手动创建config.inc.php填数据库信息，第七步，在虚拟机上移除install目录。
+#然后重新访问http://poweradmin.example.cn，用admin和超管密码登陆
+#然后添加主域（就是你的域名），然后编辑，添加记录
+#最后在虚拟机上dig或nslookup测试，有结果则成功
+yum install bind-utils -y -q &amp;&amp; dig @127.0.0.1 www.jd.com
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/GZnPytS92/" class="tag">
+                    lamp
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/1NHrwBhMNR/" class="tag">
+                    wordpress
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/zt0MsvnarJ/" class="tag">
+                    discuz
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/wEkqfQu82V/" class="tag">
+                    powerdns
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/WsfqvhG9O/" class="tag">
+                    centos
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191009ansible-zhi-shi-dian/">
+                  <h3 class="post-title">
+                    20191009ansible知识点
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

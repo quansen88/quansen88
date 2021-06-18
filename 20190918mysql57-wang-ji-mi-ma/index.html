@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190918mysql5.7忘记密码 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="mysql5.7忘记密码
+mysql的选项表：https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html
+方法一：使用命令：
+命令也可以，此处不用命令了
+方法二：..." />
+    <meta name="keywords" content="mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190918mysql5.7忘记密码</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="mysql57忘记密码">mysql5.7忘记密码</h1>
+<p>mysql的选项表：https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html</p>
+<p><s>方法一：使用命令：</s></p>
+<p>命令也可以，此处不用命令了</p>
+<p>方法二：</p>
+<p><strong>修改my.cnf，加两行</strong>，skip-networking意思是只允许本地可以连接，其实3306端口不可能暴露在公网中的，因为通过抓包可以看到mysql的数据包都不加密，很容易抓到mysql的密码，mysql的密码是普通加密，可以轻松破解。因此该选项防内网中的小人，防止你在改密码的时候恰好被内网中的某台服务器连上了被改密码</p>
+<pre><code class="language-bash">[mysqld]
+skip-grant-tables
+skip-networking
+</code></pre>
+<p><strong>不能使用alter改，只能更新表update</strong></p>
+<pre><code class="language-bash">systemctl restart mysqld
+[root@localhost ~]# mysql -uroot -p
+Enter password: 
+mysql&gt; ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';
+ERROR 1290 (HY000): The MySQL server is running with the --skip-grant-tables option so it cannot execute this statement
+
+mysql&gt; UPDATE mysql.user SET authentication_string=password('123456') WHERE user='root' AND host='localhost';
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+Rows matched: 1  Changed: 0  Warnings: 1
+
+mysql&gt; flush privileges;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql&gt; SET PASSWORD FOR root@localhost=PASSWORD('123456');
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+#mysql5.7警告说，以后让我使用SET PASSWORD FOR root@localhost='明文密码';
+mysql&gt; SET PASSWORD FOR root@localhost='123456';
+Query OK, 0 rows affected (0.00 sec)
+</code></pre>
+<p><strong>删除my.cnf两行，重启mysql</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# vim /etc/my.cnf
+[root@localhost ~]# systemctl restart mysqld
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190917docker-socket-she-zhi-jian-ting-zai-ben-di-duan-kou/">
+                  <h3 class="post-title">
+                    20190917docker socket设置监听在本地端口
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

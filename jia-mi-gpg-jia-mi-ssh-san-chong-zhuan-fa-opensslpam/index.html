@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> 加密，gpg加密，ssh三种转发，openssl，pam | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="加密，gpg加密，ssh三种转发，openssl，pam
+一、仅开放本机两个IP地址中的一个地址172.16.0.X上绑定的sshd和vsftpd服务给172.16.0.0/16网络中除了 172.16.0.0/24网络中的主机之外的所有主..." />
+    <meta name="keywords" content="gpg,pam,ssh,加密,openssl" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> 加密，gpg加密，ssh三种转发，openssl，pam</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://res.cloudinary.com/canonical/image/fetch/f_auto,q_auto,fl_sanitize,w_266,h_200/https://assets.ubuntu.com/v1/f129afea-Save+Money-Yen-Euro-Dollar-2020.svg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="加密gpg加密ssh三种转发opensslpam">加密，gpg加密，ssh三种转发，openssl，pam</h1>
+<h4 id="一-仅开放本机两个ip地址中的一个地址172160x上绑定的sshd和vsftpd服务给172160016网络中除了-172160024网络中的主机之外的所有主机但允许172160200访问每次的用户访问都要记录于日志文件-中注其中x为学号">一、仅开放本机两个IP地址中的一个地址172.16.0.X上绑定的sshd和vsftpd服务给172.16.0.0/16网络中除了 172.16.0.0/24网络中的主机之外的所有主机，但允许172.16.0.200访问,每次的用户访问都要记录于日志文件 中，注：其中X为学号</h4>
+<pre><code class="language-bash">/etc/hosts.allow:
+	sshd,vsftpd: 172.16.0.0/16 EXCEPT 172.16.0.0/24 EXCEPT 172.16.0.200 :spawn echo `date` login &gt;&gt; /var/log/ssh.log
+/etc/hosts.deny:
+	sshd,vsftpd:ALL
+</code></pre>
+<h4 id="2-编写脚本rootbincheckipsh每5分钟检查一次如果发现通过ssh登录失败次数超过10次自动将此远-程ip放入tcp-wrapper的黑名单中予以禁止防问">2、编写脚本/root/bin/checkip.sh，每5分钟检查一次，如果发现通过ssh登录失败次数超过10次，自动将此远 程IP放入Tcp Wrapper的黑名单中予以禁止防问</h4>
+<pre><code class="language-bash">[root@localhost ~]# echo '*/5 * * * * /data/checkip.awk /var/log/secure' &gt;&gt; /var/spool/cron/root
+[root@localhost ~]# cat /data/checkip.awk
+#!/bin/awk -f
+/sshd.*Failed password/{ip=$(NF-3); ips[ip]++}
+END{
+    for (i in ips){
+        if(ips[i]&gt;10){
+            cmd=&quot;echo sshd:&quot;i&quot;&gt;&gt;/etc/hosts.deny&quot;; system(cmd)
+        }
+    }
+}
+</code></pre>
+<h4 id="3-gpg加密解密">3、gpg加密解密：</h4>
+<p>交互式加密：会弹出一个框</p>
+<pre><code class="language-bash">[root@localhost ~]# gpg -c virtual_machine_reset_5.sh 
+</code></pre>
+<p>交互式解密：</p>
+<pre><code class="language-bash">gpg -d virtual_machine_reset_5.sh.gpg
+</code></pre>
+<p>非交互式：</p>
+<pre><code class="language-bash">[root@localhost tmp]# echo &quot;cX0BCoWt1+qq9ZeKYCXTtxMQeiI&quot; | gpg -c --no-tty  --batch --passphrase-fd 0 virtual_machine_reset_5.sh
+[root@localhost tmp]# gpg --batch --passphrase cX0BCoWt1+qq9ZeKYCXTtxMQeiI virtual_machine_reset_5.sh.gpg 
+</code></pre>
+<p>查看gpg版本：gpg -h</p>
+<p>CentOS7的gpg是2.0.22，Ubuntu18.04的gpg是2.2.4</p>
+<h4 id="4-非交互式生成密钥">4、非交互式生成密钥</h4>
+<pre><code class="language-bash">[root@localhost tmp]# ssh-keygen -f ~/.ssh/id_rsa -P '' -C 'admin'
+</code></pre>
+<h4 id="5-ssh_config">5、ssh_config</h4>
+<pre><code class="language-bash">1、改端口号
+Port  22
+2、加主机
+[root@localhost tmp]# tail -5 /etc/ssh/ssh_config
+Host testbox
+    HostName 192.168.38.146
+    User root
+    Port 2222
+    IdentityFile ~/.ssh/id_rsa
+就可以直接连了，默认是22端口
+</code></pre>
+<h4 id="6-ssh命令选项">6、ssh命令选项</h4>
+<p><a href="https://dslztx.github.io/blog/2017/05/19/ssh%E5%91%BD%E4%BB%A4%E4%B9%8BProxyCommand%E9%80%89%E9%A1%B9/?tdsourcetag=s_pctim_aiomsg">ProxyCommand</a></p>
+<pre><code class="language-bash">    -q      静默模式。大多数警告信息将不输出。
+    
+    -W host:port  请求客户端上的标准输入和输出通过安全隧道转发到host:port上，该选项隐含了&quot;-N&quot;,&quot;-T&quot;,ExitOnForwardFailure和ClearAllForwardings选项
+
+	-T      禁止为ssh分配伪终端。
+	-N      明确表示不执行远程命令。仅作端口转发时比较有用。
+    
+# ProxyCommand ssh -q -W %h:%p gateway.example.com 当跳板机用
+
+</code></pre>
+<p>ssh当跳板机：</p>
+<h4 id="7-本地端口转发">7、本地端口转发：</h4>
+<pre><code class="language-bash">ssh -L [local_bind_addr:]local_port:remote:remote_port middle_host
+</code></pre>
+<pre><code class="language-bash">root@host3:~# ssh -L 2222:192.168.38.154:80   192.168.10.134 -fNg
+</code></pre>
+<p><strong>通过这条神奇的命令，现在就可以通过访问192.168.10.135:2222来访问192.168.38.154:80了</strong></p>
+<p>其中&quot;-L&quot;选项表示本地端口转发，其工作方式为：host3主机监听2222端口；host3将192.168.38.154:80映射为本地2222；当有人访问192.168.10.135:2222时，本地ssh将此端口的数据包转发给192.168.10.134；192.168.10.134将数据包转发给192.168.38.154:80</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567680577252.png" alt="1567680577252" loading="lazy"></figure>
+<h5 id="再来一个ssh-l-222212700180-127001-fng">再来一个：ssh -L 2222:127.0.0.1:80   127.0.0.1 -fNg</h5>
+<p>该命令执行后，就把本机2222端口的流量转发给本机80端口了</p>
+<p>可以发现，该命令执行后访问的还是本地IP的某一端口，所以叫本地转发</p>
+<h4 id="8-远程端口转发">8、远程端口转发</h4>
+<p>远程端口转发表示的是将远程端口的数据转发到本地。</p>
+<p>这个就牛逼了！将远程端口转发到本地，那我岂不是连接远程的端口就可以连接到本地服务器了！</p>
+<p><strong>看下面，远程端口转发使用的是-R，注意公网服务器要开启GatewayPorts</strong></p>
+<pre><code class="language-bash">[root@hk-server ~]# sed -i '$a GatewayPorts yes' /etc/ssh/sshd_config &amp;&amp; systemctl restart sshd	#这个必须得开，不然端口监听在127.0.0.1上
+[root@192-168-38-140 ~]# ssh -R 2222:192.168.38.154:22 47.75.136.95 -fNg
+</code></pre>
+<p>**其工作方式为：**192.168.38.140请求47.75.136.95上的ssh，在47.75.136.95上建立一个套接字监听2222端口，该端口是192.168.38.154:22的映射；当有主机连接47.75.136.95:2222时，此连接中的数据全部通过通过安全隧道转发给192.168.38.154:22</p>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567682574938.png" alt="1567682574938" loading="lazy"></figure>
+<p><strong>可以通过此方法，将内网搭建的博客网站映射出去，然后就可以通过公网访问了</strong></p>
+<p><strong>再来一个：ssh -R 12345:127.0.0.1:22 47.75.136.95 -fNg</strong></p>
+<pre><code class="language-bash">[root@192-168-38-140 ~]# ssh -R 12345:127.0.0.1:22 47.75.136.95 -fNg
+</code></pre>
+<p>将请求转发给自己，该命令执行后，就可以通过47.75.136.95:12345来访问本地的192.168.38.140了</p>
+<h4 id="9-动态端口转发socks代理">9、动态端口转发（SOCKS代理）</h4>
+<p>ssh -D [bind_addr:]port remote</p>
+<p>ssh支持动态端口转发，由ssh来判断发起请求的工具使用的是什么应用层协议，然后根据判断出的协议结果决定目标端口</p>
+<p>可以实现：让内网不能上网的服务器上网：</p>
+<pre><code class="language-bash">[root@192-168-38-140 ~]# ssh -D 1080 127.0.0.1 -fNg
+</code></pre>
+<p>然后192.168.10.135机器将火狐浏览器设置代理到socket代理：192.168.10.134 1080</p>
+<p>about:config将network.proxy.socks_remote_dns设置为true，开启远程DNS</p>
+<p>**工作方式：**我是192.168.38.140，我在本地监听1080，所有人都可以把数据转发到我的1080端口，我再把数据通过ssh隧道动态转发出去</p>
+<figure data-type="image" tabindex="3"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567684060238.png" alt="1567684060238" loading="lazy"></figure>
+<h4 id="10-ssh_config常改选项优化">10、ssh_config常改选项，优化</h4>
+<pre><code class="language-bash">UseDNS no		#禁用DNS，解决连接慢
+GSSAPIAuthentication no 	#不开启GSSAPI认证，解决连接慢
+Port 9527		#修改默认端口号
+PermitRootLogin yes		#不允许root登陆
+PermitEmptyPasswords no  #禁止空密码登陆
+</code></pre>
+<p><strong>ssh_config的使用，将常用主机写到ssh_config或者~/.ssh/config里面,例如</strong></p>
+<pre><code class="language-bash">Host testbox
+    HostName 192.168.38.146
+    User root
+    Port 2222
+    IdentityFile ~/.ssh/id_rsa
+</code></pre>
+<h5 id="ssh-agent管理密钥"><strong>ssh-agent管理密钥</strong></h5>
+<p>​		生产环境中经常对密钥加密，每次连接都需要输入密码，很麻烦，而且多个私钥时，也不用自己去指定ssh-agent全部管理了</p>
+<p><strong>启动ssh-agent</strong></p>
+<p>ssh-agent</p>
+<p><strong>添加私钥交给ssh-agent管理</strong></p>
+<p>ssh-add ~/.ssh/id_rsa</p>
+<p><strong>列出ssh-agent管理的密钥</strong></p>
+<p>ssh-add -L</p>
+<p><strong>注意</strong></p>
+<p>​		使用ssh-add失败，提示Could not open a connection to your authentication agent.<br>
+执行：ssh-agent bash 再试<br>
+​		还有一种情况下比如，主机A需要通过主机B才能访问主机C的情况下，我们可能需要在B上保存私钥才可以，但是如果使用ssh-agent的agent forwarding功能后，就可以使用主机A登陆B和C了，而不用在B上保存私钥</p>
+<h4 id="11-pam模块-google验证器">11、pam模块-google验证器</h4>
+<p><strong>比如google身份验证就是通过pam模块实现的</strong></p>
+<p>如何使用：epel源安装google-authenticator</p>
+<p>apk：https://www.lanzous.com/i5yl8ad 密码:6666</p>
+<p>家目录那个隐藏文件里面放着几个临时密码，防止手机丢了，可以自行在里面加几个密码，一次有效，</p>
+<p>参考：https://www.jianshu.com/p/9226b5d006bb</p>
+<h4 id="12-pam模块学习">12、pam模块学习</h4>
+<p>以pam_limits模块为例</p>
+<p><strong>先man看帮助</strong></p>
+<pre><code class="language-bash">NAME
+       pam_limits - PAM module to limit resources
+SYNOPSIS
+       pam_limits.so [conf=/path/to/limits.conf] [debug] [set_all] [utmp_early] [noaudit]
+DESCRIPTION
+       The pam_limits PAM module sets limits on the system resources that can be obtained in a
+       user-session. Users of uid=0 are affected by this limits, too.
+       By default limits are taken from the /etc/security/limits.conf config file. Then individual
+       *.conf files from the /etc/security/limits.d/ directory are read. The files are parsed one
+       after another in the order of &quot;C&quot; locale. The effect of the individual files is the same as
+       if all the files were concatenated together in the order of parsing. If a config file is
+       explicitly specified with a module option then the files in the above directory are not
+       parsed.
+</code></pre>
+<p>​		<strong>可以看到，不管哪个用户，哪怕root都受到此限制的影响，且默认情况下，限制文件未/etc/security/limits.conf及/etc/security/limits.conf.d/*.conf</strong></p>
+<p><strong>使用limit -a查看当前所有资源限制情况</strong></p>
+<pre><code class="language-bah">[root@192-168-38-140 pam.d]# ulimit -a
+core file size          (blocks, -c) 0
+data seg size           (kbytes, -d) unlimited
+scheduling priority             (-e) 0
+file size               (blocks, -f) unlimited
+pending signals                 (-i) 1779
+max locked memory       (kbytes, -l) 64
+max memory size         (kbytes, -m) unlimited
+open files                      (-n) 1024
+pipe size            (512 bytes, -p) 8
+POSIX message queues     (bytes, -q) 819200
+real-time priority              (-r) 0
+stack size              (kbytes, -s) 8192
+cpu time               (seconds, -t) unlimited
+max user processes              (-u) 1779
+virtual memory          (kbytes, -v) unlimited
+file locks                      (-x) unlimited
+</code></pre>
+<p><strong>默认文件打开数太小，不够，生产中必须修改，ubuntu18.04现在默认都改大了，如下：</strong></p>
+<pre><code class="language-bash">*   soft nofile 128000
+*   hard nofile 256000
+
+root soft nofile 128000
+root hard nofile 256000
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567691758855.png" alt="1567691758855" loading="lazy"></figure>
+<p><strong>关于fork炸弹的避免措施其一就是显示每个用户的进程数,比如</strong></p>
+<pre><code>*	soft	nproc	1024
+*	hard	nproc	1024
+</code></pre>
+<p><strong>ulimit -n 2000只会临时生效，建议写文件</strong></p>
+<h4 id="13-自签证书和ca生成">13、自签证书和CA生成</h4>
+<p>查看证书到期时间：</p>
+<pre><code class="language-bash">[root@192-168-38-140 ~]# openssl x509 -in /etc/pki/tls/cert.pem -noout -dates | sed -nr 's/notAfter=//p'
+Dec 31 09:37:37 2030 GMT
+</code></pre>
+<pre><code class="language-bash">[root@192-168-38-140 ~]# openssl s_client -host www.taobao.com -port 443 -showcerts &lt;/dev/null 2&gt;/dev/null | sed -n '/BEGIN CERTIFICATE/,/END CERT/p' -n | openssl x509 -noout -text | sed -n 's/ *Not After : *//p'
+Nov 13 07:36:08 2019 GMT
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/sQyY1RvM2/" class="tag">
+                    gpg
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/eyF48eQRw8/" class="tag">
+                    pam
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/0Jn19faEr/" class="tag">
+                    ssh
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/y-Ok13laTf/" class="tag">
+                    加密
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190905ntp-he-chronyd-shi-jian-tong-bu-fu-wu/">
+                  <h3 class="post-title">
+                    20190905ntp和chronyd 时间同步服务
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

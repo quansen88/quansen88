@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> 配置实现网桥 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="配置实现网桥
+就是通过一个虚拟机充当交换机，连通两个网络
+
+实验一：连通vmnet0和vmnet8
+实验中只要是linux机器即可
+第一台机器：CentOS7；连接vmnet8网络；
+[root@linux1 ~]# ip a | grep..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> 配置实现网桥</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="配置实现网桥">配置实现网桥</h1>
+<p>就是通过一个虚拟机充当交换机，连通两个网络</p>
+<figure data-type="image" tabindex="1"><img src="%E5%9B%BE%E7%89%87/1566196318179.png" alt="1566196318179" loading="lazy"></figure>
+<h2 id="实验一连通vmnet0和vmnet8">实验一：连通vmnet0和vmnet8</h2>
+<p><strong>实验中只要是linux机器即可</strong></p>
+<p><strong>第一台机器：CentOS7；连接vmnet8网络；</strong></p>
+<pre><code>[root@linux1 ~]# ip a | grep inet | egrep -v &quot;127.0.0.1| inet6&quot; | awk '{print $2}' | cut -d / -f1 | head -1
+192.168.38.123
+</code></pre>
+<p><strong>第二台机器：ubuntu19.04；连接桥接网络</strong></p>
+<pre><code>root@ubuntu:~# ip a | grep inet | egrep -v &quot;127.0.0.1| inet6&quot; | awk '{print $2}' | cut -d / -f1 | head -1
+172.18.146.46
+</code></pre>
+<p><strong>现在给ubuntu19.04配个临时192.168.38.46/24的IP，这样的话ubuntu和CentOS7都有192.168.38的IP了</strong></p>
+<p><strong>（根据上一遍文章，连通不同网络需要路由器，同一网络的话交换机即可完成）</strong></p>
+<pre><code>[qqq@ubuntu ~]$ sudo ip addr add 192.168.38.46/24 dev ens33
+</code></pre>
+<p><strong>当然，现在ubuntu19.04不可能ping通CentOS7的，因为网络隔离</strong></p>
+<pre><code>[qqq@ubuntu ~]$ ping 192.168.38.123
+PING 192.168.38.123 (192.168.38.123) 56(84) bytes of data.
+From 192.168.38.46 icmp_seq=1 Destination Host Unreachable
+From 192.168.38.46 icmp_seq=2 Destination Host Unreachable
+</code></pre>
+<p><strong>接下来，第三台机器出现：该机器有两块网卡：一个NAT，一个桥接。IP无所谓，不需要，它用来做二层交换机，要什么IP，重点是它有两个网卡，一个NAT，一个桥接</strong></p>
+<figure data-type="image" tabindex="2"><img src="%E5%9B%BE%E7%89%87/1566194537855.png" alt="1566194537855" loading="lazy"></figure>
+<p><strong>然后开始接下来的厉害操作</strong></p>
+<pre><code># 安装bridge-utils包
+[root@switch ~]# yum install bridge-utils -y
+
+# 创建一个网桥
+[root@switch ~]# brctl addbr br0
+[root@switch ~]# brctl show
+bridge name	bridge id		STP enabled	interfaces
+br0		8000.000000000000	no		
+
+# 启用该网桥
+[root@switch ~]# ip link show br0
+5: br0: &lt;BROADCAST,MULTICAST&gt; mtu 1500 qdisc noop state DOWN mode DEFAULT group default qlen 1000
+    link/ether 1e:ea:fc:5f:5d:15 brd ff:ff:ff:ff:ff:ff    
+[root@switch ~]# ip link set br0 up
+[root@switch ~]# ip link show br0
+5: br0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/ether 1e:ea:fc:5f:5d:15 brd ff:ff:ff:ff:ff:ff
+
+#将两个网卡接入这个网桥内
+[root@switch ~]# brctl addif br0 ens37
+[root@switch ~]# brctl addif br0 ens33
+</code></pre>
+<p><strong>这样，这个交换机就做好了，现在见证奇迹</strong>,ping通了</p>
+<pre><code>[qqq@ubuntu ~]$ ping 192.168.38.123 -c3
+PING 192.168.38.123 (192.168.38.123) 56(84) bytes of data.
+64 bytes from 192.168.38.123: icmp_seq=1 ttl=64 time=2.84 ms
+64 bytes from 192.168.38.123: icmp_seq=2 ttl=64 time=0.571 ms
+64 bytes from 192.168.38.123: icmp_seq=3 ttl=64 time=0.632 ms
+
+--- 192.168.38.123 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 6ms
+rtt min/avg/max/mdev = 0.571/1.346/2.835/1.053 ms
+
+# CentOS7去ping ubuntu
+[root@linux1 ~]# ping 192.168.38.46 
+PING 192.168.38.46 (192.168.38.46) 56(84) bytes of data.
+64 bytes from 192.168.38.46: icmp_seq=1 ttl=64 time=0.985 ms
+64 bytes from 192.168.38.46: icmp_seq=2 ttl=64 time=0.593 ms
+</code></pre>
+<p>然后将该机器关机，ping又不通了</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/ubuntu1804-wang-luo-pei-zhi/">
+                  <h3 class="post-title">
+                     ubuntu18.04网络配置
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

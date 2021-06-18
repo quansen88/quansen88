@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190830CentOS7删boot目录玩 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="CentOS7删boot目录玩
+grub2-install 可以恢复stage1-stage2阶段
+一、删了/boot
+[root@localhost ~]# rm /boot -rf
+二、起不来了
+grub，启动的img镜像都没了
+
+三、..." />
+    <meta name="keywords" content="centos" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190830CentOS7删boot目录玩</h2>
+            <div class="post-date">2021-04-22</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.centos.org/assets/img/centos-logo-white.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="centos7删boot目录玩">CentOS7删boot目录玩</h1>
+<p>grub2-install 可以恢复stage1-stage2阶段</p>
+<h4 id="一-删了boot"><strong>一、删了</strong>/boot</h4>
+<p>[root@localhost ~]# rm /boot -rf</p>
+<h4 id="二-起不来了">二、起不来了</h4>
+<p>grub，启动的img镜像都没了</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567139773618.png" alt="1567139773618" loading="lazy"></figure>
+<h4 id="三-光盘救援">三、光盘救援</h4>
+<p>参考：https://blog.51cto.com/14012942/2426097</p>
+<pre><code class="language-bash">sh-4.2# chroot /mnt/sysimage						#切根
+bash-4.2# mount /dev/cdrom /mnt						#
+bash-4.2# rpm -ivh /mnt/Packages/kernel-3.10.0-957.el7.x86_64.rpm		#安装内核
+bash-4.2# grub2-install /dev/sda					#可以恢复stag1-stage2阶段
+bash-4.2# grub2-mkconfig -o /boot/grub2/grub.cfg	#生成grub.cfg
+bash-4.2# sync
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567140418145.png" alt="1567140418145" loading="lazy"></figure>
+<p><font color=red><strong>看一下 kernel-3.10.0-957.el7.x86_64.rpm在boot目录生成的文件</strong></font></p>
+<pre><code class="language-bash">[root@localhost ~]# rpm -ql kernel-3.10.0-957.el7.x86_64 | grep ^/boot
+/boot/.vmlinuz-3.10.0-957.el7.x86_64.hmac
+/boot/System.map-3.10.0-957.el7.x86_64
+/boot/config-3.10.0-957.el7.x86_64
+/boot/initramfs-3.10.0-957.el7.x86_64.img
+/boot/symvers-3.10.0-957.el7.x86_64.gz
+/boot/vmlinuz-3.10.0-957.el7.x86_64
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/WsfqvhG9O/" class="tag">
+                    centos
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190830centos7-shan-bootloader-wan/">
+                  <h3 class="post-title">
+                    20190830CentOS7删bootloader玩
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

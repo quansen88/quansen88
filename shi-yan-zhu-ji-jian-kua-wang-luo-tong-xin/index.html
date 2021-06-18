@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> 实验：主机间跨网络通信 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="实验：主机间跨网络通信
+实验拓扑图：
+
+第一步：创建四个虚拟机
+第二步：配置vmnet6和vmnet8网段
+vmnet6:10.0.0.0/8
+vmnet8:192.168.38.0/24
+vmnet0:172.18.0.0/24
+三、如上..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> 实验：主机间跨网络通信</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="实验主机间跨网络通信">实验：主机间跨网络通信</h1>
+<h3 id="实验拓扑图">实验拓扑图：</h3>
+<figure data-type="image" tabindex="1"><img src="%E5%9B%BE%E7%89%87/1566012211733.png" alt="1566012211733" loading="lazy"></figure>
+<h3 id="第一步创建四个虚拟机">第一步：创建四个虚拟机</h3>
+<h3 id="第二步配置vmnet6和vmnet8网段">第二步：配置vmnet6和vmnet8网段</h3>
+<p>vmnet6:10.0.0.0/8</p>
+<p>vmnet8:192.168.38.0/24</p>
+<p>vmnet0:172.18.0.0/24</p>
+<h3 id="三-如上图所示配置好每个虚拟机的网卡类型">三、如上图所示，配置好每个虚拟机的网卡类型</h3>
+<h3 id="四-配置ip">四、配置IP</h3>
+<p><strong>第一个虚拟机</strong></p>
+<pre><code>[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens33
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=192.168.38.123
+NETMASK=255.255.255.0
+GATEWAY=192.168.38.2
+NAME=ens33
+DEVICE=ens33
+ONBOOT=yes
+[root@localhost ~]# systemctl restart network
+</code></pre>
+<p><strong>第二个虚拟机</strong></p>
+<pre><code>[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens33
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=192.168.38.200
+NETMASK=255.255.255.0
+GATEWAY=192.168.38.2
+NAME=ens33
+DEVICE=ens33
+ONBOOT=yes
+[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens37
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=10.0.0.200
+NETMASK=255.0.0.0
+GATEWAY=10.0.0.1
+NAME=ens37
+DEVICE=ens37
+ONBOOT=yes
+[root@localhost ~]# systemctl restart network
+</code></pre>
+<p><strong>第三个虚拟机</strong></p>
+<pre><code>[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens33
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=10.0.0.201
+NETMASK=255.0.0.0
+GATEWAY=10.0.0.1
+NAME=ens33
+DEVICE=ens33
+ONBOOT=yes
+[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens37
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=172.18.28.201
+NETMASK=255.255.0.0
+GATEWAY=172.18.0.1
+NAME=ens37
+DEVICE=ens37
+ONBOOT=yes
+[root@localhost ~]# systemctl restart network
+</code></pre>
+<p><strong>第四个虚拟机</strong></p>
+<pre><code>[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens33
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=172.18.28.202
+NETMASK=255.255.0.0
+GATEWAY=172.18.0.1
+NAME=ens33
+DEVICE=ens33
+ONBOOT=yes
+[root@localhost ~]# systemctl restart network
+</code></pre>
+<h3 id="五-配置路由规则">五、配置路由规则</h3>
+<p><strong>现在B还ping不通A</strong></p>
+<pre><code>[root@b ~]# ping 192.168.38.123
+PING 192.168.38.123 (192.168.38.123) 56(84) bytes of data.
+From 172.18.28.28 icmp_seq=1 Redirect Network(New nexthop: 172.18.0.1)
+From 172.18.28.28: icmp_seq=1 Redirect Network(New nexthop: 172.18.0.1)
+</code></pre>
+<p>A的默认网关应该是192.168.38.200（或者给A加一条路由，让A知道172.18网段是要通过192.168.38.200出去的，不然数据包全发到192.168.38.2去了）</p>
+<pre><code>[root@localhost ~]# ip route add default via 192.168.38.200
+</code></pre>
+<p>R1走172.18网段通过10.0.0.201</p>
+<pre><code>[root@localhost ~]# ip route add 172.18.0.0/16 via 10.0.0.201
+</code></pre>
+<p>R2走192.168.38网段通过10.0.0.200</p>
+<pre><code>[root@r2 ~]# ip route add 192.168.38.0/24 via 10.0.0.200
+</code></pre>
+<p>B的默认网关应该是172.18.28.201</p>
+<pre><code>[root@b ~]# ip route add default via 172.18.28.201
+</code></pre>
+<h3 id="六-第二三个虚拟机开启路由转发"><strong>六、第二三个虚拟机开启路由转发</strong></h3>
+<p><strong>第二个和第三个虚拟机都要执行</strong></p>
+<pre><code>[root@localhost ~]# echo &quot;net.ipv4.ip_forward = 1&quot; &gt;&gt; /etc/sysctl.d/ip_forward.conf
+[root@localhost ~]# sysctl -p /etc/sysctl.d/ip_forward.conf
+net.ipv4.ip_forward = 1
+</code></pre>
+<h3 id="七-接下来就是见证奇迹的时刻">七、接下来就是见证奇迹的时刻</h3>
+<p>B ping A</p>
+<pre><code>[root@b ~]# ping 192.168.38.123 -c3
+PING 192.168.38.123 (192.168.38.123) 56(84) bytes of data.
+64 bytes from 192.168.38.123: icmp_seq=1 ttl=62 time=4.83 ms
+64 bytes from 192.168.38.123: icmp_seq=2 ttl=62 time=1.03 ms
+64 bytes from 192.168.38.123: icmp_seq=3 ttl=62 time=1.12 ms
+
+--- 192.168.38.123 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2004ms
+rtt min/avg/max/mdev = 1.034/2.329/4.832/1.770 ms
+</code></pre>
+<p>A ping B   <strong>(第一次实验做完后NAT就可以直接ping到桥接了，不知道什么原因</strong>)</p>
+<pre><code>[root@localhost ~]# ping 172.18.28.202 -c3
+PING 172.18.28.202 (172.18.28.202) 56(84) bytes of data.
+64 bytes from 172.18.28.202: icmp_seq=1 ttl=62 time=2.20 ms
+64 bytes from 172.18.28.202: icmp_seq=2 ttl=62 time=1.14 ms
+64 bytes from 172.18.28.202: icmp_seq=3 ttl=62 time=0.876 ms
+
+--- 172.18.28.202 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 0.876/1.408/2.202/0.573 ms
+</code></pre>
+<p>A到B怎么走的：</p>
+<pre><code>[root@localhost ~]# tracepath -n 172.18.28.202
+ 1?: [LOCALHOST]                                         pmtu 1500
+ 1:  192.168.38.200                                        0.558ms 
+ 1:  192.168.38.200                                        1.848ms 
+ 2:  10.0.0.201                                            2.290ms 
+ 3:  172.18.28.202                                         4.786ms reached
+     Resume: pmtu 1500 hops 3 back 3 
+</code></pre>
+<p>B到A怎么走的</p>
+<pre><code>[root@b ~]# tracepath -n 192.168.38.123
+ 1?: [LOCALHOST]                                         pmtu 1500
+ 1:  172.18.28.201                                         0.887ms 
+ 1:  172.18.28.201                                         0.863ms 
+ 2:  10.0.0.200                                            5.798ms 
+ 3:  192.168.38.123                                        9.648ms reached
+     Resume: pmtu 1500 hops 3 back 3 
+</code></pre>
+<p><strong>现在虚拟机不知道怎么了默认NAT就能ping到桥接的虚拟机，现在tracepath看一下</strong>(这是新的一台虚拟机)</p>
+<pre><code># 能ping通
+[qqq@ubuntu ~]$ ping 172.18.28.202 -c2
+PING 172.18.28.202 (172.18.28.202) 56(84) bytes of data.
+64 bytes from 172.18.28.202: icmp_seq=1 ttl=128 time=2.15 ms
+64 bytes from 172.18.28.202: icmp_seq=2 ttl=128 time=0.738 ms
+
+--- 172.18.28.202 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 3ms
+rtt min/avg/max/mdev = 0.738/1.442/2.146/0.704 ms
+#看一下怎么走的
+[qqq@ubuntu ~]$ tracepath -n 172.18.28.202
+ 1?: [LOCALHOST]                      pmtu 1500
+ 1:  192.168.38.2                                          0.480ms 
+ 1:  192.168.38.2                                          0.120ms 
+ 2:  no reply
+ 3:  no reply
+ 4:  no reply
+ ...   (确实是到了NAT桥那里，后面一直noreply了)
+</code></pre>
+<h1 id="持久化路由表">持久化路由表</h1>
+<p>思路:可以把添加路由的命令写入开机启动文件</p>
+<h3 id="方法一">方法一：</h3>
+<p>写入rc.local文件</p>
+<h3 id="方法二推荐">方法二（推荐）：</h3>
+<pre><code># CentOS7可行，其他未测
+[root@localhost ~]# ip route &gt; /etc/sysconfig/network-scripts/route-ens33
+</code></pre>
+<h1 id="实验主机间跨网络通信-2">实验：主机间跨网络通信</h1>
+<h3 id="实验拓扑图-2">实验拓扑图：</h3>
+<figure data-type="image" tabindex="2"><img src="%E5%9B%BE%E7%89%87/1566012211733.png" alt="1566012211733" loading="lazy"></figure>
+<h3 id="第一步创建四个虚拟机-2">第一步：创建四个虚拟机</h3>
+<h3 id="第二步配置vmnet6和vmnet8网段-2">第二步：配置vmnet6和vmnet8网段</h3>
+<p>vmnet6:10.0.0.0/8</p>
+<p>vmnet8:192.168.38.0/24</p>
+<p>vmnet0:172.18.0.0/24</p>
+<h3 id="三-如上图所示配置好每个虚拟机的网卡类型-2">三、如上图所示，配置好每个虚拟机的网卡类型</h3>
+<h3 id="四-配置ip-2">四、配置IP</h3>
+<p><strong>第一个虚拟机</strong></p>
+<pre><code>[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens33
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=192.168.38.123
+NETMASK=255.255.255.0
+GATEWAY=192.168.38.2
+NAME=ens33
+DEVICE=ens33
+ONBOOT=yes
+[root@localhost ~]# systemctl restart network
+</code></pre>
+<p><strong>第二个虚拟机</strong></p>
+<pre><code>[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens33
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=192.168.38.200
+NETMASK=255.255.255.0
+GATEWAY=192.168.38.2
+NAME=ens33
+DEVICE=ens33
+ONBOOT=yes
+[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens37
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=10.0.0.200
+NETMASK=255.0.0.0
+GATEWAY=10.0.0.1
+NAME=ens37
+DEVICE=ens37
+ONBOOT=yes
+[root@localhost ~]# systemctl restart network
+</code></pre>
+<p><strong>第三个虚拟机</strong></p>
+<pre><code>[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens33
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=10.0.0.201
+NETMASK=255.0.0.0
+GATEWAY=10.0.0.1
+NAME=ens33
+DEVICE=ens33
+ONBOOT=yes
+[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens37
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=172.18.28.201
+NETMASK=255.255.0.0
+GATEWAY=172.18.0.1
+NAME=ens37
+DEVICE=ens37
+ONBOOT=yes
+[root@localhost ~]# systemctl restart network
+</code></pre>
+<p><strong>第四个虚拟机</strong></p>
+<pre><code>[root@localhost ~]# cat /etc/sysconfig/network-scripts/ifcfg-ens33
+TYPE=Ethernet
+BOOTPROTO=static
+IPADDR=172.18.28.202
+NETMASK=255.255.0.0
+GATEWAY=172.18.0.1
+NAME=ens33
+DEVICE=ens33
+ONBOOT=yes
+[root@localhost ~]# systemctl restart network
+</code></pre>
+<h3 id="五-配置路由规则-2">五、配置路由规则</h3>
+<p><strong>现在B还ping不通A</strong></p>
+<pre><code>[root@b ~]# ping 192.168.38.123
+PING 192.168.38.123 (192.168.38.123) 56(84) bytes of data.
+From 172.18.28.28 icmp_seq=1 Redirect Network(New nexthop: 172.18.0.1)
+From 172.18.28.28: icmp_seq=1 Redirect Network(New nexthop: 172.18.0.1)
+</code></pre>
+<p>A的默认网关应该是192.168.38.200（或者给A加一条路由，让A知道172.18网段是要通过192.168.38.200出去的，不然数据包全发到192.168.38.2去了）</p>
+<pre><code>[root@localhost ~]# ip route add default via 192.168.38.200
+</code></pre>
+<p>R1走172.18网段通过10.0.0.201</p>
+<pre><code>[root@localhost ~]# ip route add 172.18.0.0/16 via 10.0.0.201
+</code></pre>
+<p>R2走192.168.38网段通过10.0.0.200</p>
+<pre><code>[root@r2 ~]# ip route add 192.168.38.0/24 via 10.0.0.200
+</code></pre>
+<p>B的默认网关应该是172.18.28.201</p>
+<pre><code>[root@b ~]# ip route add default via 172.18.28.201
+</code></pre>
+<h3 id="六-第二三个虚拟机开启路由转发-2"><strong>六、第二三个虚拟机开启路由转发</strong></h3>
+<p><strong>第二个和第三个虚拟机都要执行</strong></p>
+<pre><code>[root@localhost ~]# echo &quot;net.ipv4.ip_forward = 1&quot; &gt;&gt; /etc/sysctl.d/ip_forward.conf
+[root@localhost ~]# sysctl -p /etc/sysctl.d/ip_forward.conf
+net.ipv4.ip_forward = 1
+</code></pre>
+<h3 id="七-接下来就是见证奇迹的时刻-2">七、接下来就是见证奇迹的时刻</h3>
+<p>B ping A</p>
+<pre><code>[root@b ~]# ping 192.168.38.123 -c3
+PING 192.168.38.123 (192.168.38.123) 56(84) bytes of data.
+64 bytes from 192.168.38.123: icmp_seq=1 ttl=62 time=4.83 ms
+64 bytes from 192.168.38.123: icmp_seq=2 ttl=62 time=1.03 ms
+64 bytes from 192.168.38.123: icmp_seq=3 ttl=62 time=1.12 ms
+
+--- 192.168.38.123 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2004ms
+rtt min/avg/max/mdev = 1.034/2.329/4.832/1.770 ms
+</code></pre>
+<p>A ping B   <strong>(第一次实验做完后NAT就可以直接ping到桥接了，不知道什么原因</strong>)</p>
+<pre><code>[root@localhost ~]# ping 172.18.28.202 -c3
+PING 172.18.28.202 (172.18.28.202) 56(84) bytes of data.
+64 bytes from 172.18.28.202: icmp_seq=1 ttl=62 time=2.20 ms
+64 bytes from 172.18.28.202: icmp_seq=2 ttl=62 time=1.14 ms
+64 bytes from 172.18.28.202: icmp_seq=3 ttl=62 time=0.876 ms
+
+--- 172.18.28.202 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 0.876/1.408/2.202/0.573 ms
+</code></pre>
+<p>A到B怎么走的：</p>
+<pre><code>[root@localhost ~]# tracepath -n 172.18.28.202
+ 1?: [LOCALHOST]                                         pmtu 1500
+ 1:  192.168.38.200                                        0.558ms 
+ 1:  192.168.38.200                                        1.848ms 
+ 2:  10.0.0.201                                            2.290ms 
+ 3:  172.18.28.202                                         4.786ms reached
+     Resume: pmtu 1500 hops 3 back 3 
+</code></pre>
+<p>B到A怎么走的</p>
+<pre><code>[root@b ~]# tracepath -n 192.168.38.123
+ 1?: [LOCALHOST]                                         pmtu 1500
+ 1:  172.18.28.201                                         0.887ms 
+ 1:  172.18.28.201                                         0.863ms 
+ 2:  10.0.0.200                                            5.798ms 
+ 3:  192.168.38.123                                        9.648ms reached
+     Resume: pmtu 1500 hops 3 back 3 
+</code></pre>
+<p><strong>现在虚拟机不知道怎么了默认NAT就能ping到桥接的虚拟机，现在tracepath看一下</strong>(这是新的一台虚拟机)</p>
+<pre><code># 能ping通
+[qqq@ubuntu ~]$ ping 172.18.28.202 -c2
+PING 172.18.28.202 (172.18.28.202) 56(84) bytes of data.
+64 bytes from 172.18.28.202: icmp_seq=1 ttl=128 time=2.15 ms
+64 bytes from 172.18.28.202: icmp_seq=2 ttl=128 time=0.738 ms
+
+--- 172.18.28.202 ping statistics ---
+2 packets transmitted, 2 received, 0% packet loss, time 3ms
+rtt min/avg/max/mdev = 0.738/1.442/2.146/0.704 ms
+#看一下怎么走的
+[qqq@ubuntu ~]$ tracepath -n 172.18.28.202
+ 1?: [LOCALHOST]                      pmtu 1500
+ 1:  192.168.38.2                                          0.480ms 
+ 1:  192.168.38.2                                          0.120ms 
+ 2:  no reply
+ 3:  no reply
+ 4:  no reply
+ ...   (确实是到了NAT桥那里，后面一直noreply了)
+</code></pre>
+<h1 id="持久化路由表-2">持久化路由表</h1>
+<p>思路:可以把添加路由的命令写入开机启动文件</p>
+<h3 id="方法一-2">方法一：</h3>
+<p>写入rc.local文件</p>
+<h3 id="方法二推荐-2">方法二（推荐）：</h3>
+<pre><code># CentOS7可行，其他未测
+[root@localhost ~]# ip route &gt; /etc/sysconfig/network-scripts/route-ens33
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/pei-zhi-shi-xian-wang-qiao/">
+                  <h3 class="post-title">
+                     配置实现网桥
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

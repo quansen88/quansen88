@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191025同步与异步，阻塞与非阻塞的区别 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="同步与异步，阻塞与非阻塞的区别
+转载：https://www.cnblogs.com/chaser24/p/6112071.html
+1、概念剖析
+相信很多从事linux后台开发工作的都接触过同步&amp;异步、阻塞&amp;非阻塞这样的概..." />
+    <meta name="keywords" content="linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191025同步与异步，阻塞与非阻塞的区别</h2>
+            <div class="post-date">2021-04-28</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="同步与异步阻塞与非阻塞的区别"><a href="https://www.cnblogs.com/nanqiang/p/9910860.html">同步与异步，阻塞与非阻塞的区别</a></h1>
+<p>转载：https://www.cnblogs.com/chaser24/p/6112071.html</p>
+<h3 id="1-概念剖析"><strong>1、概念剖析</strong></h3>
+<p>相信很多从事linux后台开发工作的都接触过同步&amp;异步、阻塞&amp;非阻塞这样的概念，也相信都曾经产生过误解，比如认为同步就是阻塞、异步就是非阻塞，下面我们先剖析下这几个概念分别是什么含义。</p>
+<p><strong>同步：</strong><br>
+所谓同步，就是在发出一个功能调用时，在没有得到结果之前，该调用就不返回。<strong>也就是必须一件一件事做</strong>,等前一件做完了才能做下一件事。</p>
+<p>例如普通B/S模式（同步）：提交请求-&gt;等待服务器处理-&gt;处理完毕返回 这个期间客户端浏览器不能干任何事</p>
+<p><strong>异步：</strong><br>
+异步的概念和同步相对。当一个异步过程调用发出后，调用者不能立刻得到结果。实际处理这个调用的部件在完成后，通过状态、通知和回调来通知调用者。</p>
+<p>例如 ajax请求（异步）: 请求通过事件触发-&gt;服务器处理（这是浏览器仍然可以作其他事情）-&gt;处理完毕</p>
+<p><strong>阻塞：</strong><br>
+阻塞调用是指调用结果返回之前，当前线程会被挂起（线程进入非可执行状态，在这个状态下，cpu不会给线程分配时间片，即线程暂停运行）。函数只有在得到结果之后才会返回。</p>
+<p>有人也许会把阻塞调用和同步调用等同起来，实际上他是不同的。对于同步调用来说，很多时候当前线程还是激活的，只是从逻辑上当前函数没有返回,它还会抢占cpu去执行其他逻辑，也会主动检测io是否准备好。</p>
+<p><strong>非阻塞</strong><br>
+非阻塞和阻塞的概念相对应，指在不能立刻得到结果之前，该函数不会阻塞当前线程，而会立刻返回。</p>
+<p>再简单点理解就是：</p>
+<p>\1. 同步，就是我调用一个功能，该功能没有结束前，我死等结果。<br>
+\2. 异步，就是我调用一个功能，不需要知道该功能结果，该功能有结果后通知我（回调通知）<br>
+\3. 阻塞，就是调用我（函数），我（函数）没有接收完数据或者没有得到结果之前，我不会返回。<br>
+\4. 非阻塞，就是调用我（函数），我（函数）立即返回，通过select通知调用者</p>
+<p>同步IO和异步IO的区别就在于：数据拷贝的时候进程是否阻塞</p>
+<p>阻塞IO和非阻塞IO的区别就在于：应用程序的调用是否立即返回</p>
+<p>综上可知，同步和异步,阻塞和非阻塞,有些混用,其实它们完全不是一回事,而且它们修饰的对象也不相同。</p>
+<h3 id="2-五种io模型"><strong>2、五种IO模型</strong></h3>
+<p>在了解了同步与异步、阻塞与非阻塞概念后，我们来讲讲linux的五种IO模型：</p>
+<p>1)阻塞I/O（blocking I/O）<br>
+2)非阻塞I/O （nonblocking I/O）<br>
+3) I/O复用(select 和poll) （I/O multiplexing）<br>
+4)信号驱动I/O （signal driven I/O (SIGIO)）<br>
+5)异步I/O （asynchronous I/O (the POSIX aio_functions)）</p>
+<p>其中前4种都是同步，最后一种才是异步。</p>
+<h4 id="21-阻塞io">2.1、阻塞I/O</h4>
+<p>应用程序调用一个IO函数，导致应用程序阻塞，等待数据准备好。 如果数据没有准备好，一直等待….数据准备好了，从内核拷贝到用户空间,IO函数返回成功指示。</p>
+<p>**阻塞I/O模型图：**在调用recv()/recvfrom（）函数时，发生在内核中等待数据和复制数据的过程。</p>
+<p><img src="http://my.csdn.net/uploads/201204/12/1334216532_9745.jpg" alt="img" loading="lazy">  当调用recv()函数时，系统首先查是否有准备好的数据。如果数据没有准备好，那么系统就处于等待状态。当数据准备好后，将数据从系统缓冲区复制到用户空间，然后该函数返回。在套接应用程序中，当调用recv()函数时，未必用户空间就已经存在数据，那么此时recv()函数就会处于等待状态。</p>
+<h4 id="22-非阻塞io">2.2、非阻塞I/O</h4>
+<p>非阻塞IO通过进程反复调用IO函数（多次系统调用，并马上返回）；在数据拷贝的过程中，进程是阻塞的</p>
+<p>我们把一个SOCKET接口设置为非阻塞就是告诉内核，当所请求的I/O操作无法完成时，不要将进程睡眠，而是返回一个错误。这样我们的I/O操作函数将不断的测试数据是否已经准备好，如果没有准备好，继续测试，直到数据准备好为止。在这个不断测试的过程中，会大量的占用CPU的时间。</p>
+<figure data-type="image" tabindex="1"><img src="https://images2015.cnblogs.com/blog/1066890/201611/1066890-20161129013552787-106362990.png" alt="img" loading="lazy"></figure>
+<h4 id="23-io复用">2.3、IO复用</h4>
+<p>主要是select和epoll；对一个IO端口，两次调用，两次返回，比阻塞IO并没有什么优越性；关键是能实现同时对多个IO端口进行监听； I/O复用模型会用到select、poll、epoll函数，这几个函数也会使进程阻塞，但是和阻塞I/O所不同的的，这两个函数可以同时阻塞多个I/O操作。而且可以同时对多个读操作，多个写操作的I/O函数进行检测，直到有数据可读或可写时，才真正调用I/O操作函数。</p>
+<figure data-type="image" tabindex="2"><img src="https://images2015.cnblogs.com/blog/1066890/201611/1066890-20161129013743365-536532018.png" alt="img" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://images2015.cnblogs.com/blog/1066890/201611/1066890-20161129014354974-2103131840.png" alt="img" loading="lazy"></figure>
+<h4 id="24-信号驱动io">2.4、信号驱动IO</h4>
+<p>首先我们允许套接口进行信号驱动I/O,并安装一个信号处理函数，进程继续运行并不阻塞。当数据准备好时，进程会收到一个SIGIO信号，可以在信号处理函数中调用I/O操作函数处理数据。</p>
+<figure data-type="image" tabindex="4"><img src="https://images2015.cnblogs.com/blog/1066890/201611/1066890-20161129014514412-16247350.png" alt="img" loading="lazy"></figure>
+<h4 id="24-异步io">2.4、异步IO</h4>
+<p>当一个异步过程调用发出后，调用者不能立刻得到结果。实际处理这个调用的部件在完成后，通过状态、通知和回调来通知调用者的输入输出操作</p>
+<figure data-type="image" tabindex="5"><img src="https://images2015.cnblogs.com/blog/1066890/201611/1066890-20161129014812615-87373723.png" alt="img" loading="lazy"></figure>
+<p><strong>最后，总结比较下五种IO模型：</strong></p>
+<figure data-type="image" tabindex="6"><img src="https://images2015.cnblogs.com/blog/1066890/201611/1066890-20161129014959615-1351089676.png" alt="img" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191023-lai-zi-opendevops-de-xi-tong-diao-you-jiao-ben/">
+                  <h3 class="post-title">
+                    20191023来自opendevops的系统调优脚本
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

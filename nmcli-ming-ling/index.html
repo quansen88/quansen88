@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> nmcli命令 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="nmcli命令
+可以参考这个：https://mp.weixin.qq.com/s/y64vMJqfbtDGXcTDz6R-mQ
+
+nmcli可以自动补全，还是比较容易的
+只敲nmcli显示所有网卡信息：
+[root@linux1 ~]# ..." />
+    <meta name="keywords" content="linux,命令" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> nmcli命令</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="nmcli命令">nmcli命令</h1>
+<p><strong>可以参考这个：https://mp.weixin.qq.com/s/y64vMJqfbtDGXcTDz6R-mQ</strong></p>
+<figure data-type="image" tabindex="1"><img src="%E5%9B%BE%E7%89%87/1566214426151.png" alt="1566214426151" loading="lazy"></figure>
+<h3 id="font-colorrednmcli可以自动补全还是比较容易的font"><font color=red>nmcli可以自动补全，还是比较容易的</font></h3>
+<h3 id="只敲nmcli显示所有网卡信息">只敲nmcli显示所有网卡信息：</h3>
+<pre><code class="language-bash">[root@linux1 ~]# nmcli 
+ens33: connected to ens33
+        &quot;Intel 82545EM&quot;
+        ethernet (e1000), 00:0C:29:D3:DD:51, hw, mtu 1500
+        ip4 default
+        inet4 192.168.38.123/24
+        route4 192.168.38.0/24
+        route4 0.0.0.0/0
+        route4 172.18.0.0/16
+        inet6 fe80::20c:29ff:fed3:dd51/64
+        route6 ff00::/8
+        route6 fe80::/64
+
+ens37: connected to Wired connection 1
+        &quot;Intel 82545EM&quot;
+        ethernet (e1000), 00:0C:29:D3:DD:5B, hw, mtu 1500
+        inet4 192.168.38.142/24
+        route4 0.0.0.0/0
+        route4 192.168.38.0/24
+        inet6 fe80::a439:f7bd:b0c0:84be/64
+        route6 fe80::/64
+        route6 ff00::/8
+</code></pre>
+<h3 id="nmcli一级选项">nmcli一级选项</h3>
+<pre><code>[root@linux1 ~]# nmcli 
+agent       device      help        networking  
+connection  general     monitor     radio
+</code></pre>
+<h3 id="查看所有网络接口信息">查看所有网络接口信息</h3>
+<pre><code>[root@linux1 ~]# nmcli connection show
+NAME                UUID                                  TYPE      DEVICE 
+ens33               c96bc909-188e-ec64-3a96-6a90982b08ad  ethernet  ens33  
+Wired connection 1  97f5b522-19ca-3a36-9ee2-7ad076028521  ethernet  ens37 
+</code></pre>
+<h3 id="查看指定接口信息">查看指定接口信息</h3>
+<pre><code>[root@linux1 ~]# nmcli connection show ens33
+connection.id:                          ens33
+connection.uuid:                        c96bc909-188e-ec64-3a96-6a90982b08ad
+connection.stable-id:                   --
+connection.type:                        802-3-ethernet
+connection.interface-name:              ens33
+connection.autoconnect:                 yes
+connection.autoconnect-priority:        0
+[root@linux1 ~]# nmcli device show ens33
+GENERAL.DEVICE:                         ens33
+GENERAL.TYPE:                           ethernet
+GENERAL.HWADDR:                         00:0C:29:D3:DD:51
+GENERAL.MTU:                            1500
+GENERAL.STATE:                          100 (connected)
+GENERAL.CONNECTION:                     ens33
+</code></pre>
+<h3 id="显示所有活动链接">显示所有活动链接</h3>
+<pre><code>[root@linux1 ~]# nmcli connection show --active 
+NAME                UUID                                  TYPE      DEVICE 
+ens33               c96bc909-188e-ec64-3a96-6a90982b08ad  ethernet  ens33  
+Wired connection 1  97f5b522-19ca-3a36-9ee2-7ad076028521  ethernet  ens37  
+</code></pre>
+<h3 id="删除一个网卡连接">删除一个网卡连接</h3>
+<pre><code>[root@linux1 ~]# nmcli connection show 
+NAME                UUID                                  TYPE      DEVICE 
+ens33               c96bc909-188e-ec64-3a96-6a90982b08ad  ethernet  ens33  
+Wired connection 1  97f5b522-19ca-3a36-9ee2-7ad076028521  ethernet  ens37  
+#删除
+[root@linux1 ~]# nmcli connection delete Wired\ connection\ 1 
+Connection 'Wired connection 1' (97f5b522-19ca-3a36-9ee2-7ad076028521) successfully deleted.
+#查看
+[root@linux1 ~]# nmcli connection show 
+NAME   UUID                                  TYPE      DEVICE 
+ens33  c96bc909-188e-ec64-3a96-6a90982b08ad  ethernet  ens33 
+</code></pre>
+<h3 id="手动给ens37配个ip这个是永久的会生成配置文件">手动给ens37配个IP，这个是永久的，会生成配置文件</h3>
+<pre><code># 查看网卡名
+[root@linux1 ~]# ip addr show ens37
+4: ens37: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 00:0c:29:d3:dd:5b brd ff:ff:ff:ff:ff:ff
+#开始表演
+# 网卡类型为ethernet ifname为网络接口名字ens37,ip,网关，BOOTPROTO为自动
+[root@linux1 ~]# nmcli connection add type ethernet ifname ens37 ipv4.addresses 192.168.38.
+142/24 ipv4.gateway 192.168.38.2 ipv4.method manual 
+Connection 'ethernet-ens37' (5397a06b-81d2-47ce-a06f-0c76af02c5b4) successfully added.
+[root@linux1 ~]# nmcli connection show
+NAME            UUID                                  TYPE      DEVICE 
+ens33           c96bc909-188e-ec64-3a96-6a90982b08ad  ethernet  ens33  
+ethernet-ens37  5397a06b-81d2-47ce-a06f-0c76af02c5b4  ethernet  ens37 
+# 查看生成的配置文件
+[root@linux1 ~]# cat /etc/sysconfig/network-scripts/ifcfg-ethernet-ens37
+</code></pre>
+<h3 id="修改ip或某些网络参数">修改IP或某些网络参数</h3>
+<pre><code>#原来的样子
+[root@linux1 ~]# nmcli connection show 
+NAME            UUID                                  TYPE      DEVICE 
+ens33           c96bc909-188e-ec64-3a96-6a90982b08ad  ethernet  ens33  
+ethernet-ens37  5397a06b-81d2-47ce-a06f-0c76af02c5b4  ethernet  ens37
+#修改后的样子
+[root@linux1 ~]# nmcli connection modify ethernet-ens37 con-name ens37
+[root@linux1 ~]# nmcli connection show 
+NAME   UUID                                  TYPE      DEVICE 
+ens33  c96bc909-188e-ec64-3a96-6a90982b08ad  ethernet  ens33  
+ens37  5397a06b-81d2-47ce-a06f-0c76af02c5b4  ethernet  ens37
+#添加DNS
+[root@linux1 ~]# nmcli connection modify ens37 +ipv4.dns 123.123.123.123
+</code></pre>
+<h3 id="增加ip-删除ip">增加IP、删除IP</h3>
+<pre><code>[root@linux1 ~]# nmcli connection modify ens37 +ipv4.addresses 192.168.38.161/24
+[root@linux1 ~]# nmcli connection modify ens37 -ipv4.addresses 192.168.38.161/24
+</code></pre>
+<h3 id="重启网路">重启网路</h3>
+<pre><code>[root@linux1 ~]# nmcli connection reload 
+[root@linux1 ~]# systemctl restart network
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/rSMhbg3ymJ/" class="tag">
+                    命令
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/shi-yan-zhu-ji-jian-kua-wang-luo-tong-xin/">
+                  <h3 class="post-title">
+                     实验：主机间跨网络通信
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

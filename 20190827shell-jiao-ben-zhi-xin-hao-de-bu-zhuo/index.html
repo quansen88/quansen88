@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190827shell脚本之信号的捕捉 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="shell脚本之信号的捕捉
+
+​		trap，翻译过来就是陷阱的意思，shell脚本中的陷阱是专门用来捕捉信号的。啥信号呢？比如经常使用的kill -9，kill -15，CTRL+C等都属于信号
+1、查看所有可用的信号
+trap -l或k..." />
+    <meta name="keywords" content="shell,linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190827shell脚本之信号的捕捉</h2>
+            <div class="post-date">2021-04-22</div>
+            
+              <div class="feature-container" style="background-image: url('https://gitee.com/kill0es/blogimage/raw/master/img/20210422185720.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="shell脚本之信号的捕捉">shell脚本之信号的捕捉</h1>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/img_pic_1513910945_0.jpeg" alt=".jpeg" loading="lazy"></figure>
+<p>​		trap，翻译过来就是陷阱的意思，shell脚本中的陷阱是专门用来捕捉信号的。啥信号呢？比如经常使用的kill -9，kill -15，CTRL+C等都属于信号</p>
+<p><strong>1、查看所有可用的信号</strong></p>
+<p>trap -l或kill -l即可</p>
+<pre><code class="language-bash">[root@linux1 ~]# kill -l
+63) SIGRTMAX-1	64) SIGRTMAX	
+[root@linux1 ~]# trap -l
+ 1) SIGHUP	 2) SIGINT	 3) SIGQUIT	 4) SIGILL	 5) SIGTRAP
+ 6) SIGABRT	 7) SIGBUS	 8) SIGFPE	 9) SIGKILL	10) SIGUSR1
+11) SIGSEGV	12) SIGUSR2	13) SIGPIPE	14) SIGALRM	15) SIGTERM
+......	
+</code></pre>
+<p><strong>2、常见的信号如下：</strong></p>
+<pre><code class="language-bash">Signal     Value     Comment
+─────────────────────────────
+SIGHUP        1      终止进程，特别是终端退出时，此终端内的进程都将被终止
+SIGINT        2      中断进程，几乎等同于sigterm，会尽可能的释放执行clean-up，释放资源，保存状态等(CTRL+C)
+SIGQUIT       3      从键盘发出杀死(终止)进程的信号
+ 
+SIGKILL       9      强制杀死进程，该信号不可被捕捉和忽略，进程收到该信号后不会执行任何clean-up行为，所以资源不会释放，状态不会保存
+SIGTERM      15      杀死(终止)进程，几乎等同于sigint信号，会尽可能的释放执行clean-up，释放资源，保存状态等
+ 
+SIGSTOP      19      该信号是不可被捕捉和忽略的进程停止信息，收到信号后会进入stopped状态
+SIGTSTP      20      该信号是可被忽略的进程停止信号(CTRL+Z)
+</code></pre>
+<p>真正的信号名字不是SIGXXX，而是去除SIG后的单词，每个信号还有对应的代号</p>
+<p><strong>比如向PID为12345的进程发起1信号</strong></p>
+<pre><code>kill -1 12345
+kill -HUB 12345
+kill -SIGHUB 12345
+</code></pre>
+<p><strong>3、trap的选项</strong></p>
+<p>trap -l列出当前系统支持的信号列表，上面已经使用过，根kill -l一样</p>
+<p><strong>trap -p等价于trap，查看shell已经布置好的陷阱</strong></p>
+<p>可以看到shell默认有三个陷阱，表示忽略20,21,22信号</p>
+<pre><code class="language-bash">[root@linux1 ~]# trap
+trap -- '' SIGTSTP
+trap -- '' SIGTTIN
+trap -- '' SIGTTOU
+</code></pre>
+<p><strong>4、陷阱捕捉到信号后干嘛</strong></p>
+<ul>
+<li>忽略信号</li>
+<li>捕捉到信号后做相应的处理。主要是清理一些脚本创建的临时文件，然后退出。</li>
+</ul>
+<p><strong>5、设置一个可以忽略CTRL+C和15信号的陷阱</strong></p>
+<p>CTRL信号对应的是SIGINT 15信号对应的是SIGTERM</p>
+<pre><code>[root@linux1 ~]# trap '' SIGINT SIGTERM
+[root@linux1 ~]# trap
+trap -- '' SIGINT
+trap -- '' SIGTERM
+trap -- '' SIGTSTP
+trap -- '' SIGTTIN
+trap -- '' SIGTTOU
+</code></pre>
+<p>这样，当前shell就不能被kill -15杀死</p>
+<p><strong>6、设置一个陷阱，捕捉到-15信号时，就打印“我抓到你啦~”</strong></p>
+<pre><code>[root@linux1 ~]# trap 'echo &quot;我抓到你啦~&quot;' TERM
+[root@linux1 ~]# trap
+trap -- '' SIGINT
+trap -- 'echo &quot;我抓到你啦~&quot;' SIGTERM
+trap -- '' SIGTSTP
+trap -- '' SIGTTIN
+trap -- '' SIGTTOU
+</code></pre>
+<p><strong>效果，当我对当前bash发起kill -15信号时就打印出来了</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# echo $$
+8827
+[root@linux1 ~]# kill -15 8827
+我抓到你啦~
+[root@linux1 ~]# kill -15 8827
+我抓到你啦~
+[root@linux1 ~]# kill -15 8827
+我抓到你啦~
+</code></pre>
+<p><strong>7、在脚本中设置一个能忽略CTRL+C和CTRL+Z信号的脚本</strong></p>
+<p>CTRL+C是2信号，即SIGINT</p>
+<p>CTRL+Z是20信号，即SIGTSTP</p>
+<p><strong>脚本：</strong></p>
+<p>脚本沉睡10s，然后打印success，脚本忽略INT和TSTP信号</p>
+<pre><code class="language-bash">[root@linux1 ~]# cat trap.sh
+#!/bin/bash
+trap '' SIGINT SIGTSTP
+sleep 10
+echo success
+</code></pre>
+<p><strong>效果：</strong></p>
+<p><font color=red><strong>CTRL+C也不能阻止我睡觉</strong></font></p>
+<pre><code class="language-bash">[root@linux1 ~]# bash trap.sh 
+^C^C^Z^Z^C^C^Z^Zccc^Z^Z^Z^C^C^C
+
+success
+</code></pre>
+<p><strong>8、布置一个当脚本被终端时能清理垃圾并立即退出脚本的陷阱</strong></p>
+<p><strong>脚本如下：</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# cat trap1.sh
+#!/bin/bash
+
+trap 'echo trap handing...;rm -rf /tmp/$BASHPID;echo TEMP files cleaned;exit' SIGINT SIGTERM SIGQUIT SIGHUP
+mkdir -p /tmp/$$/
+touch /tmp/$$/{a..c}.txt
+sleep 10
+echo first sleep success
+sleep 10
+echo second sleep success
+</code></pre>
+<p>这样，脚本除了SIGKILL信号（kill -9），总能清理掉临时垃圾</p>
+<p><strong>效果</strong></p>
+<p>刚开始一直不能终止，后来执行了下trap发现前面shell自己设置了一个忽略CTRL+C的陷阱,退出shell重进即可</p>
+<pre><code class="language-bash">[root@linux1 ~]# bash trap1.sh 
+^Ctrap handing...
+TEMP files cleaned
+</code></pre>
+<p><strong>9、陷阱的守护对象</strong></p>
+<p><strong>陷阱的守护对象是shell进程本身，不会守护shell环境内的子进程。但如果是信号忽略型陷阱，则会守护整个shell进程组使其忽略给定信号。</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# cat trap2.sh 
+#!/bin/bash
+trap 'echo trap_handle_time: $(date +&quot;%F %T&quot;)' SIGINT SIGTERM
+echo time_start: $(date +&quot;%F %T&quot;)
+sleep 10
+echo time_end1: $(date +&quot;%F %T&quot;)
+sleep 10
+echo time_end2: $(date +&quot;%F %T&quot;)
+
+#执行脚本后，新开终端使用kill -15杀死它
+[root@linux1 ~]# killall -s SIGTERM trap2.sh
+
+#查看输出情况
+[root@linux1 ~]# ./trap2.sh 
+time_start: 2019-08-27 10:43:48
+trap_handle_time: 2019-08-27 10:43:58
+time_end1: 2019-08-27 10:43:58
+time_end2: 2019-08-27 10:44:08
+</code></pre>
+<p>​		可以发现，kill执行完后，屏幕没有立即打印trap_handle，而是等sleep 10运行完后才打印的。sleep进程都被忽略型trap守护了</p>
+<p>​		只要是向shell进程发送的信号，都会等待当前正在运行的命令结束后才处理信号，然后继续脚本向下运行。(实际上，只有当shell脚本中正在执行的操作是信号安全的系统调用时，才会出现信号无法中断进程的情况，而在shell下的各种命令，我们是没法直接知道哪些命令中正在执行的系统调用是系统调用的)。</p>
+<p>但sleep命令发起的sleep()调用，是一个信号安全的，所以上面脚本中执行sleep的过程中，信号不会直接中断它们的运行，而是等待它运行完之后再执行信号处理命令。</p>
+<p><strong>10、如果shell中针对某信号设置了陷阱，则该shell进程接收到该信号时，<font color=red>会等待其内正在运行的命令结束才开始处理陷阱</font></strong></p>
+<p><strong>11、CTRL+C和SIGINT不是等价的。当某一时刻按下CTRL+C，它是在向整个当前运行的进程组发送SIGINT信号。对shell脚本来说，SIGINT不仅发送给shell脚本进程，还发送给脚本中当前正在运行的进程</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# cat trap2.sh 
+#!/bin/bash
+trap 'echo trap_handle_time: $(date +&quot;%F %T&quot;)' SIGINT SIGTERM
+echo time_start: $(date +&quot;%F %T&quot;)
+sleep 10
+echo time_end1: $(date +&quot;%F %T&quot;)
+sleep 10
+echo time_end2: $(date +&quot;%F %T&quot;)
+
+#执行脚本后，立马CTRL+C
+[root@linux1 ~]# bash trap2.sh 
+time_start: 2019-08-27 10:20:53
+^Ctrap_handle_time: 2019-08-27 10:20:54
+time_end1: 2019-08-27 10:20:54
+time_end2: 2019-08-27 10:21:04
+</code></pre>
+<p>可以发现，CTRL+C后，不仅trap进行处理了，sleep也立马结束了；说明CTRL+C不仅让脚本进程收到了SIGINT信号，也让当前进程收到了SIGINT信号</p>
+<p>有点难理解，以后再来看</p>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/img_pic_1513910945_0.jpeg" alt=".jpeg" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/bxxKg4_pZ/" class="tag">
+                    shell
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/shell-jiao-ben-jin-jie-zhi-zi-fu-chuan-chu-li/">
+                  <h3 class="post-title">
+                    shell脚本进阶之字符串处理
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

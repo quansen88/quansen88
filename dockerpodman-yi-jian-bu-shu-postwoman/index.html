@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>docker/podman一键部署postwoman | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="20200905docker/podman一键部署postwoman
+
+官网：https://postwoman.io/
+
+一、一键部署postwoman命令：
+docker run --name pwm -d -p 3000:3000 l..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">docker/podman一键部署postwoman</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="20200905dockerpodman一键部署postwoman">20200905docker/podman一键部署postwoman</h2>
+<blockquote>
+<p>官网：<a href="https://postwoman.io/">https://postwoman.io/</a></p>
+</blockquote>
+<h2 id="一-一键部署postwoman命令">一、一键部署postwoman命令：</h2>
+<pre><code>docker run --name pwm -d -p 3000:3000 liyasthomas/postwoman:latest
+</code></pre>
+<p><strong>latest指的是dockerhub中该镜像的最新版本</strong></p>
+<h2 id="二-查看是否成功">二、查看是否成功</h2>
+<p>-p 3000:3000 那我们在网页中打开容器z所在ip的端口3000</p>
+<pre><code>#如我在本地安装的ip这样输入：
+192.168.0.100:3000
+</code></pre>
+<p>登录后画面如下</p>
+<p><img src="https://gitee.com/kill0es/blogimage/raw/master/img/20200905183313.png" alt="" loading="lazy">成功</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/dockerpodman-kuai-su-bu-shu-jumpserver/">
+                  <h3 class="post-title">
+                    docker/podman快速部署jumpserver
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

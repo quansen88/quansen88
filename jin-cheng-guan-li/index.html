@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>进程管理 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="进程管理
+重点：
+
+一、pkill用于杀死一类进程，比如下面强杀wang的进程
+pkill -9 -U wang
+二、killall也可以杀一类进程（默认可能没有），比如杀nginx进程
+killall nginx
+三、kill -0和ki..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">进程管理</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="进程管理">进程管理</h1>
+<h2 id="重点">重点：</h2>
+<hr>
+<p><strong>一、pkill用于杀死一类进程，比如下面强杀wang的进程</strong></p>
+<p><strong>pkill -9 -U wang</strong></p>
+<p><strong>二、killall也可以杀一类进程（默认可能没有），比如杀nginx进程</strong></p>
+<p><strong>killall nginx</strong></p>
+<p><strong>三、kill -0和kill -1要知道啥意思</strong></p>
+<p><strong>kill -0 pid一般用来检测某进程是否存货，不过pid不确定，一般用killall -0 name；脚本中经常用这个检查某个进程在不在</strong></p>
+<p><strong>killall -1 name用于让程序重读配置文件，比如修改了某程序的配置文件，可以用此法重读配置文件</strong></p>
+<p><strong>四、有时候需要获取所有进程中占用内存或CPU最高的一个：</strong></p>
+<p><strong>ps aux k %mem 或者 ps aux k %cpu最后一个便是</strong></p>
+<p><strong>五、关于管道的特点</strong></p>
+<p><strong>管道很重要的一个特点就是会开启一个子shell，可以想想子shell可以继承父shell哪些属性，fork炸弹等</strong></p>
+<p><strong>六、PS1，PS2，PS3，PS4</strong></p>
+<p>PS1是命令提示符</p>
+<p>PS2是多行输入比如cat tee重定向前面的提示符，默认是&gt;</p>
+<p>PS3是shell脚本中select的提示符</p>
+<p>PS4很少用，别记了</p>
+<p><strong>七、进程管理工具要熟练掌握几个：</strong></p>
+<p>lsof iftop等</p>
+<p><strong>八、程序并行执行</strong></p>
+<p>&amp;符号，&amp;可以开启一个子进程</p>
+<p>比如使用ping命令扫局域网可以ping通的机器</p>
+<p><strong>九、screen不间断会话</strong></p>
+<p>除了screen还可以用nohub command &amp;来实现，可以看之前的笔记</p>
+<p><strong>还有吗？后续补充</strong></p>
+<hr>
+<p><strong>1、ps aux</strong></p>
+<p>比较常用</p>
+<p>a 选项包括所有终端中的进程</p>
+<p>x 选项包括不链接终端的进程</p>
+<p>u 选项显示进程所有者的信息</p>
+<p><strong>2、ps -ef</strong></p>
+<p>查看所有进程，父进程，子进程，比较常用</p>
+<p><strong>3、 ps axo pid,cmd,psr,ni,pri,%mem,%cpu</strong></p>
+<p>指定显示哪些东西，可以使用<code>ps L</code>查看支持哪些内容的显示</p>
+<p><strong>4、还可以排序：k选项</strong></p>
+<p>按CPU排序</p>
+<p>[root@linux1 ~]# ps axo pid,cmd,psr,ni,pri,%mem,%cpu k %cpu</p>
+<p><strong>5、kill 12345</strong></p>
+<p>温柔的杀死12345进程（正常结束进程），使用-15信号，不写默认就是-15，</p>
+<p><strong>6、kill -9 12345</strong></p>
+<p>强杀，某些顽固进程就得强杀</p>
+<p><strong>7、killall httpd</strong></p>
+<p>杀某一类进程，比如httpd启动后就有好几个进程，<code>killall httpd</code>就可以杀死所有httpd进程</p>
+<p><strong>8、pidof tail</strong></p>
+<p>查看正在执行的tail命令的pid</p>
+<p>kill <code>pidof tail</code></p>
+<p><strong>9、僵尸进程一般杀父进程解决，如果，父进程不能杀，就只能重启系统了</strong></p>
+<p><strong>10、CPU与IO密集</strong></p>
+<p>买云服务器经常看到</p>
+<p>CPU密集型是对cpu占用率高的进程</p>
+<p>IO密集型是等待IO时间长的进程</p>
+<p><strong>11、pgrep检索指定类型进程，一般都是ps -ef | grep</strong></p>
+<p>pgrep -U root</p>
+<p><strong>12、kill -0</strong></p>
+<p>检测进程是否存活，脚本中有用</p>
+<p>killall -0 httpd执行后使用$?判断httpd是否在运行，面试可能会问</p>
+<p><strong>13、kill -1</strong></p>
+<p>重读配置文件</p>
+<p>killall -1 httpd 修改httpd配置文件后使用此命令重读配置文件</p>
+<p><strong>14、pkill</strong></p>
+<p>杀一类进程，比如httpd所有进程，wang用户的所有进程</p>
+<p><strong>15、程序后台运行</strong></p>
+<p>CTRL +Z程序在后台不会继续执行</p>
+<p>screen可以实现不间断会话</p>
+<p>nuhub command &amp; &gt;/dev/null也可以实现不间断会话（不重定向标准输出会打印到屏幕上）</p>
+<p><strong>16、管道</strong></p>
+<p>子shell</p>
+<p>参考：https://blog.csdn.net/m0_37556444/article/details/83090602</p>
+<p>https://www.cnblogs.com/python2687806834/p/9957050.html</p>
+<p><strong>17、程序并发执行</strong></p>
+<p>&amp;开启子shell让程序后台执行</p>
+<p><strong>18、进程优先级</strong></p>
+<p>nice可以修改程序优先级</p>
+<p><strong>19、ps命令的o选项可k选项</strong></p>
+<p>o选项可以指定输出某列（-L查看可以输出哪些列）k选项指定按哪一列排序，实在记不住就ps aux |<br>
+sort -n -k吧</p>
+<p><strong>20、ss，netstat看连接数，看哪个IP连的多</strong></p>
+<p><strong>21、nslookup，dig，traceroute</strong></p>
+<p>DNS解析和路由追踪</p>
+<p><strong>22、上下文是啥，高的话有啥后果</strong></p>
+<p><strong>23、程序与进程与线程</strong></p>
+<p>参考：https://www.cnblogs.com/aquarius-bear/p/3939939.html</p>
+<p>**24、**还有吗？后续补充</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/nmcli-ming-ling/">
+                  <h3 class="post-title">
+                     nmcli命令
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

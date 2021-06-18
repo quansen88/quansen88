@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190921mysql之慢查询 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="mysql之慢查询
+参考：http://www.zsythink.net/archives/1260
+参考：https://blog.csdn.net/qq_40884473/article/details/89455740
+MySQL的慢..." />
+    <meta name="keywords" content="mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190921mysql之慢查询</h2>
+            <div class="post-date">2021-04-26</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="mysql之慢查询">mysql之慢查询</h1>
+<p>参考：http://www.zsythink.net/archives/1260</p>
+<p>参考：https://blog.csdn.net/qq_40884473/article/details/89455740</p>
+<p>MySQL的慢查询，全名是<strong>慢查询日志</strong>，是MySQL提供的一种日志记录，用来记录在MySQL中<strong>响应时间超过阀值</strong>的语句。</p>
+<h4 id="一-相关变量">一、<strong>相关变量</strong></h4>
+<pre><code class="language-bash">mysql&gt; SHOW VARIABLES LIKE '%query%';
++------------------------------+--------------------------------------+
+| Variable_name                | Value                                |
++------------------------------+--------------------------------------+
+| binlog_rows_query_log_events | OFF                                  |
+| ft_query_expansion_limit     | 20                                   |
+| have_query_cache             | YES                                  |
+| long_query_time              | 10.000000                            |
+| query_alloc_block_size       | 8192                                 |
+| query_cache_limit            | 1048576                              |
+| query_cache_min_res_unit     | 4096                                 |
+| query_cache_size             | 1048576                              |
+| query_cache_type             | OFF                                  |
+| query_cache_wlock_invalidate | OFF                                  |
+| query_prealloc_size          | 8192                                 |
+| slow_query_log               | OFF                                  |
+| slow_query_log_file          | /data/mysql/3308/data/mysql-slow.log |
++------------------------------+--------------------------------------+
+13 rows in set (0.00 sec)
+</code></pre>
+<p><code>slow_query_log</code>：是否开启慢查询日志，<strong>1表示开启，0表示关闭</strong>。</p>
+<p><code>log-slow-queries</code>：旧版（5.6以下版本）MySQL数据库慢查询日志存储路径。可以不设置该参数，系统则会默认给一个缺省的文件<code>host_name-slow.log</code></p>
+<p><code>slow-query-log-file</code>：新版（5.6及以上版本）MySQL数据库慢查询日志存储路径。可以不设置该参数，系统则会默认给一个缺省的文件<code>host_name-slow.log</code></p>
+<p><code>long_query_time</code>：慢查询<strong>阈值</strong>，当查询时间多于设定的阈值时，记录日志。</p>
+<p><code>log_queries_not_using_indexes</code>：未使用索引的查询也被记录到慢查询日志中（可选项）。</p>
+<p>slow_query_log_file  慢查询日志的位置</p>
+<p><code>log_output</code>：日志存储方式。<code>log_output='FILE'</code>表示将日志存入文件，默认值是<code>'FILE'</code>。<code>log_output='TABLE'</code>表示将日志存入数据库。</p>
+<h4 id="二-开启慢查询日志">二、开启慢查询日志</h4>
+<p>可以使用命令开启，重启mysql失效；或者写入配置文件</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Cmd-Line</th>
+<th>Option File</th>
+<th>System Var</th>
+<th>Status Var</th>
+<th>Var Scope</th>
+<th>Dynamic</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/5.7/en/server-status-variables.html#statvar_Slow_queries">Slow_queries</a></td>
+<td></td>
+<td></td>
+<td></td>
+<td>Yes</td>
+<td>Both</td>
+<td>No</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_slow_query_log">slow_query_log</a></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td>Global</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_slow_query_log_file">slow_query_log_file</a></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td>Global</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td><a href="https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html#sysvar_long_query_time">long_query_time</a></td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td></td>
+<td>Both</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-bash">#命令开启
+mysql&gt; set @@global.slow_query_log=on;
+Query OK, 0 rows affected (0.00 sec)
+
+mysql&gt; show variables like 'slow_query%';
++---------------------+--------------------------------------+
+| Variable_name       | Value                                |
++---------------------+--------------------------------------+
+| slow_query_log      | ON                                   |
+| slow_query_log_file | /data/mysql/3308/data/mysql-slow.log |
++---------------------+--------------------------------------+
+2 rows in set (0.00 sec)
+
+#永久开启
+[root@mysql ~]# vim /data/mysql/3308/etc/my.cnf 
+[mysqld]
+slow-query-log
+[root@mysql ~]# systemctl restart mysql3308
+mysql&gt; show variables like 'slow_query%';
++---------------------+--------------------------------------+
+| Variable_name       | Value                                |
++---------------------+--------------------------------------+
+| slow_query_log      | ON                                   |
+| slow_query_log_file | /data/mysql/3308/data/mysql-slow.log |
++---------------------+--------------------------------------+
+2 rows in set (0.01 sec)
+</code></pre>
+<h4 id="三-设置慢查询的时间">三、设置慢查询的时间</h4>
+<p>默认的最长查询时间是10s</p>
+<pre><code class="language-bash">mysql&gt; show variables like 'long_query_time';
++-----------------+-----------+
+| Variable_name   | Value     |
++-----------------+-----------+
+| long_query_time | 10.000000 |
++-----------------+-----------+
+1 row in set (0.00 sec)
+</code></pre>
+<p><strong>设置最大查询时间</strong></p>
+<pre><code class="language-bash">mysql&gt; set @@global.long_query_time=3;
+#或者
+[mysqld]
+slow-query-log
+long_query_time=2
+[root@mysql ~]# systemctl restart mysql3308
+</code></pre>
+<h4 id="四-制造一个慢查询">四、制造一个慢查询</h4>
+<p>使用sleep函数</p>
+<pre><code class="language-bash">mysql&gt; use mysql
+mysql&gt; select sleep(3);
+</code></pre>
+<p>另一边看看</p>
+<pre><code class="language-bash">[root@localhost ~]# tail -f /data/mysql/localhost-slow.log
+/usr/local/mysql/bin/mysqld, Version: 5.7.27-log (MySQL Community Server (GPL)). started with:
+Tcp port: 0  Unix socket: /var/lib/mysql/mysql.sock
+Time                 Id Command    Argument
+# Time: 2019-09-21T13:35:20.691480Z
+# User@Host: root[root] @ localhost []  Id:     2
+# Query_time: 3.001871  Lock_time: 0.000000 Rows_sent: 1  Rows_examined: 0
+use mysql;
+SET timestamp=1569072920;
+select sleep(3);
+</code></pre>
+<h4 id="通过explain查看哪里慢了举个例子">通过explain查看哪里慢了：举个例子：</h4>
+<pre><code class="language-bash">mysql&gt; EXPLAIN SELECT * FROM t1;
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
+|  1 | SIMPLE      | t1    | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    2 |   100.00 | NULL  |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre>
+<p>https://www.iteye.com/blog/uule-2434391</p>
+<h4 id="总结">总结：</h4>
+<pre><code class="language-bash">slow_query_log=on		#开启慢查询
+slow_query_log_file=/data/mysql/localhost-slow.log	#定义慢查询日志路径
+long_query_time=2		#定义最大查询时间，超过此时间则为慢查询
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190921mysql57-de-gtid-zhu-cong-fu-zhi/">
+                  <h3 class="post-title">
+                    20190921mysql5.7的GTID主从复制
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

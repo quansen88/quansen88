@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191023来自opendevops的系统调优脚本 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="来自opendevops的系统调优脚本
+来自：https://github.com/opendevops-cn/opendevops/blob/master/scripts/system_init_v1.sh
+[root@node1 ~]#..." />
+    <meta name="keywords" content="opendevops" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191023来自opendevops的系统调优脚本</h2>
+            <div class="post-date">2021-04-28</div>
+            
+              <div class="feature-container" style="background-image: url('http://www.opendevops.cn/images/head_logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="来自opendevops的系统调优脚本">来自opendevops的系统调优脚本</h1>
+<p><strong>来自：https://github.com/opendevops-cn/opendevops/blob/master/scripts/system_init_v1.sh</strong></p>
+<pre><code class="language-shell">[root@node1 ~]# cat system_init_v1.sh 
+
+#usage() {
+#    echo &quot;请按如下格式执行&quot;
+#    echo &quot;USAGE: bash $0 函数名1#函数名2&quot;
+#    echo &quot;USAGE: bash $0 epel#ulimits#ssh&quot;
+#    exit 1
+#}
+#
+
+function epel(){
+	yum install epel-release -y &gt;/dev/null 2&gt;&amp;1
+	sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/epel.repo
+	sed -i 's/#baseurl/baseurl/g' /etc/yum.repos.d/epel.repo
+	sed -i '6s/enabled=0/enabled=1/g' /etc/yum.repos.d/epel.repo
+	sed -i '7s/gpgcheck=1/gpgcheck=0/g' /etc/yum.repos.d/epel.repo
+	yum clean all &gt;/dev/null 2&gt;&amp;1
+	#阿里云机器用aliyun epel
+	#echo &quot;[EPEL 配置] ==&gt; OK&quot;
+}
+
+function ulimits(){
+cat &gt; /etc/security/limits.conf &lt;&lt;EOF
+* soft noproc 20480
+* hard noproc 20480
+root soft nofile 65535
+root hard nofile 65535
+* soft nofile 65535
+* hard nofile 65535
+EOF
+ulimit -n 65535
+ulimit -u 20480
+#echo &quot;[ulimits 配置] ==&gt; OK&quot;
+}
+
+function ssh(){
+	[ -f /etc/ssh/sshd_config ]  &amp;&amp; sed -ir '13 iUseDNS no\nGSSAPIAuthentication no' /etc/ssh/sshd_config &amp;&amp; /etc/init.d/sshd restart &gt;/dev/null 2&gt;&amp;1
+#echo &quot;[SSH 优化] ==&gt; OK&quot;
+}
+
+function kernel(){
+cat &gt; /etc/sysctl.conf &lt;&lt;EOF
+fs.file-max = 65535
+net.ipv4.tcp_max_tw_buckets = 1000000
+net.ipv4.tcp_fin_timeout = 30
+net.ipv4.tcp_keepalive_time = 300
+net.ipv4.tcp_keepalive_probes = 3
+net.ipv4.tcp_keepalive_intvl = 30
+net.ipv4.tcp_syncookies = 1
+net.ipv4.tcp_tw_reuse = 1
+net.ipv4.tcp_tw_recycle = 1
+net.ipv4.ip_local_port_range = 5000 65000
+net.ipv4.tcp_mem = 786432 1048576 1572864
+net.core.wmem_max = 873200
+net.core.rmem_max = 873200
+net.ipv4.tcp_wmem = 8192 436600 873200
+net.ipv4.tcp_rmem = 32768 436600 873200
+net.core.somaxconn = 10240
+net.core.netdev_max_backlog = 20480
+net.ipv4.tcp_max_syn_backlog = 20480
+net.ipv4.tcp_retries2 = 5
+net.ipv4.conf.lo.arp_ignore = 0
+net.ipv4.conf.lo.arp_announce = 0
+net.ipv4.conf.all.arp_ignore = 0
+EOF
+sysctl -p &gt;/dev/null 2&gt;&amp;1
+#echo &quot;[内核 优化] ==&gt; OK&quot;
+}
+
+function history(){
+	if ! grep &quot;HISTTIMEFORMAT&quot; /etc/profile &gt;/dev/null 2&gt;&amp;1
+	then echo '
+	UserIP=$(who -u am i | cut -d&quot;(&quot;  -f 2 | sed -e &quot;s/[()]//g&quot;)
+	export HISTTIMEFORMAT=&quot;[%F %T] [`whoami`] [${UserIP}] &quot; ' &gt;&gt; /etc/profile;
+	fi
+#echo &quot;[history 优化] ==&gt; OK&quot;
+}
+
+function security(){
+	&gt; /etc/issue
+	sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+	sed -i 's/SELINUX=permissive/SELINUX=disabled/g' /etc/selinux/config
+	setenforce 0 &gt;/dev/null 2&gt;&amp;1
+	#systemctl stop firewalld.service
+	#systemctl disable firewalld.service
+	yum install -y openssl openssh bash &gt;/dev/null 2&gt;&amp;1
+	#echo &quot;[安全配置] ==&gt; OK&quot;
+}
+
+function other(){
+	yum groupinstall Development tools -y &gt;/dev/null 2&gt;&amp;1
+	yum install -y vim wget lrzsz telnet traceroute iotop tree &gt;/dev/null 2&gt;&amp;1
+	yum install -y ncftp axel git zlib-devel openssl-devel unzip xz libxslt-devel libxml2-devel libcurl-devel &gt;/dev/null 2&gt;&amp;1
+	#echo &quot;[安装常用工具] ==&gt; OK&quot;
+	echo &quot;export HOME=/root&quot; &gt;&gt; /etc/profile
+	source /etc/profile
+	useradd -M -s /sbin/nologin nginx &gt;/dev/null 2&gt;&amp;1
+	mkdir -p /root/ops_scripts /data1/www
+	mkdir -p /opt/codo/
+}
+
+export -f epel
+export -f ulimits
+export -f ssh
+export -f kernel
+export -f history
+export -f security
+export -f other
+
+##格式必须是: bash script 函数名1#函数2
+## 例如: bash system_init_v1.sh epel#ulimits#ssh
+#echo $1 | awk -F &quot;#&quot; '{for(i=1;i&lt;=NF;++i) system($i)}'
+epel
+ulimits
+ssh
+kernel
+history
+security
+other
+#echo '[Success]System Init OK'
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/3039M_8aY/" class="tag">
+                    opendevops
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191017-bian-yi-an-zhuang-phpapache-huan-jing/">
+                  <h3 class="post-title">
+                     20191017编译安装php+apache环境
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

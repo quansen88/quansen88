@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191101nginx高级 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="nginx
+Syntax:	secure_link expression;
+Default:	—
+Context:	http, server, location
+
+Syntax:	secure_link_md5 expression;
+De..." />
+    <meta name="keywords" content="nginx" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191101nginx高级</h2>
+            <div class="post-date">2021-04-29</div>
+            
+              <div class="feature-container" style="background-image: url('https://nginx.org/nginx.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h3 id="nginx">nginx</h3>
+<pre><code class="language-bash">Syntax:	secure_link expression;
+Default:	—
+Context:	http, server, location
+
+Syntax:	secure_link_md5 expression;
+Default:	—
+Context:	http, server, location
+</code></pre>
+<pre><code class="language-bash">Syntax:	rewrite regex replacement [flag];
+Default:	—
+Context:	server, location, if
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>.</th>
+<th>匹配除换行符以外的任意字符0</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>？</td>
+<td>重复0次或1次</td>
+</tr>
+<tr>
+<td>+</td>
+<td>重复1次或更多次</td>
+</tr>
+<tr>
+<td>*</td>
+<td>最少链接数，哪个机器连接数少就分发</td>
+</tr>
+<tr>
+<td>\d</td>
+<td>匹配数字</td>
+</tr>
+<tr>
+<td>^</td>
+<td>匹配字符串的开始</td>
+</tr>
+<tr>
+<td>$</td>
+<td>匹配字符串的结尾</td>
+</tr>
+<tr>
+<td>{n}</td>
+<td>重复n次</td>
+</tr>
+<tr>
+<td>{n,}</td>
+<td>重复n次或更多次</td>
+</tr>
+<tr>
+<td>[c]</td>
+<td>匹配单个字符c</td>
+</tr>
+<tr>
+<td>[a-z]</td>
+<td>匹配任意一个小写字母</td>
+</tr>
+<tr>
+<td>\</td>
+<td>转义字符</td>
+</tr>
+<tr>
+<td>(      )</td>
+<td>用于匹配括号之间的内容，通过$1、$2调用</td>
+</tr>
+</tbody>
+</table>
+<p><code>rewrite index\.php$ /pages/maintain.html break;</code></p>
+<pre><code class="language-bash">if ($http_user_agent ~ MSIE){
+    rewrite ^(.*)$ /mise/$1 break;
+}
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>last</th>
+<th>停止rewrite检测</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>break</td>
+<td>停止rewrite检测（与last有很大区别）</td>
+</tr>
+<tr>
+<td>redirect</td>
+<td>返回302临时重定向，地址栏显示跳转后的地址</td>
+</tr>
+<tr>
+<td>permanent</td>
+<td>返回301永久重定向，地址栏显示跳转后的地址</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-bash">server {
+    listen 80 default_server;
+    server_name blogs.uscwifi.cn;
+
+    access_log  /var/log/nginx/host.access.log  main;
+     
+    root /opt/app/code3; 
+    location ~ ^/break {
+        rewrite ^/break /test/ break;
+    } 
+ 
+    location ~ ^/last {
+         rewrite ^/last /test/ last;
+    }    
+ 
+    location /test/ {
+       default_type application/json;
+       return 200 '{&quot;status&quot;:&quot;success&quot;}';
+    }
+}
+</code></pre>
+<pre><code class="language-nginx">location /images/ {
+        root &quot;/app/webroot&quot;
+}
+
+访问： http://www.test.com/images/a.jpg  相当于文件系统路径 /app/webroot/images/a.jpg 
+
+location  /images/ {
+        alias  &quot;/www/pictures/&quot;; 
+}
+访问： http://www.test.com/images/a.jpg  相当于文件系统路径/www/pictures/a.jpg
+</code></pre>
+<h3 id="编译安装nginx"><strong>编译安装nginx</strong></h3>
+<pre><code class="language-bash">[root@node1 ~]# yum install -y vim lrzsz tree screen psmisc lsof tcpdump wget ntpdate gcc gcc-c++ glibc glibc-devel pcre pcre-devel openssl openssl-devel systemd-devel net-tools iotop bc zip unzip zlib-devel bash-completion nfs-utils automake libxml2 libxml2-devel libxslt libxslt-devel perl perl-ExtUtils-Embed
+[root@node1 ~]# wget https://mirrors.huaweicloud.com/nginx/nginx-1.17.5.tar.gz
+[root@node1 ~]# tar xf nginx-1.17.5.tar.gz
+[root@node1 ~]# cd nginx-1.17.5/
+[root@node1 nginx-1.17.5]# ./configure --prefix=/apps/nginx --user=nginx --group=nginx --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_stub_status_module --with-http_gzip_static_module --with-pcre --with-stream --with-stream_ssl_module --with-stream_realip_module --with-debug
+[root@node1 nginx-1.17.5]# make -j 4 
+[root@node1 nginx-1.17.5]# make install
+[root@node1 nginx-1.17.5]# /usr/sbin/groupadd -g 995 -r nginx 2&gt; /dev/null
+[root@node1 nginx-1.17.5]# /usr/sbin/useradd -c &quot;Nginx web server&quot; -u 997 -g nginx -s /sbin/nologin -r -d /var/lib/nginx nginx 2&gt; /dev/null
+[root@node1 nginx-1.17.5]# cat &gt; /usr/lib/systemd/system/nginx.service &lt;&lt;'EOF'
+[Unit]
+Description=The nginx HTTP and reverse proxy server
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=forking
+PIDFile=/run/nginx.pid
+ExecStartPre=/usr/bin/rm -f /run/nginx.pid
+ExecStartPre=/apps/nginx/sbin/nginx -t
+ExecStart=/apps/nginx/sbin/nginx
+ExecReload=/bin/kill -s HUP $MAINPID
+KillSignal=SIGQUIT
+TimeoutStopSec=5
+KillMode=process
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+EOF
+[root@node1 nginx-1.17.5]# mkdir /apps/nginx/conf.d 
+[root@node1 ~]# mkdir /var/log/nginx
+[root@node1 nginx-1.17.5]# cat &gt; /apps/nginx/conf/nginx.conf &lt;&lt;'EOF'
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log;
+pid /run/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+http {
+    log_format  main  '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+                      '$status $body_bytes_sent &quot;$http_referer&quot; '
+                      '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+    access_log  /var/log/nginx/access.log  main;
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 2048;
+    include             /apps/nginx/conf/mime.types;
+    default_type        application/octet-stream;
+    include /apps/nginx/conf.d/*.conf;
+    server {
+        server_name  _;
+        root         /apps/nginx/html;
+        location / {
+        }
+        error_page 500 502 503 504 /50x.html;
+            location = /50x.html {
+        }
+    }
+}
+EOF
+[root@node1 nginx-1.17.5]# systemctl daemon-reload 
+[root@node1 nginx-1.17.5]# systemctl start nginx
+[root@node1 nginx-1.17.5]# curl 127.0.0.1 -I
+HTTP/1.1 200 OK
+</code></pre>
+<h4 id="nginx配置选项">nginx配置选项</h4>
+<pre><code class="language-bash">上图中各项配置内容介绍：
+1. user                           启动 nginx worker 进程的系统用户身份
+2. worker_processes               启动 worker 进程的个数
+3. error_log                      错误日志的存放路径， 以及错误级别[debug | info | notice | warn | error | crit | alert | emerg]
+4. pid                            进程启动后 pid 文件所在的目录
+5. events {}                      事件驱动配置段
+   worker_connections             单个 worker 进程最大并发连接数
+
+6. http {}                        http 功能配置段
+   include                        包含的自配置文件
+   log_format                     日志组成格式和内容， 可以给日志格式起一个名称 比如默认叫 main
+   access_log                     访问日志存储路径和具体的日志格式，比如使用了上一行 log_format 定义的 main
+   send_file                      是否开启 sendfile 功能， 默认是 on
+   keepalive_timeout              默认的会话连接超时时间,单位为秒
+   gzip                           是否开启 gzip 压缩发送的数据
+   server{}                       http 内配置的虚拟主机
+        listen                    监听的 ip 地址和端口号
+        server_name               虚拟主机名
+        access_log                访问指定 server 的日志
+        location {}               客户端请求 url 配置条件
+                  root            location 中指定的 文件存放系统路径
+                  index           默认的 index 页面 后跟 index.html index.php
+                  error_page      错误页面
+</code></pre>
+<pre><code class="language-bash">http 代表 nginx 处理 http 请求时的相关配置选项段
+7.1. include mime.types; 代表加载 conf 路径下 mime.types 文件
+7.2. default_type application/octet-stream; 代表提示下载 mime.types 中不支持的文件类型
+7.3. log_format 代表日志格式， 可以自定义一个名称，格式内容为自定义字符和 nginx 内置变量信息的组合
+7.4. access_log 代表 http 的访问日志存放在文件系统中的路径，路径后要指明日志格式
+7.5. sendfile 代表是否要开启 sendfile 功能，该功能可以减少拷贝内核数据
+到用户空间的过程，提高响应数据速度，减少内存开销。
+7.6. keepalive_timeout 网络会后连接时长，默认 75 秒，设置为 0 时表示关闭
+7.7. gzip on 代表是否开启数据传输压缩。
+7.8. server{} 代表 http 虚拟主机配置段
+	7.8.1. listen 代表该虚拟主机监听的 主机地址和端口号，比如： listen 192.168.130.132:80;
+	7.8.2. server_name 代表主机名，比如：www.magedu.com
+7.9. location{} 代表访问路径匹配规则配置段
+	7.9.1 root 代表改匹配规则下对应文件在文件系统中的存放路径 
+	7.9.2 index 代表默认主页文件，后面根据顺序可以写 index.html index.php 等
+</code></pre>
+<h4 id="nginx进程">nginx进程</h4>
+<pre><code class="language-bash">#主进程root发起，子进程为nginx
+#一个主进程，一个子进程
+[root@node1 ~]# ps -ef | grep nginx
+root      10473      1  0 20:01 ?        00:00:00 nginx: master process /apps/nginx/sbin/nginx
+nginx     10474  10473  0 20:01 ?        00:00:00 nginx: worker process
+root      10478   7037  0 20:07 pts/1    00:00:00 grep --color=auto nginx
+</code></pre>
+<pre><code class="language-bash">#配置文件中
+worker_processes auto;
+#因此nginx会根据cpu核心的个数来配置
+#当前机器CPU核心数为1
+[root@node1 ~]# cat /proc/cpuinfo |grep &quot;cpu cores&quot;|uniq|wc -l
+1
+#当前机器CPU个数
+[root@node1 ~]# cat /proc/cpuinfo |grep &quot;physical id&quot;|sort|uniq|wc -l
+1
+</code></pre>
+<h4 id="cpu亲和性">CPU亲和性</h4>
+<pre><code class="language-bash">#让nginx进程绑定在指定cpu核心上，减少cpu切换带来的性能问题
+#指定nginx两个进程，分别绑定到cpu0和cpu1
+worker_processes 2;
+worker_cpu_affinity 0010 0001;
+#查看CPU运行情况
+[root@localhost ~]# ps axo pid,cmd,psr | grep nginx
+  7273 nginx: master process /apps   1
+  7274 nginx: worker process         1
+  7275 nginx: worker process         0
+  7277 grep --color=auto nginx       1
+#ps -axo pid,cmd,psr  #-a显示所有进程，-x显示没有终端的进程，-o用户自定义显示：pid为进程号，cmd是进程执行的命令，psr是进程当前分配的cpu核心
+</code></pre>
+<h4 id="错误日志">错误日志：</h4>
+<pre><code class="language-bash">error_log  logs/error.log  error;
+#不写日志记录级别默认为error
+</code></pre>
+<h4 id="nginx实现访问控制">nginx实现访问控制</h4>
+<pre><code class="language-bash">#ngx_http_access_module 
+[root@localhost nginx]# cat  /apps/nginx/conf/conf.d/pc.conf
+server {
+	listen    		80;
+	server_name		www.jd.net;
+ 	location / {
+		root 	/data/nginx/html/pc;
+		index 	index.html;
+
+		deny 	192.168.130.133;
+		allow 	192.168.130.132;
+		allow	127.0.0.1;
+		deny	all;
+	}
+}
+</code></pre>
+<h4 id="nginx-中配置用户名密码验证访问控制">nginx 中配置用户名密码验证访问控制</h4>
+<pre><code class="language-bash">#httpd-tools工具
+htpasswd
+	-c  Create a new file.
+	-b  Use the password from the command line rather than prompting for it.
+	-m  Force MD5 encryption of the password (default).
+	-D  Delete the specified user.
+[root@node1 ~]# htpasswd -cm /apps/nginx/conf.d/.pass zhangsan
+New password: 
+Re-type new password: 
+Adding password for user zhangsan
+[root@node1 ~]# cat /apps/nginx/conf.d/.pass 
+zhangsan:$apr1$Dg9hncK.$qSyfddesBxVXXkqA.6L6J1
+[root@node1 ~]# mkdir /var/www/html -p
+[root@node1 ~]# echo hello &gt; /var/www/html/index.html
+[root@node1 ~]# cat /apps/nginx/conf.d/test.conf 
+server{
+    listen 80 ;
+    server_name jd.com;
+    root /var/www/html;
+    index index.html;
+    location / {
+        auth_basic	&quot;passwd:&quot;;
+        auth_basic_user_file /apps/nginx/conf.d/.pass;
+    }
+
+}
+[root@node1 ~]# curl -H &quot;jd.com&quot; 127.0.0.1 -I
+HTTP/1.1 401 Unauthorized
+Server: nginx/1.17.5
+Date: Sat, 26 Oct 2019 12:34:30 GMT
+Content-Type: text/html
+Content-Length: 179
+Connection: keep-alive
+WWW-Authenticate: Basic realm=&quot;passwd:&quot;
+
+[root@node1 ~]# curl -H &quot;jd.com&quot;  -u zhangsan:zhangsan 127.0.0.1 -i
+HTTP/1.1 200 OK
+Server: nginx/1.17.5
+Date: Sat, 26 Oct 2019 12:34:35 GMT
+Content-Type: text/html
+Content-Length: 6
+Last-Modified: Sat, 26 Oct 2019 12:29:27 GMT
+Connection: keep-alive
+ETag: &quot;5db43c27-6&quot;
+Accept-Ranges: bytes
+
+hello
+</code></pre>
+<h4 id="配置错误页面">配置错误页面</h4>
+<pre><code class="language-bash">[root@node1 ~]# echo error...no page... &gt; /apps/nginx/html/error.html
+[root@node1 ~]# cat  /apps/nginx/conf.d/test.conf 
+server{
+    listen 80 ;
+    server_name jd.com;
+    root /var/www/html;
+    index index.html;
+    error_page		500 502 503 504 404 /error.html;
+    location / {
+        auth_basic	&quot;passwd:&quot;;
+        auth_basic_user_file /apps/nginx/conf.d/.pass;
+    }
+    location = /error.html {
+        root /apps/nginx/html;
+    }
+}
+[root@node1 ~]# /apps/nginx/sbin/nginx -s reload
+[root@node1 ~]# curl -H &quot;jd.com&quot;  -u zhangsan:zhangsan 127.0.0.1/dasdas 
+error...no page...
+</code></pre>
+<h4 id="try_files当匹配-location-后尝试安装指定的查询文件顺序去指定路径下查找响应文件">try_files:当匹配 location 后尝试安装指定的查询文件顺序去指定路径下查找响应文件</h4>
+<pre><code class="language-bash">
+</code></pre>
+<h4 id="配置-nginx-为文件下载服务器">配置 nginx 为文件下载服务器</h4>
+<pre><code class="language-bash">用于配置 nginx 为文件下载服务器的选项目前有4个：
+1. autoindex		        on; 开启文件下载功能
+2. autoindex_exact_size 	on; 显示详细的文件大小
+3. autoindex_format             html; 返回页面的格式，一般使用 html 格式
+4. autoindex_localtime          on; 显示服务器时间为当地时间
+</code></pre>
+<h4 id="nginx上传文件">nginx上传文件</h4>
+<pre><code class="language-bash">1. client_max_body_size             10m; 上传文件的大小限制，为 0 时，不做限制。
+2. client_body_buffer_size          16k; nginx 读取客户端 request 的 body 缓冲空间大小，64位操作系统建议设置为 16k
+3. client_body_temp_path            /apps/nginx/temp 1 2 2; 指定 nginx 读取 request 的 body 数据时临时文件存放路径，以及使用 1 2 2 级目录存放这些临时文件
+</code></pre>
+<h4 id="nginx-打开文件缓存功能">nginx 打开文件缓存功能</h4>
+<pre><code class="language-bash">1. open_file_cache on;              是否启用缓存功能
+   open_file_cache max=100 inactive=20s 最大缓存文件个数和文件缓存过期时间
+2. open_file_cache_errors  off;     是否缓存查找错误的文件，默认关闭
+3. open_file_cache_min_uses 1;      在缓存过期时间内，文件被访问几次才不会被定义为不活跃文件
+4. open_file_cache_valid  60;       检查过期文件的判断周期，每 60 秒检查一遍
+</code></pre>
+<h4 id="隐藏-nginx-服务器版本信息">隐藏 nginx 服务器版本信息</h4>
+<pre><code class="language-bash">server_tokens off;  显示或者隐藏服务器信息，比如在错误页面或者头文件中
+</code></pre>
+<p>限制客户端请求方法</p>
+<h4 id="开启-nginx-的状态显示功能">开启 nginx 的状态显示功能</h4>
+<pre><code class="language-bash">#需要http_stub_status_module
+[root@node1 html]# /apps/nginx/sbin/nginx -V |&amp; grep status
+configure arguments: --prefix=/apps/nginx --user=nginx --group=nginx --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_stub_status_module --with-http_gzip_static_module --with-pcre --with-stream --with-stream_ssl_module --with-stream_realip_module --with-debug
+</code></pre>
+<pre><code class="language-bash">[root@node1 html]# cat /apps/nginx/conf.d/status.conf 
+server{
+    listen 2333;
+    server_name _;
+    location / {
+        stub_status;
+        allow 	127.0.0.1;
+        deny all;
+    }
+}
+[root@node1 html]# /apps/nginx/sbin/nginx -s reload
+[root@node1 html]# curl 127.0.0.1:2333
+Active connections: 1 
+server accepts handled requests
+ 31 31 39 
+Reading: 0 Writing: 1 Waiting: 0 
+[root@node1 html]# curl 192.168.38.138:2333
+&lt;html&gt;
+&lt;head&gt;&lt;title&gt;403 Forbidden&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;
+&lt;center&gt;&lt;h1&gt;403 Forbidden&lt;/h1&gt;&lt;/center&gt;
+&lt;hr&gt;&lt;center&gt;nginx/1.17.5&lt;/center&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<pre><code class="language-bash">Active connections：    表示当前处于活动状态的客户端连接数，包括连接等待空闲连接数
+accepts：               表示Nginx自启动后已经接受的客户端请求的总数
+handled：               表示Nginx自启动后已经处理完成的客户端请求的总数，通常等于accepts，
+                        除非有因worker_connections限制等被拒绝的连接
+requests：              表示Nginx自启动后客户端发来的总的请求数
+Reading：               当前状态，正在读取客户端请求报文首部的连接的连接数。
+Writing：               当前状态，正在向客户端发送响应报文过程中的连接数。
+Waiting：               当前状态，正在等待客户端发出请求的空闲连接数，开启 keep-alive的情况下,这个值等于
+                        active – (reading + writing),
+</code></pre>
+<h4 id="nginx-使用第三方模块echo">nginx 使用第三方模块echo</h4>
+<pre><code class="language-bash">#echo模块的用法：https://github.com/openresty/echo-nginx-module
+[root@node1 ~]# systemctl stop nginx
+[root@node1 ~]# rm -rf nginx-1.17.5
+[root@node1 ~]# tar xf nginx-1.17.5.tar.gz 
+[root@node1 ~]# yum install git -y -q
+[root@node1 ~]# git clone https://github.com/openresty/echo-nginx-module.git
+[root@node1 ~]# cd nginx-1.17.5/
+[root@node1 nginx-1.17.5]# ./configure --prefix=/apps/nginx --user=nginx --group=nginx --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_stub_status_module --with-http_gzip_static_module --with-pcre --with-stream --with-stream_ssl_module --with-stream_realip_module --with-debug --add-module=/root/echo-nginx-module
+[root@node1 nginx-1.17.5]# make -j 4 
+[root@node1 nginx-1.17.5]# make install
+[root@node1 nginx-1.17.5]# /apps/nginx/sbin/nginx -V |&amp; grep echo
+configure arguments: --prefix=/apps/nginx --user=nginx --group=nginx --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_stub_status_module --with-http_gzip_static_module --with-pcre --with-stream --with-stream_ssl_module --with-stream_realip_module --with-debug --add-module=/root/echo-nginx-module
+</code></pre>
+<pre><code class="language-bash">[root@node1 nginx-1.17.5]# cat /apps/nginx/conf.d/test.conf 
+server{
+    listen 80 ;
+    server_name jd.com;
+    root /var/www/html;
+    index index.html;
+    error_page		500 502 503 504 404 /error.html;
+    access_log  /var/log/nginx/jd.com-access.log;
+    error_log   /var/log/nginx/jd.com-error.log; 
+    location = /error.html {
+        root /apps/nginx/html;
+    }
+    location /main {
+    	index index.html;
+    	default_type text/html;
+    	echo &quot;hello world,main--&gt;&quot;;
+    	echo_reset_timer;
+    	echo_location /sub1;
+    	echo_location /sub2;
+    	echo &quot;took $echo_timer_elapsed sec for total.&quot;;
+    }
+    
+    location /sub1 {
+    	echo_sleep 1;
+    	echo sub1;
+    }
+    
+    location /sub2 {
+    	echo_sleep 1;
+    	echo sub2;
+    }
+}
+[root@node1 nginx-1.17.5]# /apps/nginx/sbin/nginx
+[root@node1 nginx-1.17.5]# /apps/nginx/sbin/nginx -s reload
+[root@node1 nginx-1.17.5]# curl -H &quot;jd.com&quot;  127.0.0.1/main
+hello world,main--&gt;
+sub1
+sub2
+took 2.003 sec for total.
+</code></pre>
+<h4 id="nginx内置变量和自定义变量">nginx内置变量和自定义变量</h4>
+<pre><code class="language-bash">1. 常用变量
+$remote_addr            存放了客户端的地址，注意是客户端的公网IP，也就是一家人访问一个网站，则会显示为路由器的公网IP。
+$args                   URL中的指令包含的参数，例如http://www.magedu.net/main/index.do?id=20190221&amp;partner=search 
+                        中的id=20190221&amp;partner=search，动态服务器中经常会有这些信息
+$document_root          保存了针对当前资源的请求的系统根目录，如/apps/nginx/html
+$document_uri           保存了当前请求中不包含指令的URI，注意是不包含请求的指令，比如
+                        http://www.magedu.net/main/index.do?id=20190221&amp;partner=search 会被定义为 /main/index.do
+$host                   存放了请求的 host 名称
+$http_user_agent        客户端使用的浏览器的详细信息
+$limit_rate             如果 nginx 服务器使用 limit_rate 配置了显示网络速率，则会显示，如果没有设置， 则显示 0
+$remote_port            客户端请求 nginx 服务器时随机打开的端口，这是每个客户端自己的端口。
+$request_body_file      做反向代理时发给后端服务器的本地资源的名称
+$request_method         请求资源的方式，GET/PUT/DELETE等
+$request_filename       当前请求的资源文件的路径名称，由root或alias指令与URI请求生成的文件绝对路径，
+                        比如 /apps/nginx/html/main/index.html
+$scheme                 请求的协议，如ftp，https，http等
+$server_protocol        保存了客户端请求资源使用的协议的版本，如HTTP/1.0，HTTP/1.1，HTTP/2.0等
+$server_addr            保存了服务器的 IP 地址
+$server_name            请求的服务器的主机名
+$server_port            请求的服务器的端口号
+</code></pre>
+<pre><code class="language-bash"># 打印内置变量和自定义变量
+# 自定义变量写法：可以在配置文件的 server location if 中使用 set $varname value 进行设置
+[root@node1 nginx-1.17.5]# cat /apps/nginx/conf.d/test.conf 
+server{
+    listen 80 ;
+    server_name jd.com;
+    root /var/www/html;
+    index index.html;
+    error_page		500 502 503 504 404 /error.html;
+    access_log  /var/log/nginx/jd.com-access.log;
+    error_log   /var/log/nginx/jd.com-error.log; 
+    set $valid_time 30s;
+    location = /error.html {
+        root /apps/nginx/html;
+    }
+    location /main {
+        index index.html;
+        echo &quot;来者何人:&quot; $remote_addr;
+        echo &quot;访问者端口号:&quot; $remote_port;
+        echo &quot;访问主机:&quot; $host;
+        echo &quot;访问域名&quot; $server_name;
+        echo &quot;访问端口:&quot; $server_port;
+        echo &quot;自定义变量:&quot; $valid_time;
+    }
+}
+</code></pre>
+<pre><code class="language-bash">[root@node1 nginx-1.17.5]# /apps/nginx/sbin/nginx -t
+nginx: the configuration file /apps/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /apps/nginx/conf/nginx.conf test is successful
+[root@node1 nginx-1.17.5]# /apps/nginx/sbin/nginx -s reload
+[root@node1 nginx-1.17.5]# curl -H &quot;jd.com&quot;  127.0.0.1/main
+来者何人: 127.0.0.1
+访问者端口号: 40982
+访问主机: 127.0.0.1
+访问域名 jd.com
+访问端口: 80
+自定义变量: 30s
+</code></pre>
+<h4 id="自定义nginx访问日志格式">自定义nginx访问日志格式</h4>
+<pre><code class="language-bash">#可以去官方文档看看改
+nginx.conf中
+http {
+    log_format  main  '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+                      '$status $body_bytes_sent &quot;$http_referer&quot; '
+                      '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+......
+}
+</code></pre>
+<p><strong>自定义日志格式为json格式，方便日后elk处理</strong></p>
+<pre><code class="language-bash">nginx.conf中增加一个日志格式：
+	log_format   access_json    '{&quot;@timestamp&quot;:&quot;$time_iso8601&quot;,'
+                                '&quot;host&quot;:&quot;$server_addr&quot;,'
+                                '&quot;clientip&quot;:&quot;$remote_addr&quot;,'
+                                '&quot;size&quot;:$body_bytes_sent,'
+                                '&quot;responsetime&quot;:$request_time,'
+                                '&quot;upstreamtime&quot;:&quot;$upstream_response_time&quot;,'
+                                '&quot;upstreamhost&quot;:&quot;$upstream_addr&quot;,'
+                                '&quot;http_host&quot;:&quot;$host&quot;,'
+                                '&quot;uri&quot;:&quot;$uri&quot;,'
+                                '&quot;domain&quot;:&quot;$host&quot;,'
+                                '&quot;xff&quot;:&quot;$http_x_forwarded_for&quot;,'
+                                '&quot;referer&quot;:&quot;$http_referer&quot;,'
+                                '&quot;tcp_xff&quot;:&quot;$proxy_protocol_addr&quot;,'
+                                '&quot;http_user_agent&quot;:&quot;$http_user_agent&quot;,'
+                                '&quot;status&quot;:&quot;$status&quot;}';
+</code></pre>
+<pre><code class="language-nginx">[root@node1 nginx-1.17.5]# cat /apps/nginx/conf.d/test.conf 
+server{
+    listen 80 ;
+    server_name jd.com;
+    root /var/www/html;
+    index index.html;
+    error_page		500 502 503 504 404 /error.html;
+    access_log  /var/log/nginx/jd.com-access.log access_json;
+    error_log   /var/log/nginx/jd.com-error.log; 
+    set $valid_time 30s;
+    location = /error.html {
+        root /apps/nginx/html;
+    }
+    location /main {
+        index index.html;
+        echo &quot;来者何人:&quot; $remote_addr;
+        echo &quot;访问者端口号:&quot; $remote_port;
+        echo &quot;访问主机:&quot; $host;
+        echo &quot;访问域名&quot; $server_name;
+        echo &quot;访问端口:&quot; $server_port;
+        echo &quot;自定义变量:&quot; $valid_time;
+    }
+}
+</code></pre>
+<pre><code class="language-bash">[root@node1 nginx-1.17.5]# /apps/nginx/sbin/nginx -t
+nginx: the configuration file /apps/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /apps/nginx/conf/nginx.conf test is successful
+[root@node1 nginx-1.17.5]# /apps/nginx/sbin/nginx -s reload
+[root@node1 nginx-1.17.5]# curl -A &quot;Chrome80&quot;  -H &quot;jd.com&quot;  127.0.0.1/main
+来者何人: 127.0.0.1
+访问者端口号: 40984
+访问主机: 127.0.0.1
+访问域名 jd.com
+访问端口: 80
+自定义变量: 30s
+</code></pre>
+<pre><code class="language-bash">[root@node1 ~]# tail -n1 /var/log/nginx/jd.com-access.log  
+{&quot;@timestamp&quot;:&quot;2019-10-26T21:43:05+08:00&quot;,&quot;host&quot;:&quot;127.0.0.1&quot;,&quot;clientip&quot;:&quot;127.0.0.1&quot;,&quot;size&quot;:173,&quot;responsetime&quot;:0.000,&quot;upstreamtime&quot;:&quot;-&quot;,&quot;upstreamhost&quot;:&quot;-&quot;,&quot;http_host&quot;:&quot;127.0.0.1&quot;,&quot;uri&quot;:&quot;/main&quot;,&quot;domain&quot;:&quot;127.0.0.1&quot;,&quot;xff&quot;:&quot;-&quot;,&quot;referer&quot;:&quot;-&quot;,&quot;tcp_xff&quot;:&quot;&quot;,&quot;http_user_agent&quot;:&quot;Chrome80&quot;,&quot;status&quot;:&quot;200&quot;}
+</code></pre>
+<p><strong>python脚本处理日志</strong></p>
+<pre><code class="language-python">#保存日志文件到指定路径并进测试:
+[root@node1 ~]# cat log-analysis.py
+#!/usr/bin/env python
+#coding:utf-8
+status_200= []
+status_404= []
+f = open(&quot;access_json.1og&quot;)
+for line in f.readlines():
+    line = eval(line)
+    if line.get(&quot;status&quot;) == &quot;200&quot;:
+        status_200.append(line.get)
+    elif line.get(&quot;status&quot;) == &quot;404&quot;:
+        status_404.append(line.get)
+    else:
+        print(&quot;状态码ERROR&quot;)
+f.close()
+print &quot;状态码200的有--:&quot;,len(status_200)
+print &quot;状态码200的有--:&quot;,len(status_404)
+[root@node1 ~]# python log-analysis.py
+状态码200的有--: 292
+状态码200的有--: 176
+</code></pre>
+<h4 id="nginx-开启传输文件压缩功能">nginx 开启传输文件压缩功能</h4>
+<pre><code class="language-bash">gzip on | off;                      开启或者关闭 gzip 压缩功能
+gzip_comp_level 2;                  指定压缩级别 1到9, 9的压缩率最高
+gzip_disable &quot;MSIE [1-6]\.&quot;;        指定特定浏览器不使用压缩功能
+gzip_min_length 1k;                 启用压缩功能文件的阈值，即大于等于 1k 的文件才压缩
+gzip_http_version 1.0 | 1.1;        支持压缩的 http 协议版本
+gzip_buffers 32 16k;                指定 gzip 使用的缓冲空间个数和大小
+gzip_types text/html;               指明可以使用压缩功能的文件类型(mime 类型)
+gzip_vary on | off;                 压缩文件后是否在 http 头部添加信息 Vary: Accept-Encoding 
+</code></pre>
+<p>开启 https 功能</p>
+<pre><code class="language-bash">server {
+    listen              443 ssl;
+    server_name         www.example.com;
+    ssl_certificate     www.example.com.crt;
+    ssl_certificate_key www.example.com.key;
+    ssl_protocols       SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers         ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS;
+    ssl_session_cache off;                          #配置 https 是否支持加密会话缓存功能，还有其他几个选项：
+                                                none: 通知客户端支持ssl session cache，但实际不支持
+                                                builtin[:size]：使用OpenSSL内建缓存，为每worker进程私有
+                                                [shared:name:size]：在各worker之间使用一个共享的缓存，需
+                                                要定义一个缓存名称和缓存空间大小，一兆可以存储4000个会话信
+                                                息，多个虚拟主机可以使用相同的缓存名称。
+ssl_session_timeout time;                       客户端连接可以复用ssl session cache中缓存的有效时长，默认5m
+    ...
+}
+</code></pre>
+<h4 id="配置-nginx-服务器-faviconico-小图标">配置 nginx 服务器 favicon.ico 小图标</h4>
+<pre><code class="language-bash">[root@node1 ~]# wget -O /var/www/html/favicon.ico  https://www.baidu.com/favicon.ico
+</code></pre>
+<h3 id="nginx状态监控">nginx状态监控</h3>
+<pre><code class="language-nginx">[root@imooc-nginx conf.d]# cat 2333.conf 
+server {
+    listen 127.0.0.1:2333;
+    server_name _;
+    location /status {
+        stub_status on;
+        access_log off;
+    }
+}
+[root@imooc-nginx conf.d]# curl 127.0.0.1:2333/status
+Active connections: 1 
+server accepts handled requests
+ 209 209 921 
+Reading: 0 Writing: 1 Waiting: 0 
+</code></pre>
+<pre><code class="language-nginx">[root@imooc-nginx conf.d]# cat 2333.conf 
+server {
+    listen 2333;
+    server_name _;
+    location /status {
+        stub_status on;
+        access_log off;
+        allow 127.0.0.1;
+        deny all;
+    }
+}
+[root@imooc-nginx conf.d]# curl 127.0.0.1:2333/status
+Active connections: 1 
+server accepts handled requests
+ 211 211 923 
+Reading: 0 Writing: 1 Waiting: 0 
+[root@imooc-nginx conf.d]# curl 192.168.38.204:2333/status
+curl: (7) Failed connect to 192.168.38.204:2333; 拒绝连接
+</code></pre>
+<pre><code class="language-bash">Active connections：    表示当前处于活动状态的客户端连接数，包括连接等待空闲连接数
+accepts：               表示Nginx自启动后已经接受的客户端请求的总数
+handled：               表示Nginx自启动后已经处理完成的客户端请求的总数，通常等于accepts，
+                        除非有因worker_connections限制等被拒绝的连接
+requests：              表示Nginx自启动后客户端发来的总的请求数
+Reading：               当前状态，正在读取客户端请求报文首部的连接的连接数。
+Writing：               当前状态，正在向客户端发送响应报文过程中的连接数。
+Waiting：               当前状态，正在等待客户端发出请求的空闲连接数，开启 keep-alive的情况下,这个值等于
+                        active – (reading + writing),
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/ycg_qQA4v/" class="tag">
+                    nginx
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191101nginx-fang-dao-lian/">
+                  <h3 class="post-title">
+                    20191101nginx防盗链
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

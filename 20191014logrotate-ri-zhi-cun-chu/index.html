@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191014Logrotate日志存储 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="Logrotate日志存储
+学习：https://www.cnblogs.com/kevingrace/p/6307298.html
+logrotate 程序是一个日志文件管理工具。用来把旧的日志文件删除，并创建新的日志文件，称为日志转储..." />
+    <meta name="keywords" content="logrotate" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191014Logrotate日志存储</h2>
+            <div class="post-date">2021-04-28</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.tutorialspoint.com/unix/images/unix-mini-logo.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="logrotate日志存储">Logrotate日志存储</h1>
+<p>学习：https://www.cnblogs.com/kevingrace/p/6307298.html</p>
+<p><strong>logrotate 程序是一个日志文件管理工具。用来把旧的日志文件删除，并创建新的日志文件，称为日志转储或滚动。可以根据日志文件的大小，也可以根据其天数来转储，这个过程一般通过 cron 程序来执行</strong></p>
+<p><strong>配置文件是 /etc/logrotate.conf</strong></p>
+<p><strong>相关参数：</strong></p>
+<pre><code class="language-bash">compress 通过gzip 压缩转储以后的日志
+nocompress 不需要压缩时，用这个参数
+copytruncate 用于还在打开中的日志文件，把当前日志备份并截断
+nocopytruncate 备份日志文件但是不截断
+create mode owner group 转储文件，使用指定的文件模式创建新的日志文件
+nocreate 不建立新的日志文件
+delaycompress 和 compress 一起使用时，转储的日志文件到下一次转储时才压缩
+nodelaycompress 覆盖 delaycompress 选项，转储并压缩
+errors address 专储时的错误信息发送到指定的Email 地址
+ifempty 即使是空文件也转储，是缺省选项。
+notifempty 如果是空文件的话，不转储
+mail address 把转储的日志文件发送到指定的E-mail 地址
+nomail 转储时不发送日志文件
+olddir directory 转储后的日志文件放入指定的目录，必须和当前日志文件在同一个文件系统
+noolddir 转储后的日志文件和当前日志文件放在同一个目录下
+prerotate/endscript 在转储以前需要执行的命令可以放入这个对，这两个关键字必须单独成行
+postrotate/endscript 在转储以后需要执行的命令可以放入这个对，这两个关键字必须单独成行
+daily 指定转储周期为每天
+weekly 指定转储周期为每周
+monthly 指定转储周期为每月
+size 大小 指定日志超过多大时，就执行日志转储
+rotate count 指定日志文件删除之前转储的次数，0 指没有备份，5 指保留5 个备份
+Missingok 如果日志不存在，继续下一次日志，不提示错误
+Nomissingok 如果日志不存在，提示错误 
+</code></pre>
+<p><strong>1. cron，crontab以及anacron的关系</strong></p>
+<pre><code class="language-bash">cron是大多数linux发行版都自带的守护进程（daemon），用来重复运行某些被设定好了确定的运行时间的任务，这些任务可以是每个月运行、每周运行、每天运行，甚至是每一分钟运行。用cron执行的任务适合于24小时运行的机器，cron执行的任务会在设定好的时刻执行，当机器处于关机状态下并错过了任务执行的时间，cron任务就无法预期执行了。
+
+crontab(cron table的简称)既可以指cron用来定期执行特定任务所需要的列表文件，又可以指用来创建、删除、查看当前用户（或者指定用户）的crontab文件的命令。
+
+anacron不是守护进程，可以看做是cron守护进程的某种补充程序，anacron是独立的linux程序，被cron守护进程或者其他开机脚本启动运行，可以每天、每周、每个月周期性地执行一项任务（最小单位为天）。适合于可能经常会关机的机器，当机器重新开机anacron程序启动之后，anacron会检查anacron任务是否在合适的周期执行了，如果未执行则在anacron设定好的延迟时间之后只执行一次任务，而不管任务错过了几次周期。举个例子，比如你设定了一个每周备份文件的任务，但是你的电脑因为你外出度假而处于关机状态四周，当你回到家中开机后，anacron会在延迟一定时间之后只备份一次文件。由于发行版的不同，cron守护进程如何运行anacron会有所不同。
+</code></pre>
+<p>2、logrotate是被anacron调用周期执行的，可以看anacon的配置文件</p>
+<p>anacron配置文件中会周期型的执行三组任务，分别是每天执行，每星期执行，每月执行；</p>
+<p>run-parts命令其实是一个shell脚本，使用该脚本时后面跟一个参数，参数为目录；</p>
+<p>run-parts脚本会扫描目录中的所有文件执行一遍；</p>
+<p>例如run-parts /etc/cron.daily，简单认为是执行 /etc/cron.daily下面所有的脚本</p>
+<pre><code class="language-bash">#这两个文件都是shell脚本
+[root@node1 logrotate.d]# ls /etc/cron.daily/
+logrotate  man-db.cron
+</code></pre>
+<p>logrotate脚本内容：</p>
+<pre><code class="language-bash">[root@node1 logrotate.d]# cat /etc/cron.daily/logrotate 
+#!/bin/sh
+
+/usr/sbin/logrotate -s /var/lib/logrotate/logrotate.status /etc/logrotate.conf
+EXITVALUE=$?
+if [ $EXITVALUE != 0 ]; then
+    /usr/bin/logger -t logrotate &quot;ALERT exited abnormally with [$EXITVALUE]&quot;
+fi
+exit 0
+</code></pre>
+<p>logrotate命令通过配置文件 /etc/logrotate.conf执行相应任务， /etc/logrotate.conf中又会执行子配置</p>
+<pre><code class="language-bash">[root@node1 logrotate.d]# grep include /etc/logrotate.conf
+include /etc/logrotate.d
+[root@node1 logrotate.d]# ll /etc/logrotate.d
+total 36
+-rw-r--r--. 1 root root  91 Apr 11  2018 bootlog
+-rw-r--r--. 1 root root 160 Sep 19  2018 chrony
+-rw-r--r--  1 root root 194 Aug  6 21:44 httpd
+-rw-r--r--  1 root root 351 Aug 13 23:02 nginx
+-rw-r--r--  1 root root 237 Sep 24 18:16 php73-php-fpm
+-rw-r--r--  1 root root 224 Sep 14 00:40 syslog
+-rw-r--r--  1 root root 188 Oct 31  2018 vsftpd
+-rw-r--r--. 1 root root 100 Oct 31  2018 wpa_supplicant
+-rw-r--r--. 1 root root 103 Nov  5  2018 yum
+</code></pre>
+<p>比如子配置文件nginx，这个是安装nginx时就自动生成的</p>
+<pre><code class="language-bash">[root@node1 logrotate.d]# cat /etc/logrotate.d/nginx 
+/var/log/nginx/*.log {			#表示对/var/log/nginx/*.log进行下面的操作
+        daily				#表示每天切割一次日志，nginx每天都会生成一个新的日志文件
+        missingok			#表示如果日志不存在也没事，忽略此错误
+        rotate 52			#保留52个备份，加上nginx日志是一天一切割，即保留52天的日志
+        compress		#表示通过gzip压缩之前的日志，可以看到nginx之前的日志确实被压缩了
+        delaycompress	#即延迟压缩，上次的日志先不压缩，上上次的才压缩
+        notifempty		#如果日志文件是空文件的话就不转储了
+        create 640 nginx adm	#转储后立刻设置权限的权限为640，nginx.adm
+        sharedscripts	# If sharedscripts is specified, prerotate and postrotate scripts are only run once
+        postrotate		#日志切割完之后执行此命令
+                if [ -f /var/run/nginx.pid ]; then
+                        kill -USR1 `cat /var/run/nginx.pid`      #网上说是自定义信号
+                fi
+        endscript
+}
+</code></pre>
+<p>用于执行一组任务</p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191014102634.png" alt="" loading="lazy"></figure>
+<p><strong>手动强制切割日志：</strong></p>
+<pre><code class="language-bash">/usr/sbin/logrotate -f /etc/logrotate.d/nginx
+#-d是debug
+ /usr/sbin/logrotate -d -f /etc/logrotate.d/nginx
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/Ytv6avTv_/" class="tag">
+                    logrotate
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191011-xiu-gai-ssh-cheng-xu-ri-zhi-cun-fang-wei-zhi/">
+                  <h3 class="post-title">
+                    20191011修改ssh程序日志存放位置
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

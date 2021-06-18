@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190828CentOS修改grub的背景图 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="先上CentOS6
+1、默认grub的背景图，黑黑的一片
+
+2、grub背景图和/boot/grub/splash.xpm.gz这个文件有关
+[root@localhost tmp]# gzip -d splash.xpm.gz
+[root..." />
+    <meta name="keywords" content="centos" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190828CentOS修改grub的背景图</h2>
+            <div class="post-date">2021-04-22</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.centos.org/assets/img/centos-logo-white.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="先上centos6">先上CentOS6</h1>
+<h3 id="1-默认grub的背景图黑黑的一片">1、默认grub的背景图，黑黑的一片</h3>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1566909452190.png" alt="1566909452190" loading="lazy"></figure>
+<h3 id="2-grub背景图和bootgrubsplashxpmgz这个文件有关">2、grub背景图和/boot/grub/splash.xpm.gz这个文件有关</h3>
+<pre><code class="language-bash">[root@localhost tmp]# gzip -d splash.xpm.gz
+[root@localhost tmp]# file splash.xpm 
+splash.xpm: X pixmap image text
+</code></pre>
+<p><strong>打开文件发现分辨率是640*480的</strong></p>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1566909677623.png" alt="1566909677623" loading="lazy"></figure>
+<h3 id="3-百度下载个相同分辨率的文件">3、百度下载个相同分辨率的文件</h3>
+<figure data-type="image" tabindex="3"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1566909808784.png" alt="1566909808784" loading="lazy"></figure>
+<h4 id="4-对图片格式转换">4、对图片格式转换</h4>
+<pre><code class="language-bash">[root@localhost ~]# yum install ImageMagick -y
+[root@localhost ~]# convert -resize 640x480 -colors 14 wallpaper.jpg wallpaper.xpm
+[root@localhost ~]# gzip wallpaper.xpm
+[root@localhost ~]# mv wallpaper.xpm.gz /boot/grub/
+[root@localhost ~]# sed  -i 's/splash.xpm.gz/wallpaper.xpm.gz/'    /boot/grub/grub.conf
+</code></pre>
+<p><strong>5、重启看看，很强悍</strong></p>
+<figure data-type="image" tabindex="4"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1566910609165.png" alt="1566910609165" loading="lazy"></figure>
+<h1 id="二-centos7更换grub背景">二、CentOS7更换grub背景</h1>
+<p>参考：http://blog.sina.com.cn/s/blog_15cf82eb50102xew1.html</p>
+<p><strong>1、百度一个图片</strong></p>
+<p><strong>2、通过这个网址将图片转换为TGA格式</strong></p>
+<p>choose size选640*480</p>
+<p>https://image.online-convert.com/convert-to-tga</p>
+<p><strong>3、图片放到/boot/grub/目录下面</strong></p>
+<pre><code class="language-bash">[root@linux1 grub]# pwd
+/boot/grub
+[root@linux1 grub]# ls
+bizhi.tga  docker.tga  splash.xpm.gz
+[root@linux1 grub]# file docker.tga 
+docker.tga: Targa image data - RGB 640 x 480
+</code></pre>
+<p><strong>4、修改/etc/default/grub</strong></p>
+<pre><code class="language-bash">[root@linux1 grub]# sed  's/GRUB_TERMINAL_OUTPUT=&quot;console&quot;/#GRUB_TERMINAL_OUTPUT=&quot;console&quot;/' /etc/default/grub -i
+[root@linux1 grub]# sed '$aGRUB_BACKGROUND=&quot;/boot/grub/docker.tga&quot;'  /etc/default/grub  -i
+</code></pre>
+<p><strong>5、重新生成grub</strong></p>
+<pre><code class="language-bash">[root@linux1 grub]# grub2-mkconfig -o /boot/grub2/grub.cfg 
+</code></pre>
+<p><strong>6、效果：</strong></p>
+<figure data-type="image" tabindex="5"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1566992190071.png" alt="1566992190071" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/WsfqvhG9O/" class="tag">
+                    centos
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/centos-shan-chu-fstab-de-hui-fu/">
+                  <h3 class="post-title">
+                     CentOS删除fstab的恢复
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

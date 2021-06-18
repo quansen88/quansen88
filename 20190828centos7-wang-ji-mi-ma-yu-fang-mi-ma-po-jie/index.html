@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190828CentOS7忘记密码与防密码破解 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="CentOS7忘记密码与防密码破解
+方法一
+1、进入单用户模式：
+
+**将光标移动linux16开始的行，添加内核参数rd.break **
+
+**按ctrl-x启动  **
+switch_root:/# mount -o remount,..." />
+    <meta name="keywords" content="centos,linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190828CentOS7忘记密码与防密码破解</h2>
+            <div class="post-date">2021-04-22</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.centos.org/assets/img/centos-logo-white.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="centos7忘记密码与防密码破解">CentOS7忘记密码与防密码破解</h1>
+<h2 id="方法一">方法一</h2>
+<p><strong>1、进入单用户模式：</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1566992614709.png" alt="1566992614709" loading="lazy"></figure>
+<p>**将光标移动linux16开始的行，添加内核参数rd.break **</p>
+<figure data-type="image" tabindex="2"><img src="%E5%9B%BE%E7%89%87/1566992752111.png" alt="1566992752111" loading="lazy"></figure>
+<p>**按ctrl-x启动  **</p>
+<pre><code class="language-bash">switch_root:/# mount -o remount,rw /sysroot
+
+switch_root:/# chroot /sysroot
+
+switch_root:/# passwd root
+
+switch_root:/# touch /.autorelabel （这一步一定不能少，不然不能重启）
+</code></pre>
+<p><strong>然后CTRL-D重启</strong></p>
+<figure data-type="image" tabindex="3"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1566993917075.png" alt="1566993917075" loading="lazy"></figure>
+<h2 id="方法二">方法二：</h2>
+<p><strong>1、按e进入编辑模式</strong></p>
+<p><strong>将光标移动linux16开始的行，改为rw init=/sysroot/bin/sh</strong> （原有的操作系统被挂载到了/sysroot）</p>
+<figure data-type="image" tabindex="4"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1566994119922.png" alt="1566994119922" loading="lazy"></figure>
+<p><strong>2、然后和上面方案一差不多</strong></p>
+<pre><code class="language-bash">switch_root:/# chroot /sysroot
+
+switch_root:/# passwd root
+
+switch_root:/# touch /.autorelabel （这一步一定不能少，不然不能重启）
+</code></pre>
+<h2 id="centos7防密码被破解">CentOS7防密码被破解</h2>
+<p><strong>即防别人通过进入单用户模式来改密码</strong></p>
+<p><font color=red><strong>当然，此方法防君子不妨小人，光盘救援模式照样改你密码</strong></font></p>
+<p><strong>解决办法：给grub加上密码即可，进入单用户磨石前先验证grub密码</strong></p>
+<pre><code class="language-bash">[root@switch ~]# grub2-setpassword
+Enter password: 
+Confirm password: 
+[root@switch ~]# ls /boot/grub2/
+device.map  fonts  grub.cfg  grubenv  i386-pc  locale  user.cfg
+[root@switch ~]# cat  /boot/grub2/user.cfg 
+GRUB2_PASSWORD=grub.pbkdf2.sha512.10000.D3D6FC834249606D3B877F6ADE91C1142717374458686755F8EA96EA9B46764349CA6565EF3167456DAF76827BE8E907CAA690D325BBE0EA3A70E8E356DCA57D.F7EB5F673C0739C3F5674BF7D4B0AA2AE18B9D05A4538460E7173D8B09BBF324BF7E9A1B2594C603C2FCDCD3C8FC9D7A4811D6B6FC0C8E27D29618F3EB08E28C
+</code></pre>
+<p><strong>效果：</strong></p>
+<p>发现我按下e后要输入密码</p>
+<p>其他方法请百度 grub2-setpassword</p>
+<figure data-type="image" tabindex="5"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1566994753544.png" alt="1566994753544" loading="lazy"></figure>
+<p><strong>删除密码方法</strong></p>
+<p>删除/boot/grub2/user.cfg 即可</p>
+<p><font color=red><strong>当然，此方法防君子不妨小人，光盘救援模式照样改你密码</strong></font></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/WsfqvhG9O/" class="tag">
+                    centos
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190827shell-jiao-ben-zhi-xin-hao-de-bu-zhuo/">
+                  <h3 class="post-title">
+                    20190827shell脚本之信号的捕捉
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

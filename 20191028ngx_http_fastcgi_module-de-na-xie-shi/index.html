@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191028ngx_http_fastcgi_module 的那些事 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="ngx_http_fastcgi_module 的那些事
+问题来自于：https://segmentfault.com/q/1010000010786459
+
+解决参考：https://segmentfault.com/a/11900000..." />
+    <meta name="keywords" content="nginx" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191028ngx_http_fastcgi_module 的那些事</h2>
+            <div class="post-date">2021-04-29</div>
+            
+              <div class="feature-container" style="background-image: url('https://nginx.org/nginx.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="ngx_http_fastcgi_module-的那些事"><a href="https://segmentfault.com/a/1190000002667095">ngx_http_fastcgi_module 的那些事</a></h1>
+<p>问题来自于：https://segmentfault.com/q/1010000010786459</p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191028165348.png" alt="" loading="lazy"></figure>
+<p>解决参考：https://segmentfault.com/a/1190000002667095</p>
+<h2 id="是什么">是什么？</h2>
+<p>顾名思义，是Nginx用来处理FastCGI的模块。FastCGI是什么？这个以后再讲，可以说的是现在LNMP架构里面，PHP一般是以PHP-CGI的形式在运行，它就是一种FastCGI，我们在进程中看到的PHP-FPM是PHP-CGI的管理调度器。</p>
+<h2 id="为什么要详解一下">为什么要详解一下？</h2>
+<p>因为LNMP不像LAMP，且早期Nginx不支持path_info，导致网上有大量旧版本的Nginx教程干扰视线。</p>
+<p>为了更加清晰准确使用LNMP，估需要深入了解一下整个ngx_http_fastcgi_module。</p>
+<h2 id="四个常见-重要的配置项">四个常见、重要的配置项</h2>
+<h3 id="fastcgi_pass">fastcgi_pass</h3>
+<blockquote>
+<p>作用域：location, if in location</p>
+</blockquote>
+<p>设置FastCGI服务，其值可以是一个域名、IP地址:端口、或者是一个Unix的Socket文件。</p>
+<p>同时，它也只支持一个FastCGI服务集群。</p>
+<pre><code># TCP形式传递
+fastcgi_pass localhost:9000;
+
+# Socket形式传递
+fastcgi_pass unix:/tmp/fastcgi.socket;
+
+# 传递给集群
+upstream cloud {
+    server cgi_1.cloud.com;
+    server cgi_2.cloud.com;
+}
+fastcgi_pass cloud;
+</code></pre>
+<p>upstream集群定义不在本次讨论范围，更多玩法请参考<a href="http://nginx.org/en/docs/http/ngx_http_upstream_module.html">官方文档</a>。</p>
+<h3 id="fastcgi_param">fastcgi_param</h3>
+<blockquote>
+<p>作用域：http, server, location</p>
+</blockquote>
+<p>设置一个传递给FastCGI服务的参数，可以是文本或者是变量。</p>
+<pre><code># 例如在接入层Nginx上面传递如下5个参数
+fastcgi_param  REMOTE_ADDR        $remote_addr;
+fastcgi_param  REMOTE_PORT        $remote_port;
+fastcgi_param  SERVER_ADDR        $server_addr;
+fastcgi_param  SERVER_PORT        $server_port;
+fastcgi_param  SERVER_NAME        $server_name;
+
+# 那么在FastCGI上面，例如PHP-CGI上面就可以通过$_SERVER这个超全局变量获取。
+$_SERVER['REMOTE_ADDR']
+$_SERVER['REMOTE_PORT']
+$_SERVER['SERVER_ADDR']
+$_SERVER['SERVER_PORT']
+$_SERVER['SERVER_NAME']
+</code></pre>
+<p>可传递的参数，遵循<a href="http://www.faqs.org/rfcs/rfc3875.html">CGI/1.1规范</a>定义。</p>
+<p>可以从<a href="https://github.com/nginx/nginx/blob/master/conf/fastcgi_params">Github</a>上面看到Nginx在3年前实现FastCGI的参数传递后，基本就没变过了。</p>
+<h3 id="fastcgi_index">fastcgi_index</h3>
+<blockquote>
+<p>作用域：http, server, location</p>
+</blockquote>
+<p>当请求以<code>/</code>结尾的时候，会将请求传递给所设置的index.php文件处理。</p>
+<pre><code>fastcgi_index index.php;
+fastcgi_param SCRIPT_FILENAME /home/www/scripts/php$fastcgi_script_name;
+</code></pre>
+<h3 id="fastcgi_split_path_info">fastcgi_split_path_info</h3>
+<blockquote>
+<p>作用域：location</p>
+</blockquote>
+<p>Nginx默认获取不到PATH_INFO的值，得通过fastcgi_split_path_info指定定义的正则表达式来给<code>$fastcgi_path_info</code>赋值。</p>
+<p>其正则表达式必须要有两个捕获。</p>
+<ul>
+<li>第一个捕获的值会重新赋值给<code>$fastcgi_script_name</code>变量。</li>
+<li>第二个捕获到的值会重新赋值给<code>$fastcgi_path_info</code>变量。</li>
+</ul>
+<p>例子：</p>
+<pre><code>location ~ ^(.+\.php)(.*)$ {
+    fastcgi_split_path_info       ^(.+\.php)(.*)$;
+    fastcgi_param SCRIPT_FILENAME /path/to/php$fastcgi_script_name;
+    fastcgi_param PATH_INFO       $fastcgi_path_info;
+}
+</code></pre>
+<p>原始请求是 <code>/show.php/article/0001</code>。</p>
+<p>通过分割，FastCGI得到的结果是：</p>
+<ul>
+<li>SCRIPT_FILENAME: <code>/path/to/php/show.php</code></li>
+<li>PATH_INFO: <code>/article/0001</code></li>
+</ul>
+<p>Nginx在0.7.31以前是没有fastcgi_split_path_info这个指令的，而0.7.x这个版本一直存活了好多年，后面才高歌猛进，导致网上存在大量旧版本通过正则自己设置PATH_INFO的方法。</p>
+<h2 id="踩了好多次依旧不记得怎么设置的thinkphp">踩了好多次依旧不记得怎么设置的ThinkPHP</h2>
+<p>为什么总是踩坑？因为我们都会通过重写来隐藏index.php文件，而ThinkPHP的教程，默认教的是旧版Nginx写法，且URL_MODE必须设置为3也说得很隐晦（URL_MODE默认为0）。</p>
+<p>例如ThinkPHP的说明有一段旧版的Nginx设置指引。</p>
+<pre><code> location / { // …..省略部分代码
+   if (!-e $request_filename) {
+   rewrite  ^(.*)$  /index.php?s=$1  last;
+   break;
+    }
+ }
+</code></pre>
+<p>该规则是通过将请求rewrite给<code>/index.php?s=</code>来实现的，其ThinkPHP的URL_MODE配置必须为3，也就是兼容模式。</p>
+<p>如果使用本文中的传递PATH_INFO方式，且隐藏index.php，则ThinkPHP的URL_MODE需要改为2。</p>
+<p>如果使用本文中的传递PATH_INFO方式，但不隐藏index.php，则ThinkPHP的URL_MODE改为1。</p>
+<h2 id="还有个一个叫-cgifix_pathinfo">还有个一个叫 <code>cgi.fix_pathinfo</code></h2>
+<p>cgi.fix_pathinfo参数，藏在PHP-FPM的php.ini配置里面，其默认值为1。</p>
+<p>这里存在一个安全风险，我也不通，详情不表，看鸟哥的文章：http://www.laruence.com/2010/05/20/1495.html</p>
+<p>习惯性将其设置为0即可。</p>
+<h2 id="参考">参考</h2>
+<ul>
+<li>http://nginx.org/en/docs/http/ngx_http_fastcgi_module.html</li>
+<li>http://wiki.nginx.org/PHPFcgiExample</li>
+<li>同步发表于<a href="https://www.mxgw.info/t/ngx_http_fastcgi_module.html">我的博客</a></li>
+</ul>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/ycg_qQA4v/" class="tag">
+                    nginx
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191028nginx-pei-zhi-location-zong-jie-ji-rewrite-gui-ze-xie-fa/">
+                  <h3 class="post-title">
+                    20191028nginx配置location总结及rewrite规则写法
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

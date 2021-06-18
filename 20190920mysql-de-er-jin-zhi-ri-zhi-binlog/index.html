@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190920mysql 的二进制日志binlog | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="1、切断数据库的访问，避免生成更多二进制日志
+#此时最好应该先将备份的数据在测试机恢复测试，有条件的话将此时binlog日志也备份到另一台机器上：
+2、设置binlog为关闭状态，避免恢复过程产生更多二进制日志(会话级关闭)
+mysql&g..." />
+    <meta name="keywords" content="mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190920mysql 的二进制日志binlog</h2>
+            <div class="post-date">2021-04-26</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>1、切断数据库的访问，避免生成更多二进制日志<br>
+#此时最好应该先将备份的数据在测试机恢复测试，有条件的话将此时binlog日志也备份到另一台机器上：<br>
+2、设置binlog为关闭状态，避免恢复过程产生更多二进制日志(会话级关闭)<br>
+mysql&gt; SET session  sql_log_bin=OFF;<br>
+3、查看此时的binlog文件和位置<br>
+mysql&gt; show master status;<br>
++-------------------------+----------+--------------+------------------+-------------------+<br>
+| File                    | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |<br>
++-------------------------+----------+--------------+------------------+-------------------+<br>
+| mysql3308_binlog.000001 |      154 |              |                  |                   |<br>
++-------------------------+----------+--------------+------------------+-------------------+<br>
+1 row in set (0.00 sec)<br>
+4、用昨天晚上备份的数据库文件进行回复<br>
+mysql&gt; source /tmp/hellodb.sql<br>
+5、查看昨天晚上最后的position或者最后备份的时间<br>
+[root@mysql tmp]# tail -1 hellodb.sql<br>
+-- Dump completed on 2019-09-20 20:55:35<br>
+6、取出2019-09-20 20:55:35后指定范围内的binlog<br>
+[root@mysql tmp]# mysqlbinlog --start-datetime='2019-09-20 20:55:35'  --stop-datetime='2019-09-20 21:55:35' /data/mysql/3308/binlog/mysql3308_binlog.000001 -vvv &gt; /tmp/binlog.sql<br>
+7、使用binlog恢复今天的数据<br>
+mysql&gt; source /tmp/binlog.sql<br>
+8、开启binlog（或者关闭会话）<br>
+mysql&gt; set @@session.sql_log_bin=1;<br>
+Query OK, 0 rows affected (0.00 sec)<br>
+9、测试没有问题后开启数据库访问</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190918mysql-xiao-zhi-shi-dian/">
+                  <h3 class="post-title">
+                    20190918mysql小知识点
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

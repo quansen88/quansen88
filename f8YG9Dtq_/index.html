@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> K8S安装过程笔记 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="K8S安装过程笔记
+以下所有操作均基于Cent OS 7操作系统。
+来自：http://blog.hungtcs.top/2019/11/27/23-K8S安装过程笔记/
+基本环境配置
+
+
+关闭selinux
+setenforce 0
+se..." />
+    <meta name="keywords" content="k8s" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> K8S安装过程笔记</h2>
+            <div class="post-date">2021-05-17</div>
+            
+              <div class="feature-container" style="background-image: url('https://d33wubrfki0l68.cloudfront.net/69e55f968a6f44613384615c6a78b881bfe28bd6/42cd3/_common-resources/images/flower.svg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="k8s安装过程笔记">K8S安装过程笔记</h1>
+<p>以下所有操作均基于Cent OS 7操作系统。</p>
+<p>来自：<a href="http://blog.hungtcs.top/2019/11/27/23-K8S%E5%AE%89%E8%A3%85%E8%BF%87%E7%A8%8B%E7%AC%94%E8%AE%B0/">http://blog.hungtcs.top/2019/11/27/23-K8S安装过程笔记/</a></p>
+<h3 id="基本环境配置">基本环境配置</h3>
+<ol>
+<li>
+<p>关闭selinux</p>
+<pre><code>setenforce 0
+sed -i &quot;s/SELINUX=enforcing/SELINUX=disabled/g&quot; /etc/selinux/config
+</code></pre>
+</li>
+<li>
+<p>关闭swap分区或禁用swap文件</p>
+<pre><code>swapoff -a
+# 注释掉关于swap分区的行
+yes | cp /etc/fstab /etc/fstab_bak
+cat /etc/fstab_bak |grep -v swap &gt; /etc/fstab
+</code></pre>
+</li>
+<li>
+<p>修改网卡配置</p>
+<pre><code>$ vim /etc/sysctl.conf
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+$ sysctl -p
+</code></pre>
+</li>
+<li>
+<p>启用内核模块</p>
+<pre><code>$ modprobe -- ip_vs
+$ modprobe -- ip_vs_rr
+$ modprobe -- ip_vs_wrr
+$ modprobe -- ip_vs_sh
+$ modprobe -- nf_conntrack_ipv4
+$ cut -f1 -d &quot; &quot;  /proc/modules | grep -e ip_vs -e nf_conntrack_ipv4
+$ vim /etc/sysconfig/modules/ipvs.modules
+modprobe -- ip_vs
+modprobe -- ip_vs_rr
+modprobe -- ip_vs_wrr
+modprobe -- ip_vs_sh
+modprobe -- nf_conntrack_ipv4
+</code></pre>
+</li>
+<li>
+<p>关闭防火墙</p>
+<pre><code>$ systemctl stop firewalld
+$ systemctl disable firewalld
+</code></pre>
+</li>
+<li>
+<p>配置hosts</p>
+</li>
+</ol>
+<h3 id="kubectl-kubeadm-kubelet的安装">kubectl、kubeadm、kubelet的安装</h3>
+<h4 id="添加kubernetes的yum源">添加Kubernetes的yum源</h4>
+<p>此处使用alibaba的镜像源</p>
+<pre><code>$ vim /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=http://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=http://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg
+	http://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+</code></pre>
+<h4 id="安装kubelet-kubeadm-kubectl">安装kubelet、kubeadm、kubectl</h4>
+<pre><code>$ yum install -y kubelet kubeadm kubectl
+</code></pre>
+<h4 id="启动kubelet服务">启动kubelet服务</h4>
+<pre><code>$ systemctl enable kubelet
+$ systemctl start kubelet
+</code></pre>
+<p>此时执行<code>systemctl status kubelet</code>查看服务状态，服务状态应为Error(255)， 如果是其他错误可使用<code>journalctl -xe</code>查看错误信息。</p>
+<h3 id="docker安装和配置">Docker安装和配置</h3>
+<h4 id="docker安装">Docker安装</h4>
+<p>docker的安装请查看官网文档(Overview of Docker editions)[https://docs.docker.com/install/overview/]</p>
+<h4 id="docker配置">Docker配置</h4>
+<ol>
+<li>
+<p>配置cgroup-driver为systemd</p>
+<pre><code># 查看cgroup-driver
+$ docker info | grep -i cgroup
+# 追加 --exec-opt native.cgroupdriver=systemd 参数
+$ sed -i &quot;s#^ExecStart=/usr/bin/dockerd.*#ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock --exec-opt native.cgroupdriver=systemd#g&quot; /usr/lib/systemd/system/docker.service
+$ systemctl daemon-reload # 重新加载服务
+$ systemctl enable docker # 启用docker服务(开机自起)
+$ systemctl restart docker # 启动docker服务
+# 或者修改docker配置文件
+$ vim /etc/docker/daemon.json
+{
+  &quot;exec-opts&quot;: [&quot;native.cgroupdriver=systemd&quot;]
+}
+</code></pre>
+</li>
+<li>
+<p>预先拉取所需镜像</p>
+<pre><code># 查看kubeadm所需镜像
+$ kubeadm config images list
+k8s.gcr.io/kube-apiserver:v1.16.3
+k8s.gcr.io/kube-controller-manager:v1.16.3
+k8s.gcr.io/kube-scheduler:v1.16.3
+k8s.gcr.io/kube-proxy:v1.16.3
+k8s.gcr.io/pause:3.1
+k8s.gcr.io/etcd:3.3.15-0
+k8s.gcr.io/coredns:1.6.2
+# 拉取镜像
+$ docker pull kubeimage/kube-apiserver-amd64:v1.16.3
+$ docker pull kubeimage/kube-controller-manager-amd64:v1.16.3
+$ docker pull kubeimage/kube-scheduler-amd64:v1.16.3
+$ docker pull kubeimage/kube-proxy-amd64:v1.16.3
+$ docker pull kubeimage/pause-amd64:3.1
+$ docker pull kubeimage/etcd-amd64:3.3.15-0
+$ docker pull coredns/coredns:1.6.2
+</code></pre>
+</li>
+<li>
+<p>对预先拉取的镜像重新打tag</p>
+<pre><code>$ docker tag kubeimage/kube-apiserver-amd64:v1.16.3  k8s.gcr.io/kube-apiserver:v1.16.3
+$ docker tag kubeimage/kube-controller-manager-amd64:v1.16.3  k8s.gcr.io/kube-controller-manager:v1.16.3
+$ docker tag kubeimage/kube-scheduler-amd64:v1.16.3  k8s.gcr.io/kube-scheduler:v1.16.3
+$ docker tag kubeimage/kube-proxy-amd64:v1.16.3 k8s.gcr.io/kube-proxy:v1.16.3
+$ docker tag kubeimage/pause-amd64:3.1 k8s.gcr.io/pause:3.1
+$ docker tag kubeimage/etcd-amd64:3.3.15-0 k8s.gcr.io/etcd:3.3.15-0
+$ docker tag coredns/coredns:1.6.2 k8s.gcr.io/coredns:1.6.2
+</code></pre>
+</li>
+</ol>
+<h3 id="master节点的配置">Master节点的配置</h3>
+<p><strong>以上步骤需要在node节点和master节点执行，当前步骤仅需在master节点执行。</strong></p>
+<h4 id="master节点的初始化">Master节点的初始化</h4>
+<pre><code># 初始化master节点，
+# --pod-network-cidr=192.168.0.0/16 指定使用Calico网络
+# --apiserver-advertise-address=10.0.0.5 指向master节点IP，此处也可以使用hosts
+$ kubeadm init --pod-network-cidr=10.244.0.0/16 \
+  --kubernetes-version=v1.16.3 \
+  --apiserver-advertise-address=10.0.0.5
+</code></pre>
+<p>执行上述命令的输出为：</p>
+<pre><code>[init] Using Kubernetes version: v1.16.3
+[preflight] Running pre-flight checks
+	[WARNING SystemVerification]: this Docker version is not on the list of validated versions: 19.03.4. Latest validated version: 18.09
+[preflight] Pulling images required for setting up a Kubernetes cluster
+[preflight] This might take a minute or two, depending on the speed of your internet connection
+[preflight] You can also perform this action in beforehand using 'kubeadm config images pull'
+[kubelet-start] Writing kubelet environment file with flags to file &quot;/var/lib/kubelet/kubeadm-flags.env&quot;
+[kubelet-start] Writing kubelet configuration to file &quot;/var/lib/kubelet/config.yaml&quot;
+[kubelet-start] Activating the kubelet service
+[certs] Using certificateDir folder &quot;/etc/kubernetes/pki&quot;
+[certs] Generating &quot;ca&quot; certificate and key
+[certs] Generating &quot;apiserver&quot; certificate and key
+[certs] apiserver serving cert is signed for DNS names [master kubernetes kubernetes.default kubernetes.default.svc kubernetes.default.svc.cluster.local] and IPs [10.96.0.1 10.0.0.5]
+[certs] Generating &quot;apiserver-kubelet-client&quot; certificate and key
+[certs] Generating &quot;front-proxy-ca&quot; certificate and key
+[certs] Generating &quot;front-proxy-client&quot; certificate and key
+[certs] Generating &quot;etcd/ca&quot; certificate and key
+[certs] Generating &quot;etcd/server&quot; certificate and key
+[certs] etcd/server serving cert is signed for DNS names [master localhost] and IPs [10.0.0.5 127.0.0.1 ::1]
+[certs] Generating &quot;etcd/peer&quot; certificate and key
+[certs] etcd/peer serving cert is signed for DNS names [master localhost] and IPs [10.0.0.5 127.0.0.1 ::1]
+[certs] Generating &quot;etcd/healthcheck-client&quot; certificate and key
+[certs] Generating &quot;apiserver-etcd-client&quot; certificate and key
+[certs] Generating &quot;sa&quot; key and public key
+[kubeconfig] Using kubeconfig folder &quot;/etc/kubernetes&quot;
+[kubeconfig] Writing &quot;admin.conf&quot; kubeconfig file
+[kubeconfig] Writing &quot;kubelet.conf&quot; kubeconfig file
+[kubeconfig] Writing &quot;controller-manager.conf&quot; kubeconfig file
+[kubeconfig] Writing &quot;scheduler.conf&quot; kubeconfig file
+[control-plane] Using manifest folder &quot;/etc/kubernetes/manifests&quot;
+[control-plane] Creating static Pod manifest for &quot;kube-apiserver&quot;
+[control-plane] Creating static Pod manifest for &quot;kube-controller-manager&quot;
+[control-plane] Creating static Pod manifest for &quot;kube-scheduler&quot;
+[etcd] Creating static Pod manifest for local etcd in &quot;/etc/kubernetes/manifests&quot;
+[wait-control-plane] Waiting for the kubelet to boot up the control plane as static Pods from directory &quot;/etc/kubernetes/manifests&quot;. This can take up to 4m0s
+[apiclient] All control plane components are healthy after 13.002108 seconds
+[upload-config] Storing the configuration used in ConfigMap &quot;kubeadm-config&quot; in the &quot;kube-system&quot; Namespace
+[kubelet] Creating a ConfigMap &quot;kubelet-config-1.16&quot; in namespace kube-system with the configuration for the kubelets in the cluster
+[upload-certs] Skipping phase. Please see --upload-certs
+[mark-control-plane] Marking the node master as control-plane by adding the label &quot;node-role.kubernetes.io/master=''&quot;
+[mark-control-plane] Marking the node master as control-plane by adding the taints [node-role.kubernetes.io/master:NoSchedule]
+[bootstrap-token] Using token: kt58np.djd3youoqb0bnz4r
+[bootstrap-token] Configuring bootstrap tokens, cluster-info ConfigMap, RBAC Roles
+[bootstrap-token] configured RBAC rules to allow Node Bootstrap tokens to post CSRs in order for nodes to get long term certificate credentials
+[bootstrap-token] configured RBAC rules to allow the csrapprover controller automatically approve CSRs from a Node Bootstrap Token
+[bootstrap-token] configured RBAC rules to allow certificate rotation for all node client certificates in the cluster
+[bootstrap-token] Creating the &quot;cluster-info&quot; ConfigMap in the &quot;kube-public&quot; namespace
+[addons] Applied essential addon: CoreDNS
+[addons] Applied essential addon: kube-proxy
+
+Your Kubernetes control-plane has initialized successfully!
+
+To start using your cluster, you need to run the following as a regular user:
+
+  mkdir -p $HOME/.kube
+  sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+  sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+You should now deploy a pod network to the cluster.
+Run &quot;kubectl apply -f [podnetwork].yaml&quot; with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+Then you can join any number of worker nodes by running the following on each as root:
+
+kubeadm join 10.0.0.5:6443 --token kt58np.djd3youoqb0bnz4r \
+    --discovery-token-ca-cert-hash sha256:37a3924142dc6d57eac2714e539c174ee3b0cda723746ada2464ac9e8a2091ce
+</code></pre>
+<p>保存输出中的<code>kubeadm join</code>部分内容，用于添加node节点，或者使用<code>kubeadm token list</code> 和<code>kubeadm token create --print-join-command</code>查看</p>
+<pre><code>$ kubeadm join 10.0.0.5:6443 --token kt58np.djd3youoqb0bnz4r \
+		--discovery-token-ca-cert-hash sha256:37a3924142dc6d57eac2714e539c174ee3b0cda723746ada2464ac9e8a2091ce
+</code></pre>
+<p>接下来执行剩余的初始化步骤</p>
+<pre><code>$ mkdir -p $HOME/.kube
+$ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+$ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+</code></pre>
+<h4 id="calico网络插件的配置">Calico网络插件的配置</h4>
+<p>Calico的官方文档地址为： https://docs.projectcalico.org/v3.10/getting-started/kubernetes/。 具体安装步骤：</p>
+<ol>
+<li>
+<p>安装Calico</p>
+<pre><code>$ kubectl apply -f https://docs.projectcalico.org/v3.10/manifests/calico.yaml
+</code></pre>
+</li>
+<li>
+<p>监听安装进度</p>
+<pre><code>$ watch kubectl get pods --all-namespaces
+</code></pre>
+</li>
+</ol>
+<p>出现以下内容时为安装成功</p>
+<pre><code>NAMESPACE    NAME                                       READY  STATUS   RESTARTS  AGE
+kube-system  calico-kube-controllers-6ff88bf6d4-tgtzb   1/1    Running  0         2m45s
+kube-system  calico-node-24h85                          1/1    Running  0         2m43s
+kube-system  coredns-846jhw23g9-9af73                   1/1    Running  0         4m5s
+kube-system  coredns-846jhw23g9-hmswk                   1/1    Running  0         4m5s
+kube-system  etcd-jbaker-1                              1/1    Running  0         6m22s
+kube-system  kube-apiserver-jbaker-1                    1/1    Running  0         6m12s
+kube-system  kube-controller-manager-jbaker-1           1/1    Running  0         6m16s
+kube-system  kube-proxy-8fzp2                           1/1    Running  0         5m16s
+kube-system  kube-scheduler-jbaker-1                    1/1    Running  0         5m41s
+</code></pre>
+<ol>
+<li>
+<p>测试</p>
+<pre><code>$ kubectl get nodes -o wide
+NAME                STATUS     ROLES    AGE     VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE                KERNEL-VERSION           CONTAINER-RUNTIME
+kubernetes-master   Ready      master   4d12h   v1.16.3   192.168.56.101   &lt;none&gt;        CentOS Linux 7 (Core)   3.10.0-1062.el7.x86_64   docker://19.3.4
+</code></pre>
+</li>
+</ol>
+<h3 id="node节点的初始化">Node节点的初始化</h3>
+<ol>
+<li>
+<p>登录node节点，执行加入集群的命令，完成加入集群操作</p>
+<pre><code>$ kubeadm join 10.0.0.5:6443 --token kt58np.djd3youoqb0bnz4r \
+    --discovery-token-ca-cert-hash sha256:37a3924142dc6d57eac2714e539c174ee3b0cda723746ada2464ac9e8a2091ce
+</code></pre>
+</li>
+<li>
+<p>在master节点上查看添加结果</p>
+<pre><code>$ kubectl get nodes -o wide
+NAME                STATUS     ROLES    AGE     VERSION   INTERNAL-IP      EXTERNAL-IP   OS-IMAGE                KERNEL-VERSION           CONTAINER-RUNTIME
+kubernetes-master   Ready      master   4d12h   v1.16.3   192.168.56.101   &lt;none&gt;        CentOS Linux 7 (Core)   3.10.0-1062.el7.x86_64   docker://19.3.4
+kubernetes-node-1   Ready      &lt;none&gt;   4d12h   v1.16.3   192.168.56.102   &lt;none&gt;        CentOS Linux 7 (Core)   3.10.0-1062.el7.x86_64   docker://19.3.4
+</code></pre>
+</li>
+</ol>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/PpAeq4aUl/" class="tag">
+                    k8s
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/f_vQ7vXqk/">
+                  <h3 class="post-title">
+                     ubuntu16.04图形化基础配置
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

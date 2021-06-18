@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190901openssl req（生成证书请求和自建CA）2 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="openssl req（生成证书请求和自建CA）
+伪命令req大致有3个功能：生成证书请求文件、验证证书请求文件和创建根CA。由于openssl req命令选项较多，所以先各举几个例子，再集中给出openssl req的选项说明。若已熟悉o..." />
+    <meta name="keywords" content="openssl,证书,linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190901openssl req（生成证书请求和自建CA）2</h2>
+            <div class="post-date">2021-04-23</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="openssl-req生成证书请求和自建ca">openssl req（生成证书请求和自建CA）</h1>
+<p>伪命令req大致有3个功能：生成证书请求文件、验证证书请求文件和创建根CA。由于openssl req命令选项较多，所以先各举几个例子，再集中给出openssl req的选项说明。若已熟悉openssl req和证书请求相关知识，可直接跳至后文<a href="https://www.cnblogs.com/f-ck-need-u/p/7113610.html#blogopensslreq">查看openssl req选项整理</a>，若不熟悉，建议从前向后一步一步阅读。</p>
+<p>首先说明下生成证书请求需要什么：申请者需要将自己的信息及其公钥放入证书请求中。但在实际操作过程中，所需要提供的是私钥而非公钥，因为它会自动从私钥中提取公钥。另外，还需要将提供的数据进行数字签名(使用单向加密)，保证该证书请求文件的完整性和一致性，防止他人盗取后进行篡改，例如黑客将为www.baidu.com所申请的证书请求文件中的公司名改成对方的公司名称，如果能够篡改成功，则签署该证书请求时，所颁发的证书信息中将变成他人信息。</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/733013-20170703235048206-116648006.png" alt="img" loading="lazy"></figure>
+<p>所以第一步就是先创建出私钥pri_key.pem。其实私钥文件是非必需的，因为openssl req在需要它的时候会自动创建在特定的路径下，此处为了举例说明，所以创建它。</p>
+<p>**</p>
+<pre><code class="language-bash">root@qqq:~# openssl genrsa -out pri_key.pem
+</code></pre>
+<p><strong>1、根据私钥pri_key.pem生成一个新的证书请求文件。其中&quot;-new&quot;表示新生成一个新的证书请求文件，&quot;-key&quot;指定私钥文件，&quot;-out&quot;指定输出文件，此处输出文件即为证书请求文件</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl req -new -key pri_key.pem -out req1.csr
+Can't load /root/.rnd into RNG
+140695741096384:error:2406F079:random number generator:RAND_load_file:Cannot open file:../crypto/rand/randfile.c:88:Filename=/root/.rnd
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:CN
+State or Province Name (full name) [Some-State]:BJ
+Locality Name (eg, city) []:BJ
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:
+Organizational Unit Name (eg, section) []:
+Common Name (e.g. server FQDN or YOUR name) []:www.baidu.com
+Email Address []:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+</code></pre>
+<p>在敲下回车键后，默认会进入交互模式让你提供你个人的信息，需要注意的是，如果某些信息不想填可以选择使用默认值，也可以选择留空不填，直接回车将选择使用默认值，输入点&quot;.&quot;将表示该信息项留空。但某些项是必填项，否则未来证书签署时将失败。如&quot;Common Name&quot;，它表示的是为哪个域名、子域名或哪个主机申请证书，未来证书请求被签署后将只能应用于&quot;Common Name&quot;所指定的地址。具体哪些必填项还需要看所使用的配置文件(默认的配置文件为/etc/pki/tls/openssl.cnf)中的定义，此处暂且不讨论配置相关内容，仅提供Common Name即可。</p>
+<p>除了&quot;-new&quot;选项，使用&quot;-newkey&quot;选项也能创建证书请求文件，此处暂不举例说明&quot;-newkey&quot;的用法，后文会有示例。</p>
+<p><strong>2、查看证书请求文件内容。</strong></p>
+<p>现在已经生成了一个新的证书请求文件req1.csr。查看下该证书请求文件的内容</p>
+<pre><code class="language-bash">root@qqq:~# cat req1.csr 
+-----BEGIN CERTIFICATE REQUEST-----
+MIICpzCCAY8CAQAwYjELMAkGA1UEBhMCQ04xCzAJBgNVBAgMAkJKMQswCQYDVQQH
+DAJCSjEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMRYwFAYDVQQD
+DA13d3cuYmFpZHUuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
+n10iOtxWR4PZN1Z7x/SzG3mNRO4HUxfQewLhAceylw5QEuPhaPg7Dneeeic4ETrI
+LnwiYUlzK1PJA3hqdpTt1L4c3XJMYhqmu8AEKs6tFcy+K+Qf6JejJdIOtqlMwHMd
+fyd5D8Aqn95KvqilpEkvdUEjWXyrNEnXJYLfZsmbeVAphWMVNDJGk8Jfsg4onJyY
+LByH/R4Ha//xG6qJuf0vDgK/HWrNifXz+XzJ1BlwUPrHysBiFgc3KHr58dKvlSuk
+iLBEFcGk0lU/cHhNM/y+dMYqWTLDZNMVfo4vaBLln4VQekA2mL6xEoIoUrQ5LGvh
+mDPH5FVSw/9NbHgj4DwqLQIDAQABoAAwDQYJKoZIhvcNAQELBQADggEBAHvOpjqq
+Ojsd8rZQv8kFPB67gTsaaRs7xyKFdKdWFj5ObgtHEjw6iwzxAFUMoi4BjXqNAT7X
+0tHsGAIMgNhEZtZ/XX2SnYiwa3iyd72U6kwBuM4kIli59KGr2CVZYRv5ryfka7O5
+cIyOd4KHMaj/Na3+rXKOQWodHeFQ9kqDj+BrUhXXROByCwR3koDpL9b5UNDEOs6x
+R1xascdSxbS7gXFam5LLf+OUnqUNFzm09c+9Io0ba4l6Zf6byXxHjFzLXjV9oB2I
+u6rs5oUVE+qBvHAsd3sf3P0OWWSixz2cXTHEQLuXU0wAkVek4c+pGAq2CBJSEUlt
+5FsDHyBUlrg6yN4=
+-----END CERTIFICATE REQUEST-----
+</code></pre>
+<p>更具体的可以使用openssl req命令查看。命令如下，其中&quot;-in&quot;选项指定的是证书请求文件。</p>
+<pre><code class="language-bash">root@qqq:~# openssl req -in req1.csr 
+</code></pre>
+<p>查看请求文件时，可以结合其他几个选项输出特定的内容。&quot;-text&quot;选项表示以文本格式输出证书请求文件的内容</p>
+<pre><code class="language-bah">root@qqq:~# openssl req -in req1.csr -text
+Certificate Request:
+    Data:
+        Version: 1 (0x0)
+        Subject: C = CN, ST = BJ, L = BJ, O = Internet Widgits Pty Ltd, CN = www.baidu.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:9f:5d:22:3a:dc:56:47:83:d9:37:56:7b:c7:f4:
+                    b3:1b:79:8d:44:ee:07:53:17:d0:7b:02:e1:01:c7:
+                    b2:97:0e:50:12:e3:e1:68:f8:3b:0e:77:9e:7a:27:
+                    38:11:3a:c8:2e:7c:22:61:49:73:2b:53:c9:03:78:
+                    6a:76:94:ed:d4:be:1c:dd:72:4c:62:1a:a6:bb:c0:
+                    04:2a:ce:ad:15:cc:be:2b:e4:1f:e8:97:a3:25:d2:
+                    0e:b6:a9:4c:c0:73:1d:7f:27:79:0f:c0:2a:9f:de:
+                    4a:be:a8:a5:a4:49:2f:75:41:23:59:7c:ab:34:49:
+                    d7:25:82:df:66:c9:9b:79:50:29:85:63:15:34:32:
+                    46:93:c2:5f:b2:0e:28:9c:9c:98:2c:1c:87:fd:1e:
+                    07:6b:ff:f1:1b:aa:89:b9:fd:2f:0e:02:bf:1d:6a:
+                    cd:89:f5:f3:f9:7c:c9:d4:19:70:50:fa:c7:ca:c0:
+                    62:16:07:37:28:7a:f9:f1:d2:af:95:2b:a4:88:b0:
+                    44:15:c1:a4:d2:55:3f:70:78:4d:33:fc:be:74:c6:
+                    2a:59:32:c3:64:d3:15:7e:8e:2f:68:12:e5:9f:85:
+                    50:7a:40:36:98:be:b1:12:82:28:52:b4:39:2c:6b:
+                    e1:98:33:c7:e4:55:52:c3:ff:4d:6c:78:23:e0:3c:
+                    2a:2d
+                Exponent: 65537 (0x10001)
+        Attributes:
+            a0:00
+    Signature Algorithm: sha256WithRSAEncryption
+         7b:ce:a6:3a:aa:3a:3b:1d:f2:b6:50:bf:c9:05:3c:1e:bb:81:
+         3b:1a:69:1b:3b:c7:22:85:74:a7:56:16:3e:4e:6e:0b:47:12:
+         3c:3a:8b:0c:f1:00:55:0c:a2:2e:01:8d:7a:8d:01:3e:d7:d2:
+         d1:ec:18:02:0c:80:d8:44:66:d6:7f:5d:7d:92:9d:88:b0:6b:
+         78:b2:77:bd:94:ea:4c:01:b8:ce:24:22:58:b9:f4:a1:ab:d8:
+         25:59:61:1b:f9:af:27:e4:6b:b3:b9:70:8c:8e:77:82:87:31:
+         a8:ff:35:ad:fe:ad:72:8e:41:6a:1d:1d:e1:50:f6:4a:83:8f:
+         e0:6b:52:15:d7:44:e0:72:0b:04:77:92:80:e9:2f:d6:f9:50:
+         d0:c4:3a:ce:b1:47:5c:5a:b1:c7:52:c5:b4:bb:81:71:5a:9b:
+         92:cb:7f:e3:94:9e:a5:0d:17:39:b4:f5:cf:bd:22:8d:1b:6b:
+         89:7a:65:fe:9b:c9:7c:47:8c:5c:cb:5e:35:7d:a0:1d:88:bb:
+         aa:ec:e6:85:15:13:ea:81:bc:70:2c:77:7b:1f:dc:fd:0e:59:
+         64:a2:c7:3d:9c:5d:31:c4:40:bb:97:53:4c:00:91:57:a4:e1:
+         cf:a9:18:0a:b6:08:12:52:11:49:6d:e4:5b:03:1f:20:54:96:
+         b8:3a:c8:de
+-----BEGIN CERTIFICATE REQUEST-----
+MIICpzCCAY8CAQAwYjELMAkGA1UEBhMCQ04xCzAJBgNVBAgMAkJKMQswCQYDVQQH
+DAJCSjEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMRYwFAYDVQQD
+DA13d3cuYmFpZHUuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
+n10iOtxWR4PZN1Z7x/SzG3mNRO4HUxfQewLhAceylw5QEuPhaPg7Dneeeic4ETrI
+LnwiYUlzK1PJA3hqdpTt1L4c3XJMYhqmu8AEKs6tFcy+K+Qf6JejJdIOtqlMwHMd
+fyd5D8Aqn95KvqilpEkvdUEjWXyrNEnXJYLfZsmbeVAphWMVNDJGk8Jfsg4onJyY
+LByH/R4Ha//xG6qJuf0vDgK/HWrNifXz+XzJ1BlwUPrHysBiFgc3KHr58dKvlSuk
+iLBEFcGk0lU/cHhNM/y+dMYqWTLDZNMVfo4vaBLln4VQekA2mL6xEoIoUrQ5LGvh
+mDPH5FVSw/9NbHgj4DwqLQIDAQABoAAwDQYJKoZIhvcNAQELBQADggEBAHvOpjqq
+Ojsd8rZQv8kFPB67gTsaaRs7xyKFdKdWFj5ObgtHEjw6iwzxAFUMoi4BjXqNAT7X
+0tHsGAIMgNhEZtZ/XX2SnYiwa3iyd72U6kwBuM4kIli59KGr2CVZYRv5ryfka7O5
+cIyOd4KHMaj/Na3+rXKOQWodHeFQ9kqDj+BrUhXXROByCwR3koDpL9b5UNDEOs6x
+R1xascdSxbS7gXFam5LLf+OUnqUNFzm09c+9Io0ba4l6Zf6byXxHjFzLXjV9oB2I
+u6rs5oUVE+qBvHAsd3sf3P0OWWSixz2cXTHEQLuXU0wAkVek4c+pGAq2CBJSEUlt
+5FsDHyBUlrg6yN4=
+-----END CERTIFICATE REQUEST-----
+</code></pre>
+<p>将&quot;-text&quot;和&quot;-noout&quot;结合使用，则只输出证书请求的文件头部分。</p>
+<pre><code class="language-bash">root@qqq:~# openssl req -in req1.csr -noout -text
+Certificate Request:
+    Data:
+        Version: 1 (0x0)
+        Subject: C = CN, ST = BJ, L = BJ, O = Internet Widgits Pty Ltd, CN = www.baidu.com
+        Subject Public Key Info:
+            Public Key Algorithm: rsaEncryption
+                RSA Public-Key: (2048 bit)
+                Modulus:
+                    00:9f:5d:22:3a:dc:56:47:83:d9:37:56:7b:c7:f4:
+                    b3:1b:79:8d:44:ee:07:53:17:d0:7b:02:e1:01:c7:
+                    b2:97:0e:50:12:e3:e1:68:f8:3b:0e:77:9e:7a:27:
+                    38:11:3a:c8:2e:7c:22:61:49:73:2b:53:c9:03:78:
+                    6a:76:94:ed:d4:be:1c:dd:72:4c:62:1a:a6:bb:c0:
+                    04:2a:ce:ad:15:cc:be:2b:e4:1f:e8:97:a3:25:d2:
+                    0e:b6:a9:4c:c0:73:1d:7f:27:79:0f:c0:2a:9f:de:
+                    4a:be:a8:a5:a4:49:2f:75:41:23:59:7c:ab:34:49:
+                    d7:25:82:df:66:c9:9b:79:50:29:85:63:15:34:32:
+                    46:93:c2:5f:b2:0e:28:9c:9c:98:2c:1c:87:fd:1e:
+                    07:6b:ff:f1:1b:aa:89:b9:fd:2f:0e:02:bf:1d:6a:
+                    cd:89:f5:f3:f9:7c:c9:d4:19:70:50:fa:c7:ca:c0:
+                    62:16:07:37:28:7a:f9:f1:d2:af:95:2b:a4:88:b0:
+                    44:15:c1:a4:d2:55:3f:70:78:4d:33:fc:be:74:c6:
+                    2a:59:32:c3:64:d3:15:7e:8e:2f:68:12:e5:9f:85:
+                    50:7a:40:36:98:be:b1:12:82:28:52:b4:39:2c:6b:
+                    e1:98:33:c7:e4:55:52:c3:ff:4d:6c:78:23:e0:3c:
+                    2a:2d
+                Exponent: 65537 (0x10001)
+        Attributes:
+            a0:00
+    Signature Algorithm: sha256WithRSAEncryption
+         7b:ce:a6:3a:aa:3a:3b:1d:f2:b6:50:bf:c9:05:3c:1e:bb:81:
+         3b:1a:69:1b:3b:c7:22:85:74:a7:56:16:3e:4e:6e:0b:47:12:
+         3c:3a:8b:0c:f1:00:55:0c:a2:2e:01:8d:7a:8d:01:3e:d7:d2:
+         d1:ec:18:02:0c:80:d8:44:66:d6:7f:5d:7d:92:9d:88:b0:6b:
+         78:b2:77:bd:94:ea:4c:01:b8:ce:24:22:58:b9:f4:a1:ab:d8:
+         25:59:61:1b:f9:af:27:e4:6b:b3:b9:70:8c:8e:77:82:87:31:
+         a8:ff:35:ad:fe:ad:72:8e:41:6a:1d:1d:e1:50:f6:4a:83:8f:
+         e0:6b:52:15:d7:44:e0:72:0b:04:77:92:80:e9:2f:d6:f9:50:
+         d0:c4:3a:ce:b1:47:5c:5a:b1:c7:52:c5:b4:bb:81:71:5a:9b:
+         92:cb:7f:e3:94:9e:a5:0d:17:39:b4:f5:cf:bd:22:8d:1b:6b:
+         89:7a:65:fe:9b:c9:7c:47:8c:5c:cb:5e:35:7d:a0:1d:88:bb:
+         aa:ec:e6:85:15:13:ea:81:bc:70:2c:77:7b:1f:dc:fd:0e:59:
+         64:a2:c7:3d:9c:5d:31:c4:40:bb:97:53:4c:00:91:57:a4:e1:
+         cf:a9:18:0a:b6:08:12:52:11:49:6d:e4:5b:03:1f:20:54:96:
+         b8:3a:c8:de
+</code></pre>
+<p>还可以只输出subject部分的内容。</p>
+<pre><code class="language-bash">root@qqq:~# openssl req -in req1.csr -subject -noout 
+subject=C = CN, ST = BJ, L = BJ, O = Internet Widgits Pty Ltd, CN = www.baidu.com
+</code></pre>
+<p>也可以使用&quot;-pubkey&quot;输出证书请求文件中的公钥内容。如果从申请证书请求时所提供的私钥中提取出公钥，这两段公钥的内容是完全一致的。</p>
+<pre><code class="language-bash">root@qqq:~# openssl req -in req1.csr -pubkey -noout 
+-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn10iOtxWR4PZN1Z7x/Sz
+G3mNRO4HUxfQewLhAceylw5QEuPhaPg7Dneeeic4ETrILnwiYUlzK1PJA3hqdpTt
+1L4c3XJMYhqmu8AEKs6tFcy+K+Qf6JejJdIOtqlMwHMdfyd5D8Aqn95KvqilpEkv
+dUEjWXyrNEnXJYLfZsmbeVAphWMVNDJGk8Jfsg4onJyYLByH/R4Ha//xG6qJuf0v
+DgK/HWrNifXz+XzJ1BlwUPrHysBiFgc3KHr58dKvlSukiLBEFcGk0lU/cHhNM/y+
+dMYqWTLDZNMVfo4vaBLln4VQekA2mL6xEoIoUrQ5LGvhmDPH5FVSw/9NbHgj4Dwq
+LQIDAQAB
+-----END PUBLIC KEY-----
+</code></pre>
+<p><strong>3、指定证书请求文件中的签名算法。</strong></p>
+<p>注意到证书请求文件的头部分有一项是&quot;Signature Algorithm&quot;，它表示使用的是哪种数字签名算法。默认使用的是sha1，还支持md5、sha512等，更多可支持的签名算法见&quot;openssl dgst --help&quot;中所列出内容。例如此处指定md5算法。</p>
+<pre><code class="language-bash">root@qqq:~# openssl req -new -key pri_key.pem -out req2.csr -md5
+
+root@qqq:~# openssl req -in req2.csr -noout -text | grep Algo
+            Public Key Algorithm: rsaEncryption
+    Signature Algorithm: md5WithRSAEncryption
+</code></pre>
+<p><strong>4、验证请求文件的数字签名,这样可以验证出证书请求文件是否被篡改过。下面的命令中&quot;-verify&quot;选项表示验证证书请求文件的数字签名</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl req -verify -in req2.csr 
+verify OK
+...
+root@qqq:~# openssl req -verify -in req2.csr -noout 
+verify OK
+</code></pre>
+<p><strong>5、自签署证书，可用于自建根CA时</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl req -x509 -key pri_key.pem -in req1.csr -out CA1.crt -days 3650
+Can't load /root/.rnd into RNG
+140456682987968:error:2406F079:random number generator:RAND_load_file:Cannot open file:../crypto/rand/randfile.c:88:Filename=/root/.rnd
+</code></pre>
+<p>由于openssl req命令的主要功能是创建和管理证书请求文件，所以没有提供对证书文件的管理能力，暂时也就只能通过cat来查看证书文件CA1.crt了。</p>
+<pre><code class="language-bash">root@qqq:~# cat CA1.crt 
+-----BEGIN CERTIFICATE-----
+MIIDpTCCAo2gAwIBAgIUWbKLklVETuLZ5Yf59bPOfwskJbYwDQYJKoZIhvcNAQEL
+BQAwYjELMAkGA1UEBhMCQ04xCzAJBgNVBAgMAkJKMQswCQYDVQQHDAJCSjEhMB8G
+A1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMRYwFAYDVQQDDA13d3cuYmFp
+ZHUuY29tMB4XDTE5MDkwMTExMjMxMFoXDTI5MDgyOTExMjMxMFowYjELMAkGA1UE
+BhMCQ04xCzAJBgNVBAgMAkJKMQswCQYDVQQHDAJCSjEhMB8GA1UECgwYSW50ZXJu
+ZXQgV2lkZ2l0cyBQdHkgTHRkMRYwFAYDVQQDDA13d3cuYmFpZHUuY29tMIIBIjAN
+BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn10iOtxWR4PZN1Z7x/SzG3mNRO4H
+UxfQewLhAceylw5QEuPhaPg7Dneeeic4ETrILnwiYUlzK1PJA3hqdpTt1L4c3XJM
+Yhqmu8AEKs6tFcy+K+Qf6JejJdIOtqlMwHMdfyd5D8Aqn95KvqilpEkvdUEjWXyr
+NEnXJYLfZsmbeVAphWMVNDJGk8Jfsg4onJyYLByH/R4Ha//xG6qJuf0vDgK/HWrN
+ifXz+XzJ1BlwUPrHysBiFgc3KHr58dKvlSukiLBEFcGk0lU/cHhNM/y+dMYqWTLD
+ZNMVfo4vaBLln4VQekA2mL6xEoIoUrQ5LGvhmDPH5FVSw/9NbHgj4DwqLQIDAQAB
+o1MwUTAdBgNVHQ4EFgQUCrIzUWjGqJt0DkUah6tkz0Sk+6owHwYDVR0jBBgwFoAU
+CrIzUWjGqJt0DkUah6tkz0Sk+6owDwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0B
+AQsFAAOCAQEAhnf4ZDMf99p0OqupMoZRnmf6E/CllLaUp7pdB1Gr/SwMkx39WNt8
+TlA4e9XXUQUWxHJKEDl9mHV1KLHDfLNg627UPBBB5lXADV+8fkJlSRwL0i7II2FU
+LxQkAsOvFNVivtSQ+PR36OAX2BY3YzHTKNIZBFJg8deyTWv4v5tqoYqcDD2doqLX
+8l+1cqCvuFganzNVBoh7JkjzH/1tBY0Gmg6Ku2kFvwonUJcREhQBOGH4uP0Limlz
+XD8Yw3qP7eGsdnh30PBveroaFWnSj8F+M9mlPvHoZFQSGq0y0G0xBt8o/XPyQX/g
+Bz9Utfubu9BsALdfmv8qf6Wbu8b6cBOnkw==
+-----END CERTIFICATE-----
+</code></pre>
+<p>实际上，&quot;-x509&quot;选项和&quot;-new&quot;或&quot;-newkey&quot;配合使用时，可以不指定证书请求文件，它在自签署过程中将在内存中自动创建证书请求文件，当然，既然要创建证书请求文件，就需要人为输入申请者的信息了。例如</p>
+<pre><code class="language-bash">[root@xuexi tmp]# openssl req -new -x509 -key pri_key.pem -out CA1.crt -days 365
+</code></pre>
+<p>其实，使用&quot;-x509&quot;选项后，&quot;-new&quot;或&quot;-newkey&quot;将表示创建一个证书文件而不是一个证书请求文件。</p>
+<p><strong>6、让openssl req自动创建所需的私钥文件</strong></p>
+<p>在前面的所有例子中，在需要私钥的时候都明确使用了&quot;-key&quot;选项提供私钥。其实如果不提供，<strong>openssl req会在任何需要私钥的地方自动创建私钥</strong>，并保存在特定的位置，默认的保存位置为当前目录，文件名为privkey.pem，具体保存的位置和文件名由配置文件(默认为/etc/pki/tls/openssl.cnf)决定，此处不讨论该文件。当然，openssl req命令的&quot;-keyout&quot;选项可以指定私钥保存位置。</p>
+<pre><code class="language-bash">root@qqq:~# openssl req -new -out req3.csr
+Can't load /root/.rnd into RNG
+139815044669888:error:2406F079:random number generator:RAND_load_file:Cannot open file:../crypto/rand/randfile.c:88:Filename=/root/.rnd
+Generating a RSA private key
+..............+++++
+.........+++++
+writing new private key to 'privkey.pem'
+Enter PEM pass phrase:
+Verifying - Enter PEM pass phrase:
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:CN
+</code></pre>
+<p>但是，openssl req在自动创建私钥时，将总是加密该私钥文件，并提示输入加密的密码。可以使用&quot;-nodes&quot;选项禁止加密私钥文件。</p>
+<pre><code class="language-bash">root@qqq:~# openssl req -new -out req3.csr -nodes
+Can't load /root/.rnd into RNG
+140509438816704:error:2406F079:random number generator:RAND_load_file:Cannot open file:../crypto/rand/randfile.c:88:Filename=/root/.rnd
+Generating a RSA private key
+...........+++++
+..+++++
+writing new private key to 'privkey.pem'
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:^C
+</code></pre>
+<p>指定自动创建私钥时，私钥文件的保存位置和文件名。使用&quot;-keyout&quot;选项。</p>
+<pre><code class="language-bash">root@qqq:~# openssl req -new -out req3.csr -nodes -keyout myprivkey.pem
+Can't load /root/.rnd into RNG
+140423955067328:error:2406F079:random number generator:RAND_load_file:Cannot open file:../crypto/rand/randfile.c:88:Filename=/root/.rnd
+Generating a RSA private key
+.....+++++
+...............................................................................................................................................................................................................+++++
+writing new private key to 'myprivkey.pem'
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:^C
+</code></pre>
+<p><strong>使用&quot;-newkey&quot;选项。</strong></p>
+<p>&quot;-newkey&quot;选项和&quot;-new&quot;选项类似，只不过&quot;-newkey&quot;选项可以直接指定私钥的算法和长度，所以它主要用在openssl req自动创建私钥时。</p>
+<p>它的使用格式为&quot;-newkey arg&quot;，其中arg的格式为&quot;rsa:numbits&quot;，rsa表示创建rsa私钥，numbits表示私钥的长度，如果不给定长度(即&quot;-newkey rsa&quot;)则默认从配置文件中读取长度值。其实不止支持rsa私钥，只不过现在基本都是用rsa私钥，所以默认就使用rsa。</p>
+<pre><code class="language-bash">root@qqq:~# openssl req -newkey rsa:2048 -out req3.csr -nodes -keyout myprivkey.pem 
+Can't load /root/.rnd into RNG
+139845996831168:error:2406F079:random number generator:RAND_load_file:Cannot open file:../crypto/rand/randfile.c:88:Filename=/root/.rnd
+Generating a RSA private key
+....+++++
+...............+++++
+writing new private key to 'myprivkey.pem'
+-----
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:^C
+</code></pre>
+<p>通过上面一系类的举例说明后，想必openssl req的各基本选项的用法都通了。从上面的示例中也发现了，openssl req经常会依赖于配置文件(默认为/etc/pki/tls/openssl.cnf)中的值。所以，先将openssl req的命令用法总结下，再简单说明下配置文件中和req有关的内容。</p>
+<pre><code class="language-bash">openssl req [-new] [-newkey rsa:bits] [-verify] [-x509] [-in filename] [-out filename] [-key filename] [-passin arg] [-passout arg] 
+[-keyout filename] [-pubkey] [-nodes] [-[dgst]] [-config filename] [-subj arg] [-days n] [-set_serial n] [-extensions section]
+[-reqexts section] [-utf8] [-nameopt] [-reqopt] [-subject] [-subj arg] [-text] [-noout] [-batch] [-verbose]
+ 
+选项说明：
+-new        ：创建一个证书请求文件，会交互式提醒输入一些信息，这些交互选项以及交互选项信息的长度值以及其他一些扩展属性在配置文件(默认为
+            ：openssl.cnf，还有些辅助配置文件)中指定了默认值。如果没有指定&quot;-key&quot;选项，则会自动生成一个RSA私钥，该私钥的生成位置
+            ：也在openssl.cnf中指定了。如果指定了-x509选项，则表示创建的是自签署证书文件，而非证书请求文件
+-newkey args：类似于&quot;-new&quot;选项，创建一个新的证书请求，并创建私钥。args的格式是&quot;rsa:bits&quot;(其他加密算法请查看man)，其中bits
+            ：是rsa密钥的长度，如果bits省略了(即-newkey rsa)，则长度根据配置文件中default_bits指令的值作为默认长度，默认该值为2048
+            ：如果指定了-x509选项，则表示创建的是自签署证书文件，而非证书请求文件
+-nodes      ：默认情况下，openssl req自动创建私钥时都要求加密并提示输入加密密码，指定该选项后则禁止对私钥文件加密
+-key filename    ：指定私钥的输入文件，创建证书请求时需要
+-keyout filename ：指定自动创建私钥时私钥的存放位置，若未指定该选项，则使用配置文件中default_keyfile指定的值，默认该值为privkey.pem
+-[dgst]          ：指定对创建请求时提供的申请者信息进行数字签名时的单向加密算法，如-md5/-sha1/-sha512等，
+                 ：若未指定则默认使用配置文件中default_md指定的值
+-verify       ：对证书请求文件进行数字签名验证
+-x509         ：指定该选项时，将生成一个自签署证书，而不是创建证书请求。一般用于测试或者为根CA创建自签名证书
+-days n       ：指定自签名证书的有效期限，默认30天，需要和&quot;-x509&quot;一起使用。
+              ：注意是自签名证书期限，而非请求的证书期限，因为证书的有效期是颁发者指定的，证书请求者指定有效期是没有意义的，
+              ：配置文件中的default_days指定了请求证书的有效期限，默认365天
+-set_serial n ：指定生成自签名证书时的证书序列号，该序列号将写入配置文件中serial指定的文件中，这样就不需要手动更新该序列号文件
+              ：支持数值和16进制值(0x开头)，虽然也支持负数，但不建议
+-in filename  ：指定证书请求文件filename。注意，创建证书请求文件时是不需要指定该选项的
+-out filename ：证书请求或自签署证书的输出文件，也可以是其他内容的输出文件，不指定时默认stdout
+-subj args    ：替换或自定义证书请求时需要输入的信息，并输出修改后的请求信息。args的格式为&quot;/type0=value0/type1=value1...&quot;，
+              ：如果value为空，则表示使用配置文件中指定的默认值，如果value值为&quot;.&quot;，则表示该项留空。其中可识别type(man req)有：
+              ：C是Country、ST是state、L是localcity、O是Organization、OU是Organization Unit、CN是common name等
+ 
+【输出内容选项：】
+-text         ：以文本格式打印证书请求
+-noout        ：不输出部分信息
+-subject      ：输出证书请求文件中的subject(如果指定了x509，则打印证书中的subject)
+-pubkey       ：输出证书请求文件中的公钥
+
+【配置文件项和杂项：】
+-passin arg      ：传递解密密码
+-passout arg     ：指定加密输出文件时的密码
+-config filename ：指定req的配置文件，指定后将忽略所有的其他配置文件。如果不指定则默认使用/etc/pki/tls/openssl.cnf中req段落的值
+-batch           ：非交互模式，直接从配置文件(默认/etc/pki/tls/openssl.cnf)中读取证书请求所需字段信息。但若不指定&quot;-key&quot;时，仍会询问key
+-verbose         ：显示操作执行的详细信息
+以下则是配置文件中(默认/etc/pki/tls/openssl.cnf)关于req段落的配置格式。
+
+input_password ：密码输入文件，和命令行的&quot;-passin&quot;选项对应，密码格式以及意义见&quot;openssl密码格式&quot;
+output_password：密码的输出文件，与命令行的&quot;-passout&quot;选项对应，密码格式以及意义见&quot;openssl密码格式&quot;
+default_bits   ：openssl req自动生成RSA私钥时的长度，不写时默认是512，命令行的&quot;-new&quot;和&quot;-newkey&quot;可能会用到它 
+default_keyfile：默认的私钥输出文件，与命令行的&quot;-keyout&quot;选项对应 
+encrypt_key    ：当设置为no时，自动创建私钥时不会加密该私钥。设置为no时与命令行的&quot;-nodes&quot;等价。还有等价的兼容性写法：encry_rsa_key 
+default_md     ：指定创建证书请求时对申请者信息进行数字签名的单向加密算法，与命令行的&quot;-[dgst]&quot;对应 
+prompt         ：当指定为no时，则不提示输入证书请求的字段信息，而是直接从openssl.cnf中读取 ：请小心设置该选项，很可能请求文件创建失败就是因为该选项设置为no 
+distinguished_name：(DN)是一个扩展属性段落，用于指定证书请求时可被识别的字段名称。
+</code></pre>
+<p>以下是默认的配置文件格式及值。关于配置文件的详细分析见&quot;配置文件&quot;部分。</p>
+<pre><code class="language-bash">[ req ]
+default_bits            = 2048
+default_md              = sha1
+default_keyfile         = privkey.pem
+distinguished_name      = req_distinguished_name
+attributes              = req_attributes
+x509_extensions = v3_ca # The extentions to add to the self signed cert
+string_mask = utf8only
+[ req_distinguished_name ]
+countryName                     = Country Name (2 letter code)
+countryName_default             = XX
+countryName_min                 = 2
+countryName_max                 = 2
+stateOrProvinceName             = State or Province Name (full name)
+localityName                    = Locality Name (eg, city)
+localityName_default    = Default City
+0.organizationName              = Organization Name (eg, company)
+0.organizationName_default      = Default Company Ltd
+organizationalUnitName          = Organizational Unit Name (eg, section)
+commonName                      = Common Name (eg, your name or your server\'s hostname)
+commonName_max                  = 64
+emailAddress                    = Email Address
+emailAddress_max                = 64
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/cx2hRHr8nL/" class="tag">
+                    证书
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190901openssl-reqsheng-cheng-zheng-shu-qing-qiu-he-zi-jian-ca/">
+                  <h3 class="post-title">
+                    20190901openssl rsapkey
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

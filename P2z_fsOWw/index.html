@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> EFK教程三：ElasticSearch多实例部署 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="EFK教程三：ElasticSearch多实例部署
+用途：
+▷ 在第一篇《EFK教程 - 快速入门指南》中，阐述了EFK的安装部署，其中ES的架构为三节点，即master、ingest、data角色同时部署在三台服务器上。
+▷ 在第二篇《E..." />
+    <meta name="keywords" content="elasticsearch,filebeat,kibana,EFK" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> EFK教程三：ElasticSearch多实例部署</h2>
+            <div class="post-date">2021-05-14</div>
+            
+              <div class="feature-container" style="background-image: url('https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191117204629.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="efk教程三elasticsearch多实例部署">EFK教程三：ElasticSearch多实例部署</h1>
+<h3 id="用途">用途：</h3>
+<p>▷ 在第一篇《EFK教程 - 快速入门指南》中，阐述了EFK的安装部署，其中ES的架构为三节点，即master、ingest、data角色同时部署在三台服务器上。</p>
+<p>▷ 在第二篇《EFK教程 - ElasticSearch高性能高可用架构》中，阐述了EFK的data/ingest/master角色的用途及分别部署三节点，在实现性能最大化的同时保障高可用</p>
+<p>前两篇文章，ES集群中只存在一个实例，而在本文中，将在一个集群中部署多个ES实例，来实现资源合理分配。例如data服务器存在SSD与SAS硬盘，可以将热数据存放到SSD，而冷数据存放到SAS，实现数据冷热分离。</p>
+<p><strong>▷ 服务器配置：</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">名称</th>
+<th style="text-align:center">IP</th>
+<th style="text-align:center">CPU</th>
+<th style="text-align:center">内存</th>
+<th>SAS硬盘</th>
+<th>SSD硬盘</th>
+<th>访问端口</th>
+<th>运输端口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><strong>filebeat</strong></td>
+<td style="text-align:center"><strong>172.18.1.237</strong></td>
+<td style="text-align:center"><strong>2</strong></td>
+<td style="text-align:center"><strong>2G</strong></td>
+<td><strong>/</strong></td>
+<td>/</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>kibana</strong></td>
+<td style="text-align:center"><strong>172.18.4.4</strong></td>
+<td style="text-align:center"><strong>2</strong></td>
+<td style="text-align:center"><strong>2G</strong></td>
+<td><strong>/</strong></td>
+<td>/</td>
+<td>5601</td>
+<td>/</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-master-1</strong></td>
+<td style="text-align:center"><strong>172.18.3.138</strong></td>
+<td style="text-align:center"><strong>4</strong></td>
+<td style="text-align:center"><strong>4G</strong></td>
+<td><strong>/</strong></td>
+<td>/</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-master-2</strong></td>
+<td style="text-align:center"><strong>172.18.3.139</strong></td>
+<td style="text-align:center"><strong>4</strong></td>
+<td style="text-align:center"><strong>4G</strong></td>
+<td><strong>/</strong></td>
+<td>/</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-master-3</strong></td>
+<td style="text-align:center"><strong>172.18.3.253</strong></td>
+<td style="text-align:center"><strong>4</strong></td>
+<td style="text-align:center"><strong>4G</strong></td>
+<td><strong>/</strong></td>
+<td>/</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-ingest-1</strong></td>
+<td style="text-align:center"><strong>172.18.4.18</strong></td>
+<td style="text-align:center"><strong>2</strong></td>
+<td style="text-align:center"><strong>1G</strong></td>
+<td><strong>/</strong></td>
+<td>/</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-ingest-2</strong></td>
+<td style="text-align:center"><strong>172.18.4.19</strong></td>
+<td style="text-align:center"><strong>2</strong></td>
+<td style="text-align:center"><strong>1G</strong></td>
+<td><strong>/</strong></td>
+<td>/</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-ingest-3</strong></td>
+<td style="text-align:center"><strong>172.18.4.20</strong></td>
+<td style="text-align:center"><strong>2</strong></td>
+<td style="text-align:center"><strong>1G</strong></td>
+<td><strong>/</strong></td>
+<td>/</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-data-1-SAS</strong></td>
+<td style="text-align:center"><strong>172.18.4.21</strong></td>
+<td style="text-align:center"><strong>1</strong></td>
+<td style="text-align:center"><strong>1G</strong></td>
+<td><strong>10G</strong></td>
+<td>/</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-data1-SSD</strong></td>
+<td style="text-align:center"><strong>172.18.4.21</strong></td>
+<td style="text-align:center"><strong>1</strong></td>
+<td style="text-align:center"><strong>1G</strong></td>
+<td>/</td>
+<td>10G</td>
+<td><font color=red><strong>9201</strong></font></td>
+<td><font color=red><strong>9301</strong></font></td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-data-2-SAS</strong></td>
+<td style="text-align:center"><strong>172.18.4.22</strong></td>
+<td style="text-align:center"><strong>1</strong></td>
+<td style="text-align:center"><strong>1G</strong></td>
+<td><strong>10G</strong></td>
+<td>/</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-data-2-SSD</strong></td>
+<td style="text-align:center"><strong>172.18.4.22</strong></td>
+<td style="text-align:center"><strong>1</strong></td>
+<td style="text-align:center"><strong>1G</strong></td>
+<td>/</td>
+<td><strong>10G</strong></td>
+<td><font color=red><strong>9201</strong></font></td>
+<td><font color=red><strong>9301</strong></font></td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-data-3-SAS</strong></td>
+<td style="text-align:center"><strong>172.18.4.23</strong></td>
+<td style="text-align:center"><strong>1</strong></td>
+<td style="text-align:center"><strong>1G</strong></td>
+<td><strong>10G</strong></td>
+<td>/</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-data-3-SSD</strong></td>
+<td style="text-align:center"><strong>172.18.4.23</strong></td>
+<td style="text-align:center"><strong>1</strong></td>
+<td style="text-align:center"><strong>1G</strong></td>
+<td>/</td>
+<td><strong>10G</strong></td>
+<td><font color=red><strong>9201</strong></font></td>
+<td><font color=red><strong>9301</strong></font></td>
+</tr>
+</tbody>
+</table>
+<p><strong>▷ 架构图</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191127133505.png" alt="" loading="lazy"></figure>
+<h3 id="一-先启动各节点的服务">一、先启动各节点的服务</h3>
+<pre><code class="language-bash">#master节点 共9个节点
+sudo -u elasticsearch /opt/elasticsearch/bin/elasticsearch
+#nginx节点
+systemctl start nginx
+</code></pre>
+<p><strong>查看各节点的健康状态</strong></p>
+<pre><code class="language-bash">qqq@qqq:~$ curl http://172.18.3.138:9200/_cat/health?v
+epoch      timestamp cluster     status node.total node.data shards pri relo init unassign pending_tasks max_task_wait_time active_shards_percent
+1574541947 20:45:47  007-project green           9         3     10   5    0    0        0             0                  -                100.0%
+</code></pre>
+<p><strong>查看集群节点列表</strong></p>
+<pre><code class="language-bash">qqq@qqq:~$ curl http://172.18.3.138:9200/_cat/nodes?v
+ip           heap.percent ram.percent cpu load_1m load_5m load_15m node.role master name
+172.18.4.18            28          93   0    0.03    0.20     0.16 i         -      es-ingest1
+172.18.4.21            10          94   1    0.48    0.73     0.37 d         -      es-data1
+172.18.4.20            27          94   0    0.02    0.22     0.17 i         -      es-ingest3
+172.18.3.139           12          48   0    0.05    0.16     0.13 m         -      es-2
+172.18.4.22            10          93   1    0.45    0.69     0.35 d         -      es-data2
+172.18.4.23            10          94   1    0.38    0.59     0.30 d         -      es-data3
+172.18.4.19            28          93   0    0.03    0.27     0.20 i         -      es-ingest2
+172.18.3.138           18          78   0    0.00    0.08     0.10 m         -      es-1
+172.18.3.253           13          47   0    0.11    0.08     0.06 m         *      es-3
+</code></pre>
+<h3 id="二-es-data1部署双实例">二、es-data1部署双实例</h3>
+<h4 id="1️⃣迁移索引">1️⃣迁移索引：</h4>
+<p><strong>确保索引不在当前实例上</strong></p>
+<pre><code class="language-bash">#当前索引分布在es-data1，es-data2，es-data3上
+qqq@qqq:~$ curl &quot;http://172.18.3.138:9200/_cat/shards?h=n&quot;
+es-data3
+es-data2
+es-data2
+es-data1
+es-data3
+es-data1
+es-data3
+es-data2
+es-data2
+es-data1
+</code></pre>
+<pre><code class="language-bash">#迁移索引到其他两个节点
+qqq@qqq:~$ curl -X PUT &quot;http://172.18.3.138:9200/*/_settings?pretty&quot; -H 'Content-Type: application/json' -d'
+&gt; {
+&gt;     &quot;index.routing.allocation.include._ip&quot;: &quot;172.18.4.22,172.18.4.23&quot;
+&gt; }'
+{
+  &quot;acknowledged&quot; : true
+}
+</code></pre>
+<pre><code class="language-bash">#确认现在索引在es-data2核es-data3上
+qqq@qqq:~$ curl &quot;http://172.18.3.138:9200/_cat/shards?h=n&quot;
+es-data3
+es-data2
+es-data3
+es-data2
+es-data3
+es-data2
+es-data3
+es-data2
+es-data3
+es-data2
+</code></pre>
+<h4 id="2️⃣部署es-data1双实例">2️⃣部署es-data1双实例</h4>
+<p><strong>条件有限，没有挂载新的硬盘用，创建目录代替</strong></p>
+<table>
+<thead>
+<tr>
+<th>代码目录</th>
+<th>数据目录</th>
+<th>访问端口</th>
+<th>运输端口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/opt/elasticsearch-SAS</td>
+<td>/data/SAS</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td>/opt/elasticsearch-SSD</td>
+<td>/data/SSD</td>
+<td>9201</td>
+<td>9301</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-bash">#改原来的实例
+[root@es-data1 opt]# pkill elasticsearch
+[root@es-data1 opt]# mv elasticsearch elasticsearch-SAS
+[root@es-data1 opt]# mkdir -p /opt/logs/elasticsearch-SAS
+[root@es-data1 ~]# chown elasticsearch.elasticsearch /opt/logs/elasticsearch-SAS -R
+
+#SAS实例/opt/elasticsearch-SAS/config/elasticsearch.yml配置
+[root@es-data1 opt]# grep -Ev '^$|^#' /opt/elasticsearch-SAS/config/elasticsearch.yml
+cluster.name: 007-project
+node.name: es-data1-SAS
+path.data: /data/SAS
+path.logs: /opt/logs/elasticsearch-SAS
+network.host: 172.18.4.21
+http.port: 9200
+transport.port: 9300
+#端口一定要加
+discovery.seed_hosts: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;, &quot;es-3:9300&quot;]
+cluster.initial_master_nodes: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;,&quot;es-3:9300&quot;]
+http.cors.enabled: true
+http.cors.allow-origin: &quot;*&quot;
+node.master: false
+node.ingest: false
+node.data: true
+# 本机只允行启2个实例
+node.max_local_storage_nodes: 2
+</code></pre>
+<pre><code class="language-bash">#SSD实例
+[root@es-data1 opt]# tar xf software/elasticsearch-7.3.2-linux-x86_64.tar.gz -C /opt/
+[root@es-data1 opt]# mv elasticsearch-7.3.2 elasticsearch-SSD
+[root@es-data1 opt]# mkdir /data/SSD  /opt/logs/elasticsearch-SSD
+[root@es-data1 ~]# chown elasticsearch.elasticsearch /data/SSD  /opt/logs/elasticsearch-SSD /opt/elasticsearch-SSD  -R
+
+#SSD实例/opt/elasticsearch-SSD/config/elasticsearch.yml配置
+[root@es-data1 opt]# grep -Ev '^$|^#' /opt/elasticsearch-SSD/config/elasticsearch.yml
+cluster.name: 007-project
+node.name: es-data1-SSD
+path.data: /data/SSD
+path.logs: /opt/logs/elasticsearch-SSD
+network.host: 172.18.4.21
+#端口不能和SAS实例一样，master必须指定端口
+http.port: 9201
+transport.port: 9301
+discovery.seed_hosts: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;, &quot;es-3:9300&quot;]
+cluster.initial_master_nodes: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;,&quot;es-3:9300&quot;]
+http.cors.enabled: true
+http.cors.allow-origin: &quot;*&quot;
+node.master: false
+node.ingest: false
+node.data: true
+node.max_local_storage_nodes: 2
+</code></pre>
+<pre><code class="language-bash">#启动两个elasticsearch实例
+sudo -u elasticsearch /opt/elasticsearch-SAS/bin/elasticsearch
+sudo -u elasticsearch /opt/elasticsearch-SSD/bin/elasticsearch
+</code></pre>
+<h3 id="三-es-data2部署双实例">三、es-data2部署双实例</h3>
+<h4 id="1️⃣迁移索引-2">1️⃣迁移索引：</h4>
+<p><strong>条件有限，没有挂载新的硬盘用，创建目录代替</strong></p>
+<table>
+<thead>
+<tr>
+<th>代码目录</th>
+<th>数据目录</th>
+<th>访问端口</th>
+<th>运输端口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/opt/elasticsearch-SAS</td>
+<td>/data/SAS</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td>/opt/elasticsearch-SSD</td>
+<td>/data/SSD</td>
+<td>9201</td>
+<td>9301</td>
+</tr>
+</tbody>
+</table>
+<p><strong>确保索引不在当前实例上</strong></p>
+<p><strong>当前索引在es-data2，es-data3上</strong></p>
+<pre><code class="language-bash">#当前索引在es-data2，es-data3上
+qqq@qqq:~$ curl &quot;http://172.18.3.138:9200/_cat/shards?h=n&quot;
+es-data3
+es-data2
+es-data3
+es-data2
+es-data3
+es-data2
+es-data3
+es-data2
+es-data3
+es-data2
+</code></pre>
+<p><strong>当前集群节点查看</strong></p>
+<pre><code class="language-bash">#当前集群节点查看
+qqq@qqq:~$ curl http://172.18.3.138:9200/_cat/nodes?v
+ip           heap.percent ram.percent cpu load_1m load_5m load_15m node.role master name
+172.18.4.20            22          92   0    0.00    0.01     0.05 i         -      es-ingest3
+172.18.4.22            10          92   0    0.00    0.03     0.05 d         -      es-data2
+172.18.4.23             8          92   0    0.00    0.01     0.05 d         -      es-data3
+172.18.3.253           24          48   0    0.00    0.01     0.05 m         *      es-3
+172.18.4.18            23          92   0    0.01    0.03     0.05 i         -      es-ingest1
+172.18.4.21            10          93  23    0.07    0.56     0.50 d         -      es-data1-SAS
+172.18.4.19            23          92   0    0.00    0.01     0.05 i         -      es-ingest2
+172.18.4.21             7          93   7    0.07    0.56     0.50 d         -      es-data1-SSD
+172.18.3.139            9          49   0    0.00    0.01     0.05 m         -      es-2
+172.18.3.138           13          79   0    0.02    0.03     0.05 m         -      es-1
+</code></pre>
+<p><strong>迁移索引到别的节点</strong></p>
+<pre><code class="language-bash">qqq@qqq:~$ curl -X PUT &quot;http://172.18.3.138:9200/*/_settings?pretty&quot; -H 'Content-Type: application/json' -d'
+{
+    &quot;index.routing.allocation.include._ip&quot;: &quot;172.18.4.21,172.18.4.23&quot;
+}'
+{
+  &quot;acknowledged&quot; : true
+}
+</code></pre>
+<p><strong>查看当前索引位置</strong></p>
+<pre><code class="language-bash">qqq@qqq:~$ curl &quot;http://172.18.3.138:9200/_cat/shards?h=n&quot;
+es-data1-SSD
+es-data1-SAS
+es-data3
+es-data1-SSD
+es-data3
+es-data1-SAS
+es-data3
+es-data1-SAS
+es-data3
+es-data1-SSD
+</code></pre>
+<h4 id="2️⃣部署es-data2双实例">2️⃣部署es-data2双实例</h4>
+<p><strong>旧的SAS实例</strong></p>
+<pre><code class="language-bash">#杀死旧进程
+[root@es-data2 ~]# ps -ef | grep ela
+root      18205  18186  0 01:42 pts/0    00:00:00 sudo -u elasticsearch /opt/elasticsearch/bin/elasticsearch
+......
+[root@es-data2 ~]# kill 18205
+#改名字等
+[root@es-data2 opt]# mv elasticsearch elasticsearch-SAS
+[root@es-data2 opt]# mkdir -p /opt/logs/elasticsearch-SAS
+[root@es-data2 opt]# chown elasticsearch.elasticsearch /opt/logs/elasticsearch-SAS -R
+
+#SAS实例/opt/elasticsearch-SAS/config/elasticsearch.yml配置
+[root@es-data2 opt]# grep -Ev '^$|^#' /opt/elasticsearch-SAS/config/elasticsearch.yml
+cluster.name: 007-project
+#名字要改
+node.name: es-data2-SAS
+path.data: /data/SAS
+path.logs: /opt/logs/elasticsearch-SAS
+network.host: 172.18.4.22
+#端口加上。不写的话默认就是9200和9300，master节点要加上端口
+http.port: 9200
+transport.port: 9300
+discovery.seed_hosts: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;, &quot;es-3:9300&quot;]
+cluster.initial_master_nodes: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;,&quot;es-3:9300&quot;]
+http.cors.enabled: true
+http.cors.allow-origin: &quot;*&quot;
+node.master: false
+node.ingest: false
+node.data: true
+</code></pre>
+<p><strong>新的SSD实例</strong></p>
+<p>注意节点名字，data位置，log位置，本结点访问端口，本结点运输端口，集群中其他主机及端口号，master节点端口号</p>
+<pre><code class="language-bash">[root@es-data2 opt]# tar xf software/elasticsearch-7.3.2-linux-x86_64.tar.gz -C /opt/
+[root@es-data2 opt]# mv elasticsearch-7.3.2 elasticsearch-SSD
+[root@es-data2 opt]# mkdir /data/SSD  /opt/logs/elasticsearch-SSD
+[root@es-data2 opt]# chown elasticsearch.elasticsearch /data/SSD  /opt/logs/elasticsearch-SSD /opt/elasticsearch-SSD  -R
+
+#SSD实例/opt/elasticsearch-SAS/config/elasticsearch.yml配置
+[root@es-data2 opt]# grep -Ev '^$|^#' /opt/elasticsearch-SSD/config/elasticsearch.yml
+cluster.name: 007-project
+node.name: es-data2-SSD
+path.data: /data/SSD
+path.logs: /opt/logs/elasticsearch-SSD
+network.host: 172.18.4.22
+http.port: 9201
+transport.port: 9301
+discovery.seed_hosts: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;, &quot;es-3:9300&quot;]
+cluster.initial_master_nodes: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;,&quot;es-3:9300&quot;]
+http.cors.enabled: true
+http.cors.allow-origin: &quot;*&quot;
+node.master: false
+node.ingest: false
+node.data: true
+</code></pre>
+<p><strong>启动两个实例：</strong></p>
+<pre><code class="language-bash">#启动两个elasticsearch实例
+sudo -u elasticsearch /opt/elasticsearch-SAS/bin/elasticsearch
+sudo -u elasticsearch /opt/elasticsearch-SSD/bin/elasticsearch
+</code></pre>
+<h3 id="四-es-data3部署双实例">四、es-data3部署双实例</h3>
+<h4 id="1️⃣迁移索引-3">1️⃣迁移索引：</h4>
+<p><strong>条件有限，没有挂载新的硬盘用，创建目录代替</strong></p>
+<table>
+<thead>
+<tr>
+<th>代码目录</th>
+<th>数据目录</th>
+<th>访问端口</th>
+<th>运输端口</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/opt/elasticsearch-SAS</td>
+<td>/data/SAS</td>
+<td>9200</td>
+<td>9300</td>
+</tr>
+<tr>
+<td>/opt/elasticsearch-SSD</td>
+<td>/data/SSD</td>
+<td>9201</td>
+<td>9301</td>
+</tr>
+</tbody>
+</table>
+<p><strong>确保索引不在当前实例上</strong></p>
+<p><strong>当前索引在es-data1，es-data3上</strong></p>
+<pre><code class="language-bash">qqq@qqq:~$ curl &quot;http://172.18.3.138:9200/_cat/shards?h=n&quot;
+es-data1-SSD
+es-data1-SAS
+es-data3
+es-data1-SSD
+es-data3
+es-data1-SAS
+es-data3
+es-data1-SAS
+es-data3
+es-data1-SSD
+</code></pre>
+<p><strong>当前集群节点查看</strong></p>
+<pre><code class="language-bash">qqq@qqq:~$ curl http://172.18.3.138:9200/_cat/nodes?v
+ip           heap.percent ram.percent cpu load_1m load_5m load_15m node.role master name
+172.18.4.22             8          94   1    0.05    0.63     0.45 d         -      es-data2-SSD
+172.18.3.253           14          48   0    0.08    0.04     0.05 m         *      es-3
+172.18.4.20            14          92   0    0.00    0.01     0.05 i         -      es-ingest3
+172.18.4.22             9          94   1    0.05    0.63     0.45 d         -      es-data2-SAS
+172.18.4.21            10          94   0    0.14    0.11     0.19 d         -      es-data1-SSD
+172.18.3.139           29          49   0    0.00    0.01     0.05 m         -      es-2
+172.18.4.23             9          93   0    0.00    0.03     0.05 d         -      es-data3
+172.18.3.138           30          79   0    0.00    0.02     0.05 m         -      es-1
+172.18.4.19            14          93   0    0.00    0.01     0.05 i         -      es-ingest2
+172.18.4.21             7          94   0    0.14    0.11     0.19 d         -      es-data1-SAS
+172.18.4.18            15          92   0    0.00    0.01     0.05 i         -      es-ingest1
+</code></pre>
+<p><strong>迁移索引到别的节点</strong></p>
+<pre><code class="language-bash">qqq@qqq:~$ curl -X PUT &quot;http://172.18.3.138:9200/*/_settings?pretty&quot; -H 'Content-Type: application/json' -d'
+{
+    &quot;index.routing.allocation.include._ip&quot;: &quot;172.18.4.21,172.18.4.22&quot;
+}'
+{
+  &quot;acknowledged&quot; : true
+}
+</code></pre>
+<p><strong>查看当前索引位置</strong></p>
+<pre><code class="language-bash">qqq@qqq:~$ curl &quot;http://172.18.3.138:9200/_cat/shards?h=n&quot;
+es-data1-SSD
+es-data1-SAS
+es-data2-SSD
+es-data1-SSD
+es-data2-SSD
+es-data1-SAS
+es-data2-SAS
+es-data1-SAS
+es-data2-SAS
+es-data1-SSD
+</code></pre>
+<h4 id="2️⃣部署es-data2双实例-2">2️⃣部署es-data2双实例</h4>
+<p><strong>旧的SAS实例</strong></p>
+<pre><code class="language-bash">#温柔地杀死旧进程
+[root@es-data3 ~]# kill $(ps -ef | grep ela | grep root | grep -v grep | awk '{print $2}')
+#改名字等
+[root@es-data3 opt]# mv elasticsearch elasticsearch-SAS
+[root@es-data3 opt]# mkdir -p /opt/logs/elasticsearch-SAS
+[root@es-data3 opt]# chown elasticsearch.elasticsearch /opt/logs/elasticsearch-SAS -R
+
+#SAS实例/opt/elasticsearch-SAS/config/elasticsearch.yml配置
+#注意节点名字，data位置，log位置，本结点访问端口，本结点运输端口，集群中其他主机及端口号，master节点端口号
+[root@es-data3 opt]# grep -Ev '^$|^#' /opt/elasticsearch-SAS/config/elasticsearch.yml
+cluster.name: 007-project
+node.name: es-data3-SAS
+path.data: /data/SAS
+path.logs: /opt/logs/elasticsearch-SAS
+network.host: 172.18.4.23
+http.port: 9200
+transport.port: 9300
+discovery.seed_hosts: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;, &quot;es-3:9300&quot;]
+cluster.initial_master_nodes: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;,&quot;es-3:9300&quot;]
+http.cors.enabled: true
+http.cors.allow-origin: &quot;*&quot;
+node.master: false
+node.ingest: false
+node.data: true
+</code></pre>
+<p><strong>新的SSD实例</strong></p>
+<p>注意节点名字，data位置，log位置，本结点访问端口，本结点运输端口，集群中其他主机及端口号，master节点端口号</p>
+<pre><code class="language-bash">[root@es-data3 opt]# tar xf software/elasticsearch-7.3.2-linux-x86_64.tar.gz -C /opt/
+[root@es-data3 opt]# mv elasticsearch-7.3.2 elasticsearch-SSD
+[root@es-data3 opt]# mkdir /data/SSD  /opt/logs/elasticsearch-SSD
+[root@es-data3 opt]# chown elasticsearch.elasticsearch /data/SSD  /opt/logs/elasticsearch-SSD /opt/elasticsearch-SSD  -R
+[root@es-data3 opt]# cp  /opt/elasticsearch-SAS/config/elasticsearch.yml  /opt/elasticsearch-SSD/config/elasticsearch.yml
+cp: overwrite ‘/opt/elasticsearch-SSD/config/elasticsearch.yml’? y
+[root@es-data3 opt]# vim /opt/elasticsearch-SSD/config/elasticsearch.yml
+[root@es-data3 opt]# grep -Ev '^$|^#' /opt/elasticsearch-SSD/config/elasticsearch.yml
+cluster.name: 007-project
+node.name: es-data3-SSD
+path.data: /data/SSD
+path.logs: /opt/logs/elasticsearch-SSD
+network.host: 172.18.4.23
+http.port: 9201
+transport.port: 9301
+discovery.seed_hosts: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;, &quot;es-3:9300&quot;]
+cluster.initial_master_nodes: [&quot;es-1:9300&quot;, &quot;es-2:9300&quot;,&quot;es-3:9300&quot;]
+http.cors.enabled: true
+http.cors.allow-origin: &quot;*&quot;
+node.master: false
+node.ingest: false
+node.data: true
+</code></pre>
+<p><strong>启动两个实例</strong></p>
+<pre><code class="language-bash">#启动两个elasticsearch实例
+sudo -u elasticsearch /opt/elasticsearch-SAS/bin/elasticsearch
+sudo -u elasticsearch /opt/elasticsearch-SSD/bin/elasticsearch
+</code></pre>
+<h3 id="五-确认集群节点的信息">五、确认集群节点的信息</h3>
+<h4 id="集群健康状态">集群健康状态：</h4>
+<pre><code class="language-bash">qqq@qqq:~$ curl http://172.18.3.138:9200/_cat/health?v
+epoch      timestamp cluster     status node.total node.data shards pri relo init unassign pending_tasks max_task_wait_time active_shards_percent
+1574551689 23:28:09  007-project green          12         6     10   5    0    0        0             0                  -                100.0%
+</code></pre>
+<h4 id="集群节点现在应该多了三个">集群节点现在应该多了三个</h4>
+<pre><code class="language-bash">qqq@qqq:~$ curl http://172.18.3.138:9200/_cat/nodes?v
+ip           heap.percent ram.percent cpu load_1m load_5m load_15m node.role master name
+172.18.4.20            18          92   0    0.00    0.01     0.05 i         -      es-ingest3
+172.18.4.23             9          92   1    0.34    1.15     0.65 d         -      es-data3-SAS
+172.18.3.139            8          49   0    0.00    0.02     0.05 m         -      es-2
+172.18.4.18            19          92   0    0.00    0.01     0.05 i         -      es-ingest1
+172.18.4.22            11          93   0    0.09    0.16     0.24 d         -      es-data2-SAS
+172.18.4.21            11          94   1    0.12    0.10     0.12 d         -      es-data1-SSD
+172.18.3.138           20          79   0    0.00    0.01     0.05 m         -      es-1
+172.18.4.21            13          94   1    0.12    0.10     0.12 d         -      es-data1-SAS
+172.18.4.22            12          93   0    0.09    0.16     0.24 d         -      es-data2-SSD
+172.18.3.253           11          48   0    0.00    0.01     0.05 m         *      es-3
+172.18.4.23             8          92   1    0.34    1.15     0.65 d         -      es-data3-SSD
+172.18.4.19            18          93   0    0.05    0.03     0.05 i         -      es-ingest2
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191127161414.png" alt="" loading="lazy"></figure>
+<h4 id="当前索引位置">当前索引位置</h4>
+<pre><code class="language-bash">qqq@qqq:~$ curl &quot;http://172.18.3.138:9200/_cat/shards?h=n&quot;
+es-data1-SSD
+es-data1-SAS
+es-data2-SSD
+es-data1-SSD
+es-data2-SSD
+es-data1-SAS
+es-data2-SAS
+es-data1-SAS
+es-data2-SAS
+es-data1-SSD
+</code></pre>
+<p><strong>使用下面命令将索引迁移到每个data节点</strong></p>
+<pre><code class="language-bash">qqq@qqq:~$ curl -X PUT &quot;http://172.18.3.138:9200/*/_settings?pretty&quot; -H 'Content-Type: application/json' -d'
+{
+    &quot;index.routing.allocation.include._ip&quot;: &quot;172.18.4.21,172.18.4.22,172.18.4.23&quot;
+}'
+{
+  &quot;acknowledged&quot; : true
+}
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191127161816.png" alt="" loading="lazy"></figure>
+<h3 id="六-测试">六、测试</h3>
+<h4 id="将所有索引迁移到ssd硬盘上">将所有索引迁移到SSD硬盘上</h4>
+<pre><code class="language-bash">qqq@qqq:~$ curl -X PUT &quot;http://172.18.3.138:9200/*/_settings?pretty&quot; -H 'Content-Type: application/json' -d'
+{
+  &quot;index.routing.allocation.include._host_ip&quot;: &quot;&quot;,
+  &quot;index.routing.allocation.include._host&quot;: &quot;&quot;,
+  &quot;index.routing.allocation.include._name&quot;: &quot;&quot;,
+  &quot;index.routing.allocation.include._ip&quot;: &quot;&quot;,
+  &quot;index.routing.allocation.require._name&quot;: &quot;*-SSD&quot;
+}'
+{
+  &quot;acknowledged&quot; : true
+}
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191127162133.png" alt="" loading="lazy"></figure>
+<h4 id="确认所有索引全在ssd硬盘上">确认所有索引全在SSD硬盘上</h4>
+<pre><code class="language-bash">qqq@qqq:~$ curl &quot;http://172.18.3.138:9200/_cat/shards?h=n&quot;
+es-data2-SSD
+es-data1-SSD
+es-data2-SSD
+es-data3-SSD
+es-data2-SSD
+es-data3-SSD
+es-data1-SSD
+es-data3-SSD
+es-data1-SSD
+es-data3-SSD
+</code></pre>
+<p><strong>将nginx11月份的日志索引迁移到SAS硬盘上</strong></p>
+<pre><code class="language-bash">qqq@qqq:~$ curl -X PUT &quot;http://172.18.3.138:9200/nginx_*_2019.11/_settings?pretty&quot; -H 'Content-Type: application/json' -d'
+{
+  &quot;index.routing.allocation.include._host_ip&quot;: &quot;&quot;,
+  &quot;index.routing.allocation.include._host&quot;: &quot;&quot;,
+  &quot;index.routing.allocation.include._name&quot;: &quot;&quot;,
+  &quot;index.routing.allocation.include._ip&quot;: &quot;&quot;,
+  &quot;index.routing.allocation.require._name&quot;: &quot;*-SAS&quot;
+}'
+{
+  &quot;acknowledged&quot; : true
+}
+</code></pre>
+<figure data-type="image" tabindex="5"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191127171110.png" alt="" loading="lazy"></figure>
+<pre><code class="language-bash">qqq@qqq:~$ curl &quot;http://172.18.3.138:9200/_cat/shards&quot;
+nginx_access_2019.11             0 r STARTED     9  75.2kb 172.18.4.23 es-data3-SAS
+nginx_access_2019.11             0 p STARTED     9  75.2kb 172.18.4.22 es-data2-SAS
+kibana_sample_data_logs          0 p STARTED 14074  11.4mb 172.18.4.22 es-data2-SSD
+kibana_sample_data_logs          0 r STARTED 14074  11.4mb 172.18.4.23 es-data3-SSD
+filebeat-7.3.2-2019.11.17-000001 0 p STARTED     0    283b 172.18.4.22 es-data2-SSD
+filebeat-7.3.2-2019.11.17-000001 0 r STARTED     0    283b 172.18.4.21 es-data1-SSD
+.kibana_task_manager             0 p STARTED     2 128.2kb 172.18.4.22 es-data2-SSD
+.kibana_task_manager             0 r STARTED     2 128.2kb 172.18.4.23 es-data3-SSD
+.kibana_1                        0 r STARTED    43 223.3kb 172.18.4.21 es-data1-SSD
+.kibana_1                        0 p STARTED    43 338.9kb 172.18.4.23 es-data3-SSD
+</code></pre>
+<figure data-type="image" tabindex="6"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191127171157.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/ZT9ZsbaBh/" class="tag">
+                    elasticsearch
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/frzMs1qKsP/" class="tag">
+                    filebeat
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/BtfoFSmpxP/" class="tag">
+                    kibana
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/lFS6w7ux1/" class="tag">
+                    EFK
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/lg6bpjVDB/">
+                  <h3 class="post-title">
+                     修改nginx镜像时区
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

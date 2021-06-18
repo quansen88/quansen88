@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190902谷歌身份验证器使用 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="谷歌身份验证器使用
+参考：https://www.jianshu.com/p/9226b5d006bb
+ubuntu18.04
+1、谷歌身份验证器apk
+
+https://www.lanzous.com/i5yl8ad    密码:6666..." />
+    <meta name="keywords" content="linux,ubuntu" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190902谷歌身份验证器使用</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://assets.ubuntu.com/v1/8114528b-picto-ubuntu-orange.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="谷歌身份验证器使用">谷歌身份验证器使用</h1>
+<p>参考：https://www.jianshu.com/p/9226b5d006bb</p>
+<h2 id="ubuntu1804">ubuntu18.04</h2>
+<h4 id="1-谷歌身份验证器apk">1、谷歌身份验证器apk</h4>
+<blockquote>
+<p>https://www.lanzous.com/i5yl8ad    密码:6666</p>
+<p>备用下载：https://www.wandoujia.com/apps/32913</p>
+</blockquote>
+<h4 id="2-ubuntu安装libpam-google-authenticator">2、ubuntu安装libpam-google-authenticator</h4>
+<pre><code class="language-bash">root@lanserver:~# apt-get install libpam-google-authenticator -y
+</code></pre>
+<h4 id="3-设置google-authenticator">3、设置Google Authenticator</h4>
+<pre><code class="language-bash">root@lanserver:~# google-authenticator
+</code></pre>
+<p>会出来一个连接，然后很大的二维码</p>
+<pre><code class="language-bash">Do you want authentication tokens to be time-based (y/n) y
+Warning: pasting the following URL into your browser exposes the OTP secret to Google:
+  https://www.google.com/chart?chs=200x200&amp;chld=M|0&amp;cht=qr&amp;chl=otpauth://totp/root@lanserver%3Fsecret%3DIZQPHLARMZ52PPNLI4PSDGQ3SQ%26issuer%3Dlanserver
+...很大的二维码...
+</code></pre>
+<p>二维码不管，网址在浏览器打开，谷歌身份验证器扫一下</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567423979062.png" alt="1567423979062" loading="lazy"></figure>
+<p><strong>然后下面的问题全部yes回答即可</strong></p>
+<h4 id="4-接下来将google-authenticator验证配置到ssh登录中">4、接下来将<strong>Google Authenticator</strong>验证配置到SSH登录中</h4>
+<p>编辑<code>/etc/pam.d/sshd</code>文件，添加下行保存</p>
+<pre><code class="language-bash">root@lanserver:~# sed -i '$a auth required pam_google_authenticator.so' /etc/pam.d/ssh
+</code></pre>
+<p>编辑<code>/etc/ssh/sshd_config</code>找到下行</p>
+<pre><code class="language-bash">root@lanserver:~# sed 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config  -i
+root@lanserver:~# systemctl restart sshd
+</code></pre>
+<h5 id="5-用另一台linux登陆">5、用另一台linux登陆</h5>
+<pre><code class="language-bah">[root@imooc-nginx ~]# ssh root@192.168.38.155
+Password: 
+Verification code: 
+Welcome to Ubuntu 18.04.3 LTS (GNU/Linux 5.0.0-27-generic x86_64)
+</code></pre>
+<p><strong>注意事项1：刚才用root用户执行的google-authenticator，所以只有root可以登陆；其他用户现在也必须执行google-authenticator并扫码，才可以登陆</strong></p>
+<p><strong>注意事项2：不能直接用xshell登陆,如果要用xshell登陆，要建立会话，并设置登陆方式，如下图;只能从linux登陆或者gitbash那种方式可以登陆</strong></p>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567425728971.png" alt="1567425728971" loading="lazy"></figure>
+<h2 id="centos7">CentOS7</h2>
+<p><strong>如上面所示安装apk</strong></p>
+<p>参考：https://blog.csdn.net/ldyboy1314/article/details/82787766</p>
+<p><strong>CentOS7一定要注意，关闭selinux和firewalld，一定一定,时间也校准一下</strong></p>
+<pre><code class="language-bash">setenforce 0
+sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+systemctl stop firewalld
+systemctl disable firewalld
+yum install ntpdate -y &amp;&amp; ntpdate ntp.aliyun.com
+</code></pre>
+<h4 id="1-安装epel源">1、安装epel源</h4>
+<pre><code class="language-bash">[root@centos7 ~]# curl -Lo /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+</code></pre>
+<h4 id="2-安装qrencode等">2、安装Qrencode等</h4>
+<pre><code class="language-bash">[root@centos7 ~]# yum install -y qrencode git autoconf automake libtool pam-devel
+</code></pre>
+<h4 id="3-编译安装">3、编译安装</h4>
+<pre><code class="language-bash">./bootstrap.sh
+./configure
+make
+sudo make install
+</code></pre>
+<h4 id="4-拷贝google的身份验证器pam模块到系统下">4、拷贝google的身份验证器pam模块到系统下</h4>
+<pre><code class="language-bash">[root@centos7 google-authenticator-libpam]# cp .libs/pam_google_authenticator.so /lib64/security/
+</code></pre>
+<h4 id="5-配置sshd的pam认证写在auth-include-password-auth-基于密码认证的上面一行先基于google验证码认证">5、配置sshd的pam认证，写在auth  include  password-auth 基于密码认证的上面一行,先基于google验证码认证</h4>
+<pre><code class="language-bash">[root@centos7 ~]# sed '2a auth       required     pam_google_authenticator.so' /etc/pam.d/sshd -i
+</code></pre>
+<h4 id="6-修改ssh服务配置etcsshsshd_config"><strong>6、修改SSH服务配置/etc/ssh/sshd_config</strong></h4>
+<pre><code class="language-bash">[root@centos7 ~]# sed 's/ChallengeResponseAuthentication no/ChallengeResponseAuthentication yes/' /etc/ssh/sshd_config -i
+[root@centos7 ~]# systemctl restart sshd
+</code></pre>
+<h4 id="7-设置google-authenticator">7、设置Google Authenticator</h4>
+<p><strong>然后就和上面ubuntu设置一样了：复制链接到网页，app扫码，以下问题全部yes</strong></p>
+<pre><code class="language-bash">[root@centos7 ~]# google-authenticator 
+
+Do you want authentication tokens to be time-based (y/n) y
+Warning: pasting the following URL into your browser exposes the OTP secret to Google:
+  https://www.google.com/chart?chs=200x200&amp;chld=M|0&amp;cht=qr&amp;chl=otpauth://totp/root@centos7%3Fsecret%3DXQKQSVY6HCPPBIUK37B4EOCINY%26issuer%3Dcentos7
+...很大的二维码...
+Your new secret key is: XQKQSVY6HCPPBIUK37B4EOCINY
+Enter code from app (-1 to skip): -1
+Code confirmation skipped
+Your emergency scratch codes are:
+  16278525
+  35897623
+  37994379
+  26212204
+  34659048
+#这是几个紧急验证码，只能用一次
+Do you want me to update your &quot;/root/.google_authenticator&quot; file? (y/n) y
+
+Do you want to disallow multiple uses of the same authentication
+token? This restricts you to one login about every 30s, but it increases
+your chances to notice or even prevent man-in-the-middle attacks (y/n) y
+
+By default, a new token is generated every 30 seconds by the mobile app.
+In order to compensate for possible time-skew between the client and the server,
+we allow an extra token before and after the current time. This allows for a
+time skew of up to 30 seconds between authentication server and client. If you
+experience problems with poor time synchronization, you can increase the window
+from its default size of 3 permitted codes (one previous code, the current
+code, the next code) to 17 permitted codes (the 8 previous codes, the current
+code, and the 8 next codes). This will permit for a time skew of up to 4 minutes
+between client and server.
+Do you want to do so? (y/n) y
+
+If the computer that you are logging into isn't hardened against brute-force
+login attempts, you can enable rate-limiting for the authentication module.
+By default, this limits attackers to no more than 3 login attempts every 30s.
+Do you want to enable rate-limiting? (y/n) y
+</code></pre>
+<h4 id="8-登陆也同上面ubuntu一样试试">8、登陆也同上面ubuntu一样，试试</h4>
+<pre><code class="language-bash">[root@linux1 ~]# ssh root@192.168.38.140
+Password: 
+Verification code: 
+Password: 
+Verification code: 
+Last failed login: Mon Sep  2 20:55:55 CST 2019 from 192.168.38.123 on ssh:notty
+There were 24 failed login attempts since the last successful login.
+Last login: Mon Sep  2 20:55:38 2019 from 192.168.38.123
+[root@centos7 ~]# 
+</code></pre>
+<h4 id="关于上面的紧急验证码">关于上面的紧急验证码：</h4>
+<pre><code class="language-bash">/root/.google_authenticato
+</code></pre>
+<p><strong>可以自行添加数字到里面，一样可以用，一次性的，用完就会从文件中删掉</strong></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/EygRD_8J4/" class="tag">
+                    ubuntu
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190901openssl-speed-he-openssl-rand/">
+                  <h3 class="post-title">
+                    20190901openssl speed和openssl rand
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

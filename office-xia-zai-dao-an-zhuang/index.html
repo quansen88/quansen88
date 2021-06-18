@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>office下载到安装 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="20200716office下载到安装
+一、下载office2019
+
+https://msdn.itellyou.cn/
+
+
+ed2k://|file|cn_office_professional_plus_2019_x86_x64_dv..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">office下载到安装</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="20200716office下载到安装">20200716office下载到安装</h1>
+<h3 id="一-下载office2019">一、下载office2019</h3>
+<blockquote>
+<p>https://msdn.itellyou.cn/</p>
+</blockquote>
+<blockquote>
+<pre><code>ed2k://|file|cn_office_professional_plus_2019_x86_x64_dvd_5e5be643.iso|3775004672|1E4FFA5240F21F60DC027F73F1C62FF4|/
+</code></pre>
+</blockquote>
+<h3 id="二-安装">二、安装</h3>
+<p>双击此文件（.镜像），挂载到驱动器</p>
+<p>打开此驱动器，双击打开安装文件（.exe）</p>
+<h3 id="三-激活">三、激活</h3>
+<blockquote>
+<p>参考：https://hub.docker.com/r/luodaoyi/kms-server</p>
+</blockquote>
+<pre><code>cd C:\Program Files\Microsoft Office\Office16
+</code></pre>
+<pre><code>cscript ospp.vbs /sethst:kms.luody.info
+</code></pre>
+<pre><code>cscript ospp.vbs /act
+</code></pre>
+<h4 id="激活报错">激活报错：</h4>
+<pre><code>Microsoft (R) Windows Script Host Version 5.812
+版权所有(C) Microsoft Corporation。保留所有权利。
+
+---Processing--------------------------
+---------------------------------------
+Installed product key detected - attempting to activate the following product:
+SKU ID: 436366de-5579-4f24-96db-3893e4400030
+LICENSE NAME: Office 16, Office16OneNoteFreeR_Bypass edition
+LICENSE DESCRIPTION: Office 16, RETAIL(Free) channel
+Last 5 characters of installed product key: 7CFGB
+ERROR CODE: 0xC004F017
+ERROR DESCRIPTION: The Software Licensing Service reported that the license is not installed.
+---------------------------------------
+Installed product key detected - attempting to activate the following product:
+SKU ID: 52c4d79f-6e1a-45b7-b479-36b666e0a2f8
+LICENSE NAME: Office 19, Office19ProPlus2019R_Grace edition
+LICENSE DESCRIPTION: Office 19, RETAIL(Grace) channel
+Last 5 characters of installed product key: 8MBCX
+ERROR CODE: 0xC004F017
+ERROR DESCRIPTION: The Software Licensing Service reported that the license is not installed.
+---------------------------------------
+---------------------------------------
+---Exiting-----------------------------
+
+</code></pre>
+<p><strong>经查得office不是vl版本，需要安装vlkey，但是又报错</strong></p>
+<blockquote>
+<p>安装vlkey参考：https://xyz.uscwifi.xyz/post/9S2_vcvwJ/</p>
+</blockquote>
+<pre><code>C:\Program Files\Microsoft Office\Office16&gt;cscript &quot;C:\Program Files\Microsoft Office\Office16\OSPP.VBS&quot; /inpkey:NMMKJ-6RK4F-KMJVX-8D9MJ-6MWKP
+Microsoft (R) Windows Script Host Version 5.812
+版权所有(C) Microsoft Corporation。保留所有权利。
+
+---Processing--------------------------
+---------------------------------------
+ERROR CODE: 0xC004F069
+ERROR DESCRIPTION: The Software Licensing Service reported that the product SKU is not found.
+---------------------------------------
+---Exiting-----------------------------
+</code></pre>
+<p><strong>通过报错查得，需要使用一个脚本，将office转换成vl版本</strong></p>
+<blockquote>
+<p>参考：https://blog.csdn.net/alinathz/article/details/92630091</p>
+</blockquote>
+<p><strong>将下面脚本写入一个txt文档，修改后缀为bat，管理员身份执行这个脚本</strong></p>
+<pre><code>@echo off
+:ADMIN
+openfiles &gt;nul 2&gt;nul ||(
+echo CreateObject^(&quot;Shell.Application&quot;^).ShellExecute &quot;%~s0&quot;, &quot;&quot;, &quot;&quot;, &quot;runas&quot;, 1 &gt;&gt; &quot;%temp%\getadmin.vbs&quot;
+&quot;%temp%\getadmin.vbs&quot; &gt;nul 2&gt;&amp;1
+goto:eof
+)
+del /f /q &quot;%temp%\getadmin.vbs&quot; &gt;nul 2&gt;nul
+
+for /f &quot;tokens=6 delims=[]. &quot; %%G in ('ver') do set win=%%G
+
+setlocal
+
+set OPPKEY=XQNVK-8JYDB-WJ9W3-YJ8YR-WFG99
+set PPKEY=YG9NW-3K39V-2T3HJ-93F3Q-G83KT
+set VPKEY=PD3PC-RHNGV-FXJ29-8JK7D-RJRJK
+set S4BKEY=869NQ-FJ69K-466HW-QYCP2-DDBV6
+
+pushd &quot;%~dp0&quot;
+Title Office 2016 Retail to Volume License Converter
+
+SET OfficePath=%ProgramFiles%\Microsoft Office
+if not exist &quot;%OfficePath%\root\Licenses16&quot; SET OfficePath=%ProgramFiles(x86)%\Microsoft Office
+if not exist &quot;%OfficePath%\root\Licenses16&quot; (
+	echo Could not find the license files for Office 2016!
+	pause
+	goto :eof
+)
+
+echo Press Enter to start VL-Conversion...
+echo.
+pause
+echo.
+cd /D &quot;%SystemRoot%\System32&quot;
+
+if %win% GEQ 9200 (
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\ProPlusVL_KMS_Client-ppd.xrm-ms&quot;
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\ProPlusVL_KMS_Client-ul.xrm-ms&quot;
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\ProPlusVL_KMS_Client-ul-oob.xrm-ms&quot;
+
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\ProjectProVL_KMS_Client-ppd.xrm-ms&quot;
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\ProjectProVL_KMS_Client-ul-oob.xrm-ms&quot;
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\ProjectProVL_KMS_Client-ul.xrm-ms&quot;
+
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\VisioProVL_KMS_Client-ppd.xrm-ms&quot;
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\VisioProVL_KMS_Client-ul-oob.xrm-ms&quot;
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\VisioProVL_KMS_Client-ul.xrm-ms&quot;
+
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\SkypeforBusinessVL_KMS_Client-ppd.xrm-ms&quot;
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\SkypeforBusinessVL_KMS_Client-ul.xrm-ms&quot;
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\SkypeforBusinessVL_KMS_Client-ul-oob.xrm-ms&quot;
+
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\client-issuance-bridge-office.xrm-ms
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\client-issuance-root.xrm-ms
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\client-issuance-root-bridge-test.xrm-ms
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\client-issuance-stil.xrm-ms
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\client-issuance-ul.xrm-ms
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\client-issuance-ul-oob.xrm-ms
+	cscript slmgr.vbs /ilc &quot;%OfficePath%\root\Licenses16\pkeyconfig-office.xrm-ms
+)
+ if %win% LSS 9200 (
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\ProPlusVL_KMS_Client-ppd.xrm-ms&quot;
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\ProPlusVL_KMS_Client-ul.xrm-ms&quot;
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\ProPlusVL_KMS_Client-ul-oob.xrm-ms&quot;
+
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\ProjectProVL_KMS_Client-ppd.xrm-ms&quot;
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\ProjectProVL_KMS_Client-ul-oob.xrm-ms&quot;
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\ProjectProVL_KMS_Client-ul.xrm-ms&quot;
+
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\VisioProVL_KMS_Client-ppd.xrm-ms&quot;
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\VisioProVL_KMS_Client-ul-oob.xrm-ms&quot;
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\VisioProVL_KMS_Client-ul.xrm-ms&quot;0
+
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\SkypeforBusinessVL_KMS_Client-ppd.xrm-ms&quot;
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\SkypeforBusinessVL_KMS_Client-ul.xrm-ms&quot;
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\SkypeforBusinessVL_KMS_Client-ul-oob.xrm-ms&quot;
+
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\client-issuance-bridge-office.xrm-ms
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\client-issuance-root.xrm-ms
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\client-issuance-root-bridge-test.xrm-ms
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\client-issuance-stil.xrm-ms
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\client-issuance-ul.xrm-ms
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\client-issuance-ul-oob.xrm-ms
+	cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inslic:&quot;%OfficePath%\root\Licenses16\pkeyconfig-office.xrm-ms
+)
+
+for %%a in (%OPPKEY% %PPKEY% %VPKEY% %S4BKEY%) do cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /inpkey:%%a
+cscript &quot;%OfficePath%\Office16\ospp.vbs&quot; /act
+
+echo.
+echo Retail to Volume License conversion finished.
+echo.
+pause
+</code></pre>
+<h4 id="脚本执行完成如下图">脚本执行完成如下图</h4>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/image-20200716222137492.png" alt="image-20200716222137492" loading="lazy"></figure>
+<p><strong>现在office版本变成vl版本，可以使用激活命令</strong></p>
+<pre><code>cscript &quot;C:\Program Files\Microsoft Office\Office16\OSPP.VBS&quot; /sethst:kms.luody.info
+</code></pre>
+<pre><code>cscript &quot;C:\Program Files\Microsoft Office\Office16\OSPP.VBS&quot; /act
+</code></pre>
+<p><strong>执行成功如下</strong></p>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/image-20200716223016561.png" alt="image-20200716223016561" loading="lazy"></figure>
+<h3 id="四-重启电脑">四、重启电脑</h3>
+<p>查看office激活状态，显示激活：</p>
+<figure data-type="image" tabindex="3"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/image-20200716223512912.png" alt="image-20200716223512912" loading="lazy"></figure>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/centos7-an-zhuang-zabbix50/">
+                  <h3 class="post-title">
+                     centos7安装zabbix5.0
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

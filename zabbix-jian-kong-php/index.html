@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> zabbix监控php | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="zabbix监控php
+可以参考：https://blog.csdn.net/qq_33317586/article/details/83622754
+yum install https://mirrors.huaweicloud.com/..." />
+    <meta name="keywords" content="php,zabbix" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> zabbix监控php</h2>
+            <div class="post-date">2021-05-03</div>
+            
+              <div class="feature-container" style="background-image: url('https://assets.zabbix.com/dist/images/fd87efa6da9bed3fd8c9cfb442a3d537.svg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="zabbix监控php">zabbix监控php</h1>
+<p>可以参考：https://blog.csdn.net/qq_33317586/article/details/83622754</p>
+<pre><code class="language-bash">yum install https://mirrors.huaweicloud.com/remi/enterprise/remi-release-7.rpm
+yum install php73-php-fpm x86_64 -y
+systemctl start php73-php-fpm &amp;&amp; systemctl enable php73-php-fpm
+</code></pre>
+<p><strong>配置www.conf</strong></p>
+<blockquote>
+<p><strong>要确保：</strong></p>
+<p>1、php启动用户和nginx进程用户一样</p>
+<p>2、sock文件可以被nginx读</p>
+<p>3、pm.status要和nginx中配置一样</p>
+</blockquote>
+<pre><code class="language-bash">[root@node1 ~]# vim /etc/opt/remi/php73/php-fpm.d/www.conf
+user = nginx
+group = nginx
+listen = /var/run/php-fpm.sock
+listen.owner = nginx
+listen.group = nginx
+listen.mode = 0660
+pm.status_path = /status
+</code></pre>
+<p><strong>配置nginx</strong></p>
+<pre><code class="language-nginx">[root@node1 conf.d]# cat 2333.conf 
+server {
+    listen 2333;
+    server_name 127.0.0.1;
+    location /status {
+        include fastcgi_params;
+        fastcgi_pass unix:/var/run/php-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        allow 127.0.0.1;
+        allow 192.168.38.0/24;
+        deny all;
+    }
+}
+</code></pre>
+<p><strong>访问测试</strong></p>
+<pre><code class="language-bash">[root@node1 conf.d]# curl 127.0.0.1:2333/status
+pool:                 www
+process manager:      dynamic
+start time:           03/Nov/2019:20:47:09 +0800
+start since:          372
+accepted conn:        4
+listen queue:         0
+max listen queue:     0
+listen queue len:     0
+idle processes:       4
+active processes:     1
+total processes:      5
+max active processes: 1
+max children reached: 0
+</code></pre>
+<pre><code class="language-xml">[root@node1 conf.d]# curl 127.0.0.1:2333/status?xml
+&lt;?xml version=&quot;1.0&quot; ?&gt;
+&lt;status&gt;
+&lt;pool&gt;www&lt;/pool&gt;
+&lt;process-manager&gt;dynamic&lt;/process-manager&gt;
+&lt;start-time&gt;1572785229&lt;/start-time&gt;
+&lt;start-since&gt;388&lt;/start-since&gt;
+&lt;accepted-conn&gt;5&lt;/accepted-conn&gt;
+&lt;listen-queue&gt;0&lt;/listen-queue&gt;
+&lt;max-listen-queue&gt;0&lt;/max-listen-queue&gt;
+&lt;listen-queue-len&gt;0&lt;/listen-queue-len&gt;
+&lt;idle-processes&gt;4&lt;/idle-processes&gt;
+&lt;active-processes&gt;1&lt;/active-processes&gt;
+&lt;total-processes&gt;5&lt;/total-processes&gt;
+&lt;max-active-processes&gt;1&lt;/max-active-processes&gt;
+&lt;max-children-reached&gt;0&lt;/max-children-reached&gt;
+&lt;slow-requests&gt;0&lt;/slow-requests&gt;
+</code></pre>
+<p>还支持json，html,支持full</p>
+<pre><code class="language-bash">[root@node1 conf.d]# curl 127.0.0.1:2333/status?full
+...
+[root@node1 conf.d]# curl 127.0.0.1:2333/status?json
+{&quot;pool&quot;:&quot;www&quot;,&quot;process manager&quot;:&quot;dynamic&quot;,&quot;start time&quot;:1572785229,&quot;start since&quot;:434,&quot;accepted conn&quot;:7,&quot;listen queue&quot;:0,&quot;max listen queue&quot;:0,&quot;listen queue len&quot;:0,&quot;idle processes&quot;:4,&quot;active processes&quot;:1,&quot;total processes&quot;:5,&quot;max active processes&quot;:1,&quot;max children reached&quot;:0,&quot;slow requests&quot;:0}
+[root@node1 conf.d]# curl 127.0.0.1:2333/status?html
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://i.loli.net/2019/11/03/wXpNqlTgdvSW9FV.png" alt="" loading="lazy"></figure>
+<p><strong>php-fpm status详解</strong></p>
+<pre><code class="language-bash">pool – fpm池子名称，大多数为www
+process manager – 进程管理方式,值：static, dynamic or ondemand. dynamic
+start time – 启动日期,如果reload了php-fpm，时间会更新
+start since – 运行时长
+accepted conn – 当前池子接受的请求数
+listen queue – 请求等待队列，如果这个值不为0，那么要增加FPM的进程数量
+max listen queue – 请求等待队列最高的数量
+listen queue len – socket等待队列长度
+idle processes – 空闲进程数量
+active processes – 活跃进程数量
+total processes – 总进程数量
+max active processes – 最大的活跃进程数量（FPM启动开始算）
+max children reached - 大道进程最大数量限制的次数，如果这个数量不为0，那说明你的最大进程数量太小了，请改大一点。
+slow requests – 启用了php-fpm slow-log，缓慢请求的数量
+</code></pre>
+<p><strong>full讲解</strong></p>
+<pre><code class="language-bash">pid – 进程PID，可以单独kill这个进程. You can use this PID to kill a long running process.
+state – 当前进程的状态 (Idle, Running, …)
+start time – 进程启动的日期
+start since – 当前进程运行时长
+requests – 当前进程处理了多少个请求
+request duration – 请求时长（微妙）
+request method – 请求方法 (GET, POST, …)
+request URI – 请求URI
+content length – 请求内容长度 (仅用于 POST)
+user – 用户 (PHP_AUTH_USER) (or ‘-’ 如果没设置)
+script – PHP脚本 (or ‘-’ if not set)
+last request cpu – 最后一个请求CPU使用率。
+last request memorythe - 上一个请求使用的内存
+</code></pre>
+<p><strong>监控：</strong></p>
+<p>公司zabbix监控都用xml格式或者默认格式，web监控用html</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/Ia5w99vjh/" class="tag">
+                    php
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/z1AO6a8fT/" class="tag">
+                    zabbix
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191103temp-wen-dang-dos-jian-dan-gong-ji-fang-yu-jiao-ben-1/">
+                  <h3 class="post-title">
+                    20191103temp文档DOS简单攻击防御脚本1
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

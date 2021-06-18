@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>ssh的优化 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="20200819ssh的优化
+
+原址:quansen88.cn/post/ssh-de-you-hua
+
+一、添加端口
+grep Port /etc/ssh/sshd_config
+sed -i '/#Port 22/aPort 52113..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">ssh的优化</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="20200819ssh的优化">20200819ssh的优化</h1>
+<blockquote>
+<p>原址:quansen88.cn/post/ssh-de-you-hua</p>
+</blockquote>
+<h2 id="一-添加端口">一、添加端口</h2>
+<pre><code>grep Port /etc/ssh/sshd_config
+sed -i '/#Port 22/aPort 52113' /etc/ssh/sshd_config #‘#Port 22’下一行添加‘Port 52113’
+grep Port /etc/ssh/sshd_config
+</code></pre>
+<p><strong>注意</strong>查看是否修改成功，<strong>有</strong>些机器已经取消port 22端口的‘<strong>#</strong>’注释了</p>
+<h2 id="二-禁止root用户登录">二、禁止root用户登录</h2>
+<pre><code class="language-css">grep 'PermitRootLogin yes' /etc/ssh/sshd_config
+sed -i '/#PermitRootLogin yes/aPermitRootLogin no' /etc/ssh/sshd_config
+grep 'PermitRootLogin' /etc/ssh/sshd_config
+</code></pre>
+<h2 id="三-禁止空密码登录">三、禁止空密码登录</h2>
+<pre><code class="language-css">grep 'PermitE' /etc/ssh/sshd_config
+sed -i '/#PermitEmptyPasswords no/aPermitEmptyPasswords yes' /etc/ssh/sshd_config
+grep 'PermitE' /etc/ssh/sshd_config
+</code></pre>
+<h2 id="四-优化-ssh连接过慢dns轮询导致的问题">四、优化 ssh连接过慢，DNS轮询导致的问题：</h2>
+<pre><code class="language-css">grep 'UseDNS' /etc/ssh/sshd_config
+sed -i '/#UseDNS yes/aUseDNS no' /etc/ssh/sshd_config
+grep 'UseDNS' /etc/ssh/sshd_config
+</code></pre>
+<h2 id="五-gssapiauthentication这个作用是为了时ssh连接更加快">五、GSSAPIAuthentication，这个作用是为了时ssh连接更加快</h2>
+<pre><code class="language-css">grep 'GSSAPIAuthentication' /etc/ssh/sshd_config
+sed -i 's/GSSAPIAuthentication yes/GSSAPIAuthentication no/g' /etc/ssh/sshd_config
+grep 'GSSAPIAuthentication' /etc/ssh/sshd_config
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/github-pages-wang-ye-tiao-zhuan-jiu-yu-ming-chong-ding-xiang-dao-xin-yu-ming/">
+                  <h3 class="post-title">
+                    github-pages网页跳转（旧域名重定向到新域名）
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

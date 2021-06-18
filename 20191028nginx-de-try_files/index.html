@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191028nginx的try_files | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="nginx的try_files
+http://nginx.org/en/docs/http/ngx_http_core_module.html#try_files
+try_files
+
+
+
+-
+说明
+
+
+
+
+语法
+try_files fil..." />
+    <meta name="keywords" content="nginx" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191028nginx的try_files</h2>
+            <div class="post-date">2021-04-29</div>
+            
+              <div class="feature-container" style="background-image: url('https://nginx.org/nginx.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="nginx的try_files">nginx的try_files</h1>
+<p>http://nginx.org/en/docs/http/ngx_http_core_module.html#try_files</p>
+<h3 id="try_files">try_files</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">-</th>
+<th style="text-align:left">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>语法</strong></td>
+<td style="text-align:left"><strong>try_files</strong> <code>file ... uri</code>; <strong>try_files</strong> <code>file ... =code</code>;</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>默认</strong></td>
+<td style="text-align:left">——</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>上下文</strong></td>
+<td style="text-align:left">server、location</td>
+</tr>
+</tbody>
+</table>
+<p>以指定顺序检查文件是否存在，并使用第一个找到的文件进行请求处理。处理将在当前上下文中执行。指向文件的路径根据 <a href="https://docshome.gitbooks.io/nginx-docs/content/%E6%A8%A1%E5%9D%97%E5%8F%82%E8%80%83/http/ngx_http_core_module.html#root">root</a> 和 <a href="https://docshome.gitbooks.io/nginx-docs/content/%E6%A8%A1%E5%9D%97%E5%8F%82%E8%80%83/http/ngx_http_core_module.html#alias">alias</a> 指令从 <code>file</code> 参数构造。可以通过在名称末尾指定斜线来检查目录是否存在，例如，<code>$URI/</code>。如果找不到任何文件，则内部重定向将指向最后一个参数中指定的 <code>uri</code>。例如：</p>
+<pre><code class="language-nginx">location /images/ {
+    try_files $uri /images/default.gif;
+}
+
+location = /images/default.gif {
+    expires 30s;
+}
+</code></pre>
+<p>最后一个参数也可以指向一个命名的 location ，如以下示例。从 0.7.51 版本开始，最后一个参数也可以是一个 <code>code</code>：</p>
+<pre><code class="language-nginx">location / {
+    try_files $uri $uri/index.html $uri.html =404;
+}
+</code></pre>
+<p>代理 Mongrel 示例：</p>
+<pre><code class="language-nginx">location / {
+    try_files /system/maintenance.html
+              $uri $uri/index.html $uri.html
+              @mongrel;
+}
+
+location @mongrel {
+    proxy_pass http://mongrel;
+}
+</code></pre>
+<p>Drupal/FastCGI 示例：</p>
+<pre><code class="language-nginx">location / {
+    try_files $uri $uri/ @drupal;
+}
+
+location ~ \.php$ {
+    try_files $uri @drupal;
+
+    fastcgi_pass ...;
+
+    fastcgi_param SCRIPT_FILENAME /path/to$fastcgi_script_name;
+    fastcgi_param SCRIPT_NAME     $fastcgi_script_name;
+    fastcgi_param QUERY_STRING    $args;
+
+    ... other fastcgi_param's
+}
+
+location @drupal {
+    fastcgi_pass ...;
+
+    fastcgi_param SCRIPT_FILENAME /path/to/index.php;
+    fastcgi_param SCRIPT_NAME     /index.php;
+    fastcgi_param QUERY_STRING    q=$uri&amp;$args;
+
+    ... other fastcgi_param's
+}
+</code></pre>
+<p>在以下示例中</p>
+<pre><code class="language-nginx">location / {
+    try_files $uri $uri/ @drupal;
+}
+</code></pre>
+<p>try_files 指令相当于</p>
+<pre><code class="language-nginx">location / {
+    error_page 404 = @drupal;
+    log_not_found off;
+}
+</code></pre>
+<p>还有一个示例</p>
+<pre><code class="language-nginx">location ~ \.php$ {
+    try_files $uri @drupal;
+
+    fastcgi_pass ...;
+
+    fastcgi_param SCRIPT_FILENAME /path/to$fastcgi_script_name;
+
+    ...
+}
+</code></pre>
+<p>在将请求传递给 FastCGI 服务器之前，try_files 将检查 PHP 文件是否存在。</p>
+<p>Wordpress 与 Joomla 示例：</p>
+<pre><code class="language-nginx">location / {
+    try_files $uri $uri/ @wordpress;
+}
+
+location ~ \.php$ {
+    try_files $uri @wordpress;
+
+    fastcgi_pass ...;
+
+    fastcgi_param SCRIPT_FILENAME /path/to$fastcgi_script_name;
+    ... other fastcgi_param's
+}
+
+location @wordpress {
+    fastcgi_pass ...;
+
+    fastcgi_param SCRIPT_FILENAME /path/to/index.php;
+    ... other fastcgi_param's
+}
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/ycg_qQA4v/" class="tag">
+                    nginx
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191027-zhi-zuo-chi-xian-docker-an-zhuang-yuan/">
+                  <h3 class="post-title">
+                    20191027制作离线docker安装源
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

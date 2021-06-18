@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191009ansible知识点 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="ansible知识点
+1、通过ansible all -msetup查看主机信息
+facts组件是⽤来收集被管理节点信息的，使⽤setup模块可以获取这些信息。
+ansible app -msetup
+
+使⽤f ilter可以筛选指定的fa..." />
+    <meta name="keywords" content="ansible" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191009ansible知识点</h2>
+            <div class="post-date">2021-04-27</div>
+            
+              <div class="feature-container" style="background-image: url('https://cn.bing.com/th?id=AMMS_2e7e1d0c1992fae36e3404bbf1ce418e&amp;w=110&amp;h=110&amp;c=7&amp;rs=1&amp;qlt=80&amp;pcl=f9f9f9&amp;o=6&amp;cdv=1&amp;dpr=1.38&amp;pid=16.1')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="ansible知识点">ansible知识点</h1>
+<h4 id="1-通过ansible-all-msetup查看主机信息"><strong>1</strong>、通过ansible all -msetup查看主机信息</h4>
+<p>facts组件是⽤来收集被管理节点信息的，使⽤setup模块可以获取这些信息。</p>
+<pre><code class="language-bash">ansible app -msetup
+</code></pre>
+<p>使⽤f ilter可以筛选指定的facts信息。例如：</p>
+<pre><code class="language-bash">#CPU个数
+[root@node1 yml]# ansible app -msetup -a'filter=ansible_processor_vcpus' -o
+192.168.38.136 | SUCCESS =&gt; {&quot;ansible_facts&quot;: {&quot;ansible_processor_vcpus&quot;: 1, &quot;discovered_interpreter_python&quot;: &quot;/usr/bin/python&quot;}, &quot;changed&quot;: false}
+</code></pre>
+<pre><code class="language-bash">#CentOS大版本号
+[root@node1 yml]# ansible app -msetup -a'filter=ansible_distribution_major_version' -o
+192.168.38.136 | SUCCESS =&gt; {&quot;ansible_facts&quot;: {&quot;ansible_distribution_major_version&quot;: &quot;7&quot;, &quot;discovered_interpreter_python&quot;: &quot;/usr/bin/python&quot;}, &quot;changed&quot;: false}
+</code></pre>
+<pre><code class="language-bash">#查看IP
+[root@node1 yml]# ansible app -msetup -a'filter=ansible_all_ipv4_addresses' 
+192.168.38.136 | SUCCESS =&gt; {
+    &quot;ansible_facts&quot;: {
+        &quot;ansible_all_ipv4_addresses&quot;: [
+            &quot;192.168.38.136&quot;
+        ], 
+        &quot;discovered_interpreter_python&quot;: &quot;/usr/bin/python&quot;
+    }, 
+    &quot;changed&quot;: false
+}
+</code></pre>
+<pre><code class="language-bash">#也可以使用grep过滤
+[root@node1 yml]# ansible app -msetup | grep mem
+        &quot;ansible_memfree_mb&quot;: 93, 
+        &quot;ansible_memory_mb&quot;: {
+        &quot;ansible_memtotal_mb&quot;: 468, 
+</code></pre>
+<p><strong>facts收集的信息是json格式的，其内任⼀项都可以当作变量被直接引⽤(如在playbook、jinja2模板中)引⽤。见下⽂。</strong></p>
+<h2 id="playbook写一个二进制安装mysql">playbook写一个二进制安装mysql</h2>
+<h4 id="一-先写成单个文件单个文件刚开始容易理解">一、先写成单个文件，单个文件刚开始容易理解</h4>
+<p>本次实验给web组安装mysql</p>
+<p><strong>除了这个文件，还有个目录，存放mysql二进制压缩包,my.cnf,service启动文件</strong></p>
+<pre><code class="language-bash">[root@node1 yml]# cat mysql_install.yml 
+---
+- hosts: web
+  remote_user: root
+
+  tasks:
+    - name: create group
+      group: name=mysql gid=27 system=yes state=present
+    - name: create user
+      user: name=mysql uid=27 system=yes group=mysql create_home=no home=/data/mysql state=present comment=&quot;MySQL Server&quot; shell=/sbin/nologin
+    - name: copy mysql.tar.gz
+      unarchive: src=roles/mysql/files/mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz dest=/usr/local/ owner=mysql group=mysql
+    - name: create symlinks
+      file: src=/usr/local/mysql-5.7.27-linux-glibc2.12-x86_64 path=/usr/local/mysql state=link
+    - name: create datadir sockfile_dir 
+      file: path=&quot;{{item}}&quot; owner=mysql group=mysql recurse=yes state=directory 
+      with_items:
+       - /data/mysql
+       - /var/lib/mysql
+       - /var/run/mysqld
+    - name: install dependence
+      yum: name=libaio state=present
+    - name: install database
+      shell: /usr/local/mysql/bin/mysqld  --initialize --datadir=/data/mysql/ --user=mysql
+    - name: PATH variable
+      copy: content='PATH=/usr/local/mysql/bin:$PATH' dest=/etc/profile.d/mysql.sh  
+    - name: copy my.cnf
+      copy: src=roles/mysql/files/my.cnf dest=/etc/ backup=yes
+    - name: copy mysqld.service
+      copy: src=roles/mysql/files/mysql.server dest=/etc/init.d/mysqld mode=0755
+    - name: start mysql
+      systemd: name=mysqld  state=started enabled=yes daemon_reload=yes
+[root@node1 yml]# ansible-playbook  mysql_install.yml
+</code></pre>
+<pre><code class="language-bash">[root@node1 yml]# tree -C .
+.
+├── mysql_install.yml
+└── roles
+    └── mysql
+        ├── files
+        │   ├── my.cnf
+        │   ├── mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz
+        │   ├── mysql.server
+        │   └── txt.tar.gz
+        └── tasks
+4 directories, 5 files
+</code></pre>
+<h4 id="二-拆分成多个文件">二、拆分成多个文件</h4>
+<p><strong>使用deploy.yml作为入口文件，mysql_hosts作为主机清单</strong></p>
+<pre><code class="language-bash">[root@node1 yml]# tree . -C
+.
+├── deploy.yml
+├── inventory
+│   └── mysql_hosts
+└── roles
+    └── mysql
+        ├── files
+        │   ├── my.cnf
+        │   ├── mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz
+        │   ├── mysql.server
+        │   └── txt.tar.gz
+        └── tasks
+            └── main.yml
+</code></pre>
+<pre><code class="language-bash">[root@node1 yml]# cat deploy.yml 
+- hosts: &quot;web&quot;
+  remote_user: root
+  roles:
+    - mysql
+</code></pre>
+<pre><code class="language-bash">[root@node1 yml]# cat inventory/mysql_hosts 
+[web]
+192.168.38.138
+
+[web:vars]
+datadir=/data/mysql
+</code></pre>
+<pre><code class="language-bash">[root@node1 yml]# cat roles/mysql/tasks/main.yml 
+- name: create group
+  group: name=mysql gid=27 system=yes state=present
+- name: create user
+  user: 'name=mysql uid=27 system=yes group=mysql create_home=no home={{ datadir }} state=present comment=&quot;MySQL Server&quot; shell=/sbin/nologin'
+- name: copy mysql.tar.gz
+  unarchive: src=roles/mysql/files/mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz dest=/usr/local/ owner=mysql group=mysql
+- name: create symlinks
+  file: src=/usr/local/mysql-5.7.27-linux-glibc2.12-x86_64 path=/usr/local/mysql state=link
+- name: create datadir sockfile_dir 
+  file: path=&quot;{{item}}&quot; owner=mysql group=mysql recurse=yes state=directory 
+  with_items:
+   - &quot;{{ datadir }}&quot;
+   - /var/lib/mysql
+   - /var/run/mysqld
+- name: install dependence
+  yum: name=libaio state=present
+- name: install database
+  shell: &quot;/usr/local/mysql/bin/mysqld  --initialize --datadir={{ datadir }} --user=mysql&quot;
+- name: PATH variable
+  copy: content='PATH=/usr/local/mysql/bin:$PATH' dest=/etc/profile.d/mysql.sh  
+- name: copy my.cnf
+  copy: src=roles/mysql/files/my.cnf dest=/etc/ backup=yes
+- name: copy mysqld.service
+  copy: src=roles/mysql/files/mysql.server dest=/etc/init.d/mysqld mode=0755
+- name: start mysql
+  systemd: name=mysqld  state=started enabled=yes daemon_reload=yes
+</code></pre>
+<p><strong>执行结果：</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20190927183203.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/pKzV1MVzP/" class="tag">
+                    ansible
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191008httpd-zhi-shi-dian/">
+                  <h3 class="post-title">
+                    20191008httpd知识点
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190925MySQL的半同步复制 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="MySQL的半同步复制
+参考：https://www.cnblogs.com/kevingrace/p/10228694.html
+参考：https://www.cnblogs.com/f-ck-need-u/p/9166452.html#..." />
+    <meta name="keywords" content="mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190925MySQL的半同步复制</h2>
+            <div class="post-date">2021-04-27</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="mysql的半同步复制">MySQL的半同步复制</h1>
+<p>参考：https://www.cnblogs.com/kevingrace/p/10228694.html</p>
+<p>参考：<a href="https://www.cnblogs.com/f-ck-need-u/p/9166452.html#%E5%8D%8A%E5%90%8C%E6%AD%A5%E5%A4%8D%E5%88%B6%E7%9A%84%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6">https://www.cnblogs.com/f-ck-need-u/p/9166452.html#%E5%8D%8A%E5%90%8C%E6%AD%A5%E5%A4%8D%E5%88%B6%E7%9A%84%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6</a></p>
+<p>参考：https://blog.csdn.net/qq_18312025/article/details/78681844</p>
+<p>MySQL主从复制包括异步模式、半同步模式、GTID模式以及多源复制模式，默认是异步模式 (如之前详细介绍的<a href="https://www.cnblogs.com/kevingrace/p/6256603.html">mysql主从复制</a>)。所谓异步模式指的是MySQL 主服务器上I/O thread 线程将二进制日志写入binlog文件之后就返回客户端结果，不会考虑二进制日志是否完整传输到从服务器以及是否完整存放到从服务器上的relay日志中，这种模式一旦主服务(器)宕机，数据就可能会发生丢失。</p>
+<p>异步模式是一种基于偏移量的主从复制，<strong>实现原理是:</strong> 主库开启binlog功能并授权从库连接主库，从库通过change master得到主库的相关同步信息然后连接主库进行验证，主库IO线程根据从库slave线程的请求，从master.info开始记录的位置点向下开始取信息，同时把取到的位置点和最新的位置与binlog信息一同发给从库IO线程,从库将相关的sql语句存放在relay-log里面，最终从库的sql线程将relay-log里的sql语句应用到从库上，至此整个同步过程完成，之后将是无限重复上述过程。</p>
+<p><strong>mysql主从复制的步骤:</strong> 1)在主库与从库都安装mysql数据库; 2) 在主库的my.cnf配置文件中配置server-id 和log-bin; 3) 在登陆主库后创建认证用户并做授权; 4) 在从库的my.cnf配置文件中配置server-id; 5) 登陆从库后，指定master并开启同步开关。</p>
+<p>需要注意的是server-id主从库的配置是不一样的。</p>
+<p><strong>server-id存在作用:</strong> mysql同步的数据中是包含server-id的，而server-id用于标识该语句最初是从哪个server写入的。因此server-id一定要有的</p>
+<p>**server-id不能相同的原因：**每一个同步中的slave在master上都对应一个master线程，该线程就是通过slave的server-id来标识的；每个slave在master端最多有一个master线程，如果两个slave的server-id 相同，则后一个连接成功时，slave主动连接master之后，如果slave上面执行了slave stop；则连接断开，但是master上对应的线程并没有退出；当slave start之后，master不能再创建一个线程而保留原来的线程，那样同步就可能有问题；</p>
+<p>在mysql做主主同步时，多个主需要构成一个环状，但是同步的时候又要保证一条数据不会陷入死循环，这里就是靠server-id来实现的；</p>
+<p><strong>半同步说白了就是用户操作主服务；然后下面的从服务器都一个个到主服务器获取binlog，去执行；执行完后分别给主服务器打小报告：我执行完了；主服务器看到只要有一个从服务器执行完成，就给用户返回：好的，你的操作执行完了！</strong></p>
+<p><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20190923165105.png" alt="" loading="lazy">****</p>
+<h3 id="一-快速搭建实验环境">一、快速搭建实验环境</h3>
+<p><strong>用一个虚拟机来做实验，装3个数据库来模拟实验:下面是mysql5.7.27多实例部署脚本</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# cat mysql_mutil_instance_deploy.sh
+#!/bin/bash
+#脚本使用方法，一般只需改DATA_DIR和要使用的端口，注意DATA_DIR后面要有斜杠
+
+CURRENTDIR=`pwd`
+NAME=&quot;mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz&quot;
+FULL_NAME=${CURRENTDIR}/${NAME}
+DATA_DIR=&quot;/data/mysql/&quot;
+PORTS=&quot;13306 13307 13308&quot;
+
+StandardOutput(){
+    echo -e &quot;\033[1;32m$1\033[0m&quot;
+}
+ErrorOutput(){
+    echo -e &quot;\033[1;31m$1 ... \033[0m&quot;
+}
+
+is_empty_dir(){ 
+    return `ls -A $1 2&gt;/dev/null | wc -l`
+}
+
+judge_mysql(){
+    if [ -e /usr/local/mysql ];then
+        ErrorOutput &quot;/usr/local/mysql目录存在...Mysql 似乎已经安装...终止安装...&quot;
+        exit 10
+    fi
+    which mysqld &amp;&gt;/dev/null
+    if [ &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;mysqld命令存在...Mysql 似乎已经安装...终止安装...&quot;
+        exit 20
+    fi
+    for i in ${PORTS};do
+        if  ss -ltn | grep $i -q;then
+            ErrorOutput &quot;$i端口被占用...Mysql 似乎已经安装...终止安装...&quot;
+            exit 30
+        fi
+    done
+    is_empty_dir $DATA_DIR
+    if [ ! &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;$DATA_DIR 不为空...终止安装...&quot;
+        exit 40            
+    fi
+}
+
+download_mysql(){
+    if [ -f ${FULL_NAME} ];then
+    StandardOutput &quot;Mysql安装文件存在，开始安装...&quot;
+else
+    StandardOutput &quot;Mysql安装文件不存在...开始下载...&quot;
+    curl -o mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz https://mirrors.huaweicloud.com/mysql/Downloads/MySQL-5.7/mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz
+    if [ ! &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;下载失败...终止安装...&quot; &amp;&amp; exit 50
+    fi
+fi
+}
+mysql_install(){
+    if id  mysql &amp;&gt;/dev/null;then
+        StandardOutput &quot;mysql 用户已经存在，跳过创建用户过程...&quot;
+    else
+        #useradd -r    -s /sbin/nologin mysql
+        /usr/sbin/groupadd -g 27 -o -r mysql &gt;/dev/null 2&gt;&amp;1 || :
+        /usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/false -c &quot;MySQL Server&quot; -u 27 mysql &gt;/dev/null 2&gt;&amp;1 || :
+    fi       
+    tar xf ${FULL_NAME}   -C /usr/local/
+    ln -sv /usr/local/mysql-5*  /usr/local/mysql 
+    chown  -R mysql.mysql  /usr/local/mysql/
+    if [ ! -d  $DATA_DIR ];then
+        mkdir -pv $DATA_DIR &amp;&amp; chown  -R mysql.mysql  $DATA_DIR   -R
+    fi
+
+    #生成配置文件前面部分
+    \cp -a /etc/my.cnf{,.bak}
+    cat &gt; /etc/my.cnf &lt;&lt;EOF
+[mysqld_multi]
+mysqld     = /usr/local/mysql/bin/mysqld
+mysqladmin = /usr/local/mysql/bin/mysqladmin
+EOF
+    
+    for i in ${PORTS};do
+        mkdir ${DATA_DIR}${i}/{data,log,pid,sock} -p
+        /usr/local/mysql/bin/mysqld  --initialize --datadir=${DATA_DIR}${i}/data/ --user=mysql &amp;&gt;  ${DATA_DIR}${i}/log/mysql_install.log
+        #PASSWORD${i}=&quot;$(grep &quot;temporary password&quot; ${DATA_DIR}${i}/log/mysql_install.log | awk '{print $NF}')&quot;
+        chown -R mysql.mysql ${DATA_DIR}
+        #生成配置文件
+        cat &gt;&gt; /etc/my.cnf &lt;&lt;EOF
+[mysqld${i}]
+port        = $i
+socket      =  ${DATA_DIR}${i}/sock/mysql.sock
+datadir =  ${DATA_DIR}${i}/data
+skip-external-locking
+key_buffer_size = 256M
+max_allowed_packet = 1M
+table_open_cache = 1024
+sort_buffer_size = 4M
+net_buffer_length = 8K
+read_buffer_size = 4M
+read_rnd_buffer_size = 512K
+myisam_sort_buffer_size = 64M
+thread_cache_size = 128
+query_cache_size = 128M
+tmp_table_size = 128M
+explicit_defaults_for_timestamp = true
+max_connections = 500
+max_connect_errors = 100
+open_files_limit = 65535
+log-bin= ${DATA_DIR}${i}/data/mysql${i}-bin
+binlog_format=mixed
+server-id   = $i
+expire_logs_days = 10
+early-plugin-load = &quot;&quot;
+default_storage_engine = InnoDB
+innodb_data_home_dir =  ${DATA_DIR}${i}/data
+innodb_data_file_path = ibdata1:10M:autoextend
+innodb_log_group_home_dir =  ${DATA_DIR}${i}/data
+innodb_buffer_pool_size = 1024M
+innodb_log_file_size = 256M
+innodb_log_buffer_size = 8M
+innodb_flush_log_at_trx_commit = 1
+innodb_lock_wait_timeout = 50
+transaction-isolation=READ-COMMITTED
+user       = mysql
+log-error=${DATA_DIR}${i}/log/mysqld.log
+pid-file=${DATA_DIR}${i}/pid/mysqld.pid
+EOF
+        
+    done 
+    echo 'export PATH=/usr/local/mysql/bin/:$PATH' &gt; /etc/profile.d/mysql.sh
+    source /etc/profile.d/mysql.sh
+
+    cp /usr/local/mysql/support-files/mysqld_multi.server /etc/init.d/mysqld_multi   
+
+    #生成后面配置文件
+    cat &gt;&gt; /etc/my.cnf &lt;&lt;EOF
+[mysqldump]
+quick
+max_allowed_packet = 16M
+
+[mysql]
+no-auto-rehash
+EOF
+}
+
+change_default_pass(){
+    for i in ${PORTS};do
+        /etc/init.d/mysqld_multi start $i
+        mysql_check $i
+        #mysqladmin -uroot -p&quot;$((PASSWORD$i))&quot; -S ${DATA_DIR}${i}/sock/mysql.sock password 123456 &amp;&gt; /dev/null
+	#which mysqladmin
+	sleep 8
+	ls -l ${DATA_DIR}${i}/sock/mysql.sock 
+	mysqladmin -uroot -p$(grep &quot;temporary password&quot; ${DATA_DIR}${i}/log/mysql_install.log | awk '{print $NF}') -S ${DATA_DIR}${i}/sock/mysql.sock password 123456
+        if [ &quot;$?&quot; -eq 0 ];then
+            StandardOutput &quot;change passwd successful...&quot;
+	else
+            ErrorOutput &quot;change passwd failed...&quot;
+            exit 200
+        fi
+    done
+    #修改my.cnf
+    sed -i '3a pass=123456' /etc/my.cnf
+}
+
+mysql_stop(){
+    for i in ${PORTS};do
+        StandardOutput &quot;MySQL 停止服务测试...&quot;
+        /etc/init.d/mysqld_multi stop $i
+        if ss -ltn | grep :$i -q;then
+            StandardOutput &quot;$i stop successful...&quot;
+        else 
+            ErrorOutput &quot;$i stop failed...&quot;
+            exit 200
+        fi
+    done
+}
+
+mysql_check(){
+    if ss -ltn | grep $1 -q ;then
+        ErrorOutput &quot;$1 start failed...&quot;
+        exit 100
+    else
+        StandardOutput &quot;$1 start successful...&quot; 
+    fi
+}
+
+usage_print(){
+    StandardOutput &quot;------------------------------------------------------------&quot;
+    StandardOutput &quot;请手动运行命令：source /etc/profile.d/mysql.sh&quot;
+    StandardOutput &quot;MySQL默认密码：123456&quot;
+    StandardOutput &quot;如何食用：&quot;
+    for i in ${PORTS};do
+        StandardOutput &quot;启动关闭服务：/etc/init.d/mysqld_multi {start|stop|report|restart} $i&quot;
+        StandardOutput &quot;连接数据库：mysql -uroot -p'123456' -S ${DATA_DIR}${i}/sock/mysql.sock&quot;
+        StandardOutput &quot;修改密码：mysqladmin -uroot -p'123456' -S ${DATA_DIR}${i}/sock/mysql.sock&quot;
+    done
+}
+
+
+main(){
+    judge_mysql
+    download_mysql
+    mysql_install
+    change_default_pass
+    mysql_stop 
+    usage_print
+}
+main
+</code></pre>
+<p><strong>如果脚本报错，执行下面命令重新执行：</strong></p>
+<pre><code class="language-bash">rm -rf /usr/local/mysql
+rm -rf /usr/local/mysql-5.7.27-linux-glibc2.12-x86_64/
+rm -rf /etc/init.d/mysqld_multi /etc/profile.d/mysql.sh /data/mysql/
+pkill mysql
+bash mysql_mutil_instance_deploy.sh
+</code></pre>
+<pre><code class="language-bash">#安装三个数据库
+bash mysql_mutil_instance_deploy.sh &amp;&gt; /mysql_install.log
+#加载环境变量
+[root@localhost ~]# source /etc/profile.d/mysql.sh
+#启动三个数据库
+[root@localhost ~]# /etc/init.d/mysqld_multi start
+</code></pre>
+<h3 id="二-安装并启用插件">二、安装并启用插件</h3>
+<pre><code class="language-bash">#主库13306执行
+[root@localhost ~]# mysql -uroot -p'123456' -S /data/mysql/13306/sock/mysql.sock
+mysql&gt; INSTALL PLUGIN rpl_semi_sync_master SONAME 'semisync_master.so';
+mysql&gt; set @@global.rpl_semi_sync_master_enabled=1;
+#将插件写入配置文件
+[root@localhost ~]# vim /etc/my.cnf
+[mysqld13306]
+plugin-load=rpl_semi_sync_master=semisync_master.so
+rpl_semi_sync_master_enabled=1
+
+#两个从库，13307,13308,直接改配置了
+[root@localhost ~]# vim /etc/my.cnf
+[mysqld13307]
+plugin-load=rpl_semi_sync_slave=semisync_slave.so
+rpl_semi_sync_slave_enabled=1
+[mysqld13308]
+plugin-load=rpl_semi_sync_slave=semisync_slave.so
+rpl_semi_sync_slave_enabled=1  
+#重启mysql
+[root@localhost ~]# /etc/init.d/mysqld_multi restart
+</code></pre>
+<h3 id="三-搭建主从数据库">三、搭建主从数据库</h3>
+<p>这个应该放前面的，前面忘了做了，放这就放这吧</p>
+<pre><code class="language-bash">#主库13306
+[root@localhost ~]# vim /etc/my.cnf
+[mysqld13306]
+server-id   = 13306
+expire_logs_days = 10
+log-bin= /data/mysql/13306/data/mysql13306-bin
+binlog_format=mixed	#mixed可以稍微节省空间，不差硬盘容量的使用行模式
+[root@localhost ~]# /etc/init.d/mysqld_multi restart 13306
+[root@localhost ~]# mysql -uroot -p'123456' -S /data/mysql/13306/sock/mysql.sock
+mysql&gt; grant replication slave on *.* to 'repluser'@'192.168.38.%' identified by 'WWQD88OYrqSxLg';
+mysql&gt; flush privileges;
+mysql&gt; show master status;
++-----------------------+----------+--------------+------------------+-------------------+
+| File                  | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++-----------------------+----------+--------------+------------------+-------------------+
+| mysql13306-bin.000004 |      604 |              |                  |                   |
++-----------------------+----------+--------------+------------------+-------------------+
+
+#从库13307,13308，也开下binlog，方便以后升主
+[root@localhost ~]# vim /etc/my.cnf
+[mysqld13307]
+binlog_format=mixed
+server-id=13307
+log-bin= /data/mysql/13307/data/mysql13307-bin
+plugin-load=rpl_semi_sync_slave=semisync_slave.so
+rpl_semi_sync_slave_enabled=1
+[mysqld13308]
+binlog_format=mixed
+server-id=13308
+log-bin= /data/mysql/13308/data/mysql13308-bin
+plugin-load=rpl_semi_sync_slave=semisync_slave.so
+rpl_semi_sync_slave_enabled=1
+[root@localhost ~]# /etc/init.d/mysqld_multi restart 13307
+[root@localhost ~]# /etc/init.d/mysqld_multi restart 13308
+
+#数据库配置change master
+[root@localhost ~]#  mysql -uroot -p'123456' -S /data/mysql/13307/sock/mysql.sock
+mysql&gt; CHANGE MASTER TO MASTER_HOST='192.168.38.137',MASTER_USER='repluser',MASTER_PASSWORD='WWQD88OYrqSxLg',MASTER_PORT=13306,MASTER_LOG_FILE='mysql13306-bin.000004',MASTER_LOG_POS=604,MASTER_CONNECT_RETRY=10;
+mysql&gt; start slave;
+mysql&gt; show slave status\G
+#显示两个yes
+
+[root@localhost ~]# mysql -uroot -p'123456' -S /data/mysql/13308/sock/mysql.sock
+mysql&gt; CHANGE MASTER TO MASTER_HOST='192.168.38.137',MASTER_USER='repluser',MASTER_PASSWORD='WWQD88OYrqSxLg',MASTER_PORT=13306,MASTER_LOG_FILE='mysql13306-bin.000004',MASTER_LOG_POS=604,MASTER_CONNECT_RETRY=10;
+mysql&gt; start slave;
+
+#主库创建数据库测试没问题，同步过去了
+
+</code></pre>
+<h3 id="四-停止从库13308主库13306创建数据库仍能正常操作">四、停止从库13308，主库13306创建数据库仍能正常操作：</h3>
+<pre><code class="language-bash">[root@localhost ~]# /etc/init.d/mysqld_multi stop 13308
+[root@localhost ~]# /etc/init.d/mysqld_multi report
+Reporting MySQL servers
+MySQL server from group: mysqld13306 is running
+MySQL server from group: mysqld13307 is running
+MySQL server from group: mysqld13308 is not running
+[root@localhost ~]# mysql -uroot -p'123456' -S /data/mysql/13306/sock/mysql.sock
+mysql&gt; create database dbb;
+Query OK, 1 row affected (0.01 sec)
+
+#在从库13307上看，也同步过去了
+[root@localhost ~]#  mysql -uroot -p'123456' -S /data/mysql/13307/sock/mysql.sock
+mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| dba                |
+| dbb                |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+6 rows in set (0.00 sec)
+</code></pre>
+<h3 id="五-继续停止从库13307">五、继续停止从库13307</h3>
+<pre><code class="language-bash">[root@localhost ~]# /etc/init.d/mysqld_multi stop 13307
+[root@localhost ~]# /etc/init.d/mysqld_multi report
+Reporting MySQL servers
+MySQL server from group: mysqld13306 is running
+MySQL server from group: mysqld13307 is not running
+MySQL server from group: mysqld13308 is not running
+#主库现在找不到一个从库，主库创建数据库测试，会卡住等待10s
+mysql&gt; create database dbc;
+Query OK, 1 row affected (10.00 sec)
+#10s这个值由选项rpl_semi_sync_master_timeout设置
+mysql&gt; show variables like 'rpl_semi_sync_master_timeout';
++------------------------------+-------+
+| Variable_name                | Value |
++------------------------------+-------+
+| rpl_semi_sync_master_timeout | 10000 |
++------------------------------+-------+
+1 row in set (0.00 sec)
+</code></pre>
+<pre><code class="language-bash">mysql&gt; show status  like &quot;%semi%&quot;;
++--------------------------------------------+-------+
+| Variable_name                              | Value |
++--------------------------------------------+-------+
+| Rpl_semi_sync_master_clients               | 0     |		#注意现在client全挂
+| Rpl_semi_sync_master_net_avg_wait_time     | 0     |
+| Rpl_semi_sync_master_net_wait_time         | 0     |
+| Rpl_semi_sync_master_net_waits             | 6     |
+| Rpl_semi_sync_master_no_times              | 3     |
+| Rpl_semi_sync_master_no_tx                 | 5     |
+| Rpl_semi_sync_master_status                | OFF   |		#现在OFF
+| Rpl_semi_sync_master_timefunc_failures     | 0     |
+| Rpl_semi_sync_master_tx_avg_wait_time      | 3217  |
+| Rpl_semi_sync_master_tx_wait_time          | 9652  |
+| Rpl_semi_sync_master_tx_waits              | 3     |
+| Rpl_semi_sync_master_wait_pos_backtraverse | 0     |
+| Rpl_semi_sync_master_wait_sessions         | 0     |
+| Rpl_semi_sync_master_yes_tx                | 3     |
+| Rpl_semi_sync_slave_status                 | OFF   |
++--------------------------------------------+-------+
+</code></pre>
+<pre><code class="language-bash">#主库已经知道所有从库已死，下次创建数据库不会通知slave
+mysql&gt; create database dbd;
+Query OK, 1 row affected (0.01 sec)
+</code></pre>
+<h3 id="六-半同步复制的状态信息">六、半同步复制的状态信息</h3>
+<pre><code class="language-bash">#开起了半同步，有两个slave
+mysql&gt; show status  like &quot;%semi%&quot;;
++--------------------------------------------+-------+
+| Variable_name                              | Value |
++--------------------------------------------+-------+
+| Rpl_semi_sync_master_clients               | 2     |		#两个客户端
+| Rpl_semi_sync_master_net_avg_wait_time     | 0     |
+| Rpl_semi_sync_master_net_wait_time         | 0     |
+| Rpl_semi_sync_master_net_waits             | 7     |
+| Rpl_semi_sync_master_no_times              | 3     |
+| Rpl_semi_sync_master_no_tx                 | 5     |
+| Rpl_semi_sync_master_status                | ON    |		#为ON
+| Rpl_semi_sync_master_timefunc_failures     | 0     |
+| Rpl_semi_sync_master_tx_avg_wait_time      | 3217  |
+| Rpl_semi_sync_master_tx_wait_time          | 9652  |
+| Rpl_semi_sync_master_tx_waits              | 3     |
+| Rpl_semi_sync_master_wait_pos_backtraverse | 0     |
+| Rpl_semi_sync_master_wait_sessions         | 0     |
+| Rpl_semi_sync_master_yes_tx                | 3     |
+| Rpl_semi_sync_slave_status                 | OFF   |
++--------------------------------------------+-------+
+15 rows in set (0.00 sec)
+</code></pre>
+<pre><code class="language-bash">#将两个slave停掉
+[root@localhost ~]# /etc/init.d/mysqld_multi stop 13307
+[root@localhost ~]# /etc/init.d/mysqld_multi stop 13308
+[root@localhost ~]# /etc/init.d/mysqld_multi report
+Reporting MySQL servers
+MySQL server from group: mysqld13306 is running
+MySQL server from group: mysqld13307 is not running
+MySQL server from group: mysqld13308 is not running
+</code></pre>
+<pre><code class="language-bash">#主库不会立马知道，得过一会儿
+mysql&gt; show status  like &quot;%semi%&quot;;
++--------------------------------------------+-------+
+| Variable_name                              | Value |
++--------------------------------------------+-------+
+| Rpl_semi_sync_master_clients               | 0     |		#为0
+| Rpl_semi_sync_master_net_avg_wait_time     | 0     |
+| Rpl_semi_sync_master_net_wait_time         | 0     |
+| Rpl_semi_sync_master_net_waits             | 7     |
+| Rpl_semi_sync_master_no_times              | 3     |
+| Rpl_semi_sync_master_no_tx                 | 5     |
+| Rpl_semi_sync_master_status                | ON    |		为ON
+| Rpl_semi_sync_master_timefunc_failures     | 0     |
+| Rpl_semi_sync_master_tx_avg_wait_time      | 3217  |
+| Rpl_semi_sync_master_tx_wait_time          | 9652  |
+| Rpl_semi_sync_master_tx_waits              | 3     |
+| Rpl_semi_sync_master_wait_pos_backtraverse | 0     |
+| Rpl_semi_sync_master_wait_sessions         | 0     |
+| Rpl_semi_sync_master_yes_tx                | 3     |
+| Rpl_semi_sync_slave_status                 | OFF   |
++--------------------------------------------+-------+
+15 rows in set (0.00 sec)
+#创建个数据库
+mysql&gt; create database db1;
+Query OK, 1 row affected (10.00 sec)
+
+mysql&gt; show status  like &quot;%semi%&quot;;
++--------------------------------------------+-------+
+| Variable_name                              | Value |
++--------------------------------------------+-------+
+| Rpl_semi_sync_master_clients               | 0     |
+| Rpl_semi_sync_master_net_avg_wait_time     | 0     |
+| Rpl_semi_sync_master_net_wait_time         | 0     |
+| Rpl_semi_sync_master_net_waits             | 7     |
+| Rpl_semi_sync_master_no_times              | 4     |
+| Rpl_semi_sync_master_no_tx                 | 6     |
+| Rpl_semi_sync_master_status                | OFF   |		#现在主库关了自己的sync_master
+| Rpl_semi_sync_master_timefunc_failures     | 0     |
+| Rpl_semi_sync_master_tx_avg_wait_time      | 3217  |
+| Rpl_semi_sync_master_tx_wait_time          | 9652  |
+| Rpl_semi_sync_master_tx_waits              | 3     |
+| Rpl_semi_sync_master_wait_pos_backtraverse | 0     |
+| Rpl_semi_sync_master_wait_sessions         | 0     |
+| Rpl_semi_sync_master_yes_tx                | 3     |
+| Rpl_semi_sync_slave_status                 | OFF   |
++--------------------------------------------+-------+
+15 rows in set (0.00 sec)
+</code></pre>
+<h4 id="半同步需要一个semi的插件">半同步需要一个semi的插件</h4>
+<pre><code class="language-bash">#查看是否有这个库文件
+[root@localhost ~]# rpm -ql MariaDB-server | grep semi
+/usr/lib64/mysql/plugin/semisync_master.so
+/usr/lib64/mysql/plugin/semisync_slave.so
+#查看已经加载的插件
+MariaDB [(none)]&gt; show plugins;
+#slave节点安装这个插件
+MariaDB [(none)]&gt; INSTALL PLUGIN rpl_semi_sync_slave SONAME 'semisync_slave.so';
+#master节点安装这个插件
+MariaDB [(none)]&gt; INSTALL PLUGIN rpl_semi_sync_master SONAME 'semisync_master.so';
+#主从节点都要开启这个（下面为命令行打开，可以写入配置文件）
+MariaDB [(none)]&gt; set @@global.rpl_semi_sync_master_enabled=1;
+#select也可以看安装好的插件
+MariaDB [(none)]&gt; select * from mysql.plugin;
+#设置超时时长5s，5s后slave还不来信息我就不管了
+MariaDB [(none)]&gt; set @@global.rpl_semi_sync_master_timeout=5000;
+</code></pre>
+<pre><code class="language-bash">MariaDB [(none)]&gt; show variables like '%semi%';
++------------------------------------+--------------+
+| Variable_name                      | Value        |
++------------------------------------+--------------+
+| rpl_semi_sync_master_enabled       | ON           |
+| rpl_semi_sync_master_timeout       | 10000        |	#10s后slave还没消息我就不管了
+| rpl_semi_sync_master_trace_level   | 32           |
+| rpl_semi_sync_master_wait_no_slave | ON           |
+| rpl_semi_sync_master_wait_point    | AFTER_COMMIT |
++------------------------------------+--------------+
+</code></pre>
+<h3 id=""></h3>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190925error-cant-connect-to-local-mysql-server-through-socket/">
+                  <h3 class="post-title">
+                    20190925error &#39;Can&#39;t connect to local MySQL server through socket
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>数据迁移 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="‘# 命令’
+井号 命令
+表示使用了该命令
+迁移之前
+查看需要迁移的老系统的
+系统
+Centos
+ubuntu
+内存
+多少
+Cpu
+几核
+磁盘
+多大
+端口
+哪些
+程序服务
+哪些
+需要迁移的老系统
+系统
+常用
+Centos
+/etc/
+Cen..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">数据迁移</h2>
+            <div class="post-date">2021-04-26</div>
+            
+            <div class="post-content" v-pre>
+              <p>‘# 命令’<br>
+井号 命令<br>
+表示使用了该命令<br>
+迁移之前<br>
+查看需要迁移的老系统的<br>
+系统<br>
+Centos<br>
+ubuntu<br>
+内存<br>
+多少<br>
+Cpu<br>
+几核<br>
+磁盘<br>
+多大<br>
+端口<br>
+哪些<br>
+程序服务<br>
+哪些</p>
+<p>需要迁移的老系统<br>
+系统<br>
+常用<br>
+Centos<br>
+/etc/<br>
+Cenos-release<br>
+# Cat<br>
+具体版本<br>
+安装<br>
+# yum<br>
+Ubuntu<br>
+#<br>
+Lsb_release<br>
+# Lsb_release  -a<br>
+安装<br>
+# apt</p>
+<pre><code>内存
+	多大
+		# free
+			一般使用的是free -h命令
+			也可以使用top命令查看
+		# top
+		
+Cpu
+	核心数
+		# top
+			再按一下1
+		# lscpu
+			型号
+				I5-8300
+				至强(xeon Z昂)
+磁盘
+	多大
+		# lsblk
+			磁盘多大
+			分区有哪些
+	分区使用情况
+		# df -h
+			各个分区
+端口
+	查看服务器监听的端口列表
+		# ss -ltnp 
+			-ltnp
+				Listen tcp number process
+					监听 tcp 的号码 for进程
+		# netstat -ltnp
+程序
+	服务
+	# ps aux
+		#pstree
+			可能需要安装pstree
+		
+• 如何迁移？
+1. 创建一个和旧服务器相同配置的服务器
+2. 给新服务器安装和老服务器相同版本的软件
+3. 数据迁移
+4. 启动服务
+5. web网站需要修改域名解析
+</code></pre>
+<p>如何迁移nginx</p>
+<pre><code>1. 将老服务器的配置文件同步到新服务器
+2. 启动nginx
+3. 修改域名解析
+</code></pre>
+<p>如何迁移mysql<br>
+1. 停止老服务器的mysql数据库<br>
+a. 停止写入数据<br>
+2. 使用# mysqldump 备份数据库<br>
+3. 将备份的数据文件导入到新服务器<br>
+a. # mysql</p>
+<p>Docker<br>
+之前使用docker部署我的世界<br>
+使用docker容器技术迁移十分方便<br>
+只要将容器配置文件 迁移到新服务器<br>
+再同步旧服务器的docker镜像版本<br>
+使用相同的启动脚本就可以了</p>
+<p>你使用过哪些云<br>
+我试用过阿里云<br>
+我的服务器和域名都是阿里云上购买的<br>
+一年也就几百</p>
+<p>你之前在机房如何备份服务器<br>
+之前在机房 使用的是vmware企业版<br>
+可以在界面上建立快照等操作</p>
+<p>你用过哪些vpn<br>
+之前用过Open vpn<br>
+平时科学上网使用的是小飞机和v2ray</p>
+<p>你听过堡垒机吗？<br>
+我以前使用docker搭建过jump server堡垒机<br>
+发现管理服务器还是很方便的<br>
+但是我没有深入研究<br>
+经历<br>
+老系统<br>
+系统<br>
+内存<br>
+Cpu<br>
+端口<br>
+程序<br>
+服务<br>
+Ps命令</p>
+<p>Centos<br>
+Ubuntu</p>
+<p>用过哪些版本</p>
+<pre><code>机房老机器基本上都是老版本centos6,ubuntu1604
+新的机器都是安装centos7，ubuntu1804
+centos系统机房装的更多一点
+
+
+
+Centos
+	6
+		机房老机器基本上都是老版本centos6
+	7
+		新的机器会安装centos
+Ubuntu
+	1404
+		机房大多是是老版本1604
+	1804
+		新的机器会安装1804
+</code></pre>
+
+            </div>
+            
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

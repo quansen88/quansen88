@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191101nginx防盗链 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="nginx防盗链
+本篇文章可以参考：https://segmentfault.com/a/1190000018001501
+一般都是根据请求报文的referer来做防盗链的
+比如51cto文章中的图片，经常看到网上很多人转载51cto的文章..." />
+    <meta name="keywords" content="nginx" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191101nginx防盗链</h2>
+            <div class="post-date">2021-04-29</div>
+            
+              <div class="feature-container" style="background-image: url('https://nginx.org/nginx.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="nginx防盗链">nginx防盗链</h1>
+<p>本篇文章可以参考：https://segmentfault.com/a/1190000018001501</p>
+<p><strong>一般都是根据请求报文的referer来做防盗链的</strong></p>
+<p><strong>比如51cto文章中的图片，经常看到网上很多人转载51cto的文章，但图片都不能访问，单独拿出图片链接到浏览器打开就可以访问，</strong></p>
+<h3 id="用curl来模拟访问不加referer可以正常访问">用curl来模拟访问,不加referer可以正常访问：</h3>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191101102243.png" alt="" loading="lazy"></figure>
+<p><strong>加了别的referer就是403</strong></p>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191101102359.png" alt="" loading="lazy"></figure>
+<p><strong>加了含有blog.51cto.com的refert就是正常</strong></p>
+<figure data-type="image" tabindex="3"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191101103819.png" alt="" loading="lazy"></figure>
+<h3 id="正常的referer信息可以通过不同的访问方式查看日志看到">正常的referer信息，可以通过不同的访问方式查看日志看到</h3>
+<pre><code class="language-bash">none:请求报文没有referer首部，比如curl访问，直接输入网址到浏览器，日志中显示的是'-'
+blocked:请求报文中有referer首部，但无有效值，比如空，比如通过curl -e '' https://www.uscwifi.cn访问，日志中显示的是'';前端时间新浪图床不能用后某些大佬就通过设置referer空来实现访问。
+server_names:从那个网站跳过来的，
+
+</code></pre>
+<h3 id="referer可以伪造比如curl-e就可以伪造">referer可以伪造，比如curl -e就可以伪造</h3>
+<h3 id="在图片的location里加个判断不是本域名就拒绝">在图片的location里加个判断，不是本域名就拒绝</h3>
+<pre><code class="language-bash">location ~* \.(gif|jpg|png|jpeg)$ {			#不区分大小写的匹配，匹配各种图片
+    #none blocked保证用户在新页面打开时依然能够打开，如果不希望用户能够保存删掉这两项
+    #valid_referers none blocked *.hugao8.com *.baidu.com *.google.com;
+    valid_referers none *.myblog.cn *.baidu.com *.google.com;
+    if ($invalid_referer) {
+        return 403；	#这里可以返回一个自定义图片的链接，网上很多文章，可以看到微信图片，未经授权不得引用的字样，就是盗用了微信的图片
+    ｝
+}
+</code></pre>
+<h3 id="之前公司网站的nginx这么配置">之前公司网站的nginx这么配置</h3>
+<p><strong>这是一个nginx模版，需要的时候可以在里面加referer判断，不写的话就没用</strong></p>
+<pre><code class="language-bash">#写的空，这就是不会执行任何操作，不影响访问，继续执行其他location
+location ~* \.(gif|jpg|png|jpeg)$ {	
+}
+</code></pre>
+<h3 id="referer的伪造">referer的伪造</h3>
+<p><strong>curl -e只能终端访问伪造，网站怎么办？</strong></p>
+<p><strong>可以百度<code>新浪图床 403</code>，<code>新浪图床打不开</code>，会有很多惊喜，网友给的临时解决办法：</strong></p>
+<p><strong>办法一：</strong></p>
+<pre><code class="language-bash">#参考：https://www.v2ex.com/t/558239
+img 中添加参数&lt;img src=&quot;&quot; referrerPolicy=&quot;no-referrer&quot;&gt;
+</code></pre>
+<p><strong>办法二：</strong></p>
+<pre><code class="language-bash">参考：https://www.willnet.net/index.php/archives/141/
+在HTML代码的head中添加一句&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot; /&gt;
+</code></pre>
+<p><strong>办法三：</strong></p>
+<pre><code class="language-bash">参考：https://www.kehu56.com/operation/628.html
+
+</code></pre>
+<h3 id="测试方法三">测试方法三：</h3>
+<p><strong>nginx正常配置：</strong></p>
+<p><strong>测试页面</strong></p>
+<pre><code class="language-nginx">[root@imooc-nginx html]# cat 2.html 
+&lt;head&gt;&lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;&lt;/head&gt;
+&lt;a href=&quot;https://s1.51cto.com/images/20191029/1572337051565645.png&quot;&gt;图片测试&lt;/a&gt;
+</code></pre>
+<p><strong>访问失败：403</strong></p>
+<figure data-type="image" tabindex="4"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191101112229.png" alt="" loading="lazy"></figure>
+<p><strong>修改nginx配置:51cto的图片空referer是可以访问的</strong></p>
+<p>add_header参考：http://nginx.org/en/docs/http/ngx_http_headers_module.html#add_header</p>
+<p>Referrer Policy可以参考：https://www.cnblogs.com/caixw/p/referrer-policy.html</p>
+<p><strong><code>cat /etc/nginx/conf.d/www.uscwifi.cn.conf</code></strong></p>
+<pre><code class="language-nginx">server {
+    listen 80;
+    listen 443 ssl;
+    server_name www.uscwifi.cn;
+    add_header Referrer-Policy &quot;no-referrer&quot;;
+    #auth_basic pleaseinputpasswd;
+    #auth_basic_user_file /etc/nginx/passwd;
+    if ($scheme = http){
+        return 301  https://$server_name$request_uri;
+    }
+    location ~* \.(gif|jpg|png|jpeg)$ {	
+        valid_referers none  *.uscwifi.cn *.baidu.com *.google.com;
+        if ($invalid_referer) {
+            return 403;
+        }
+    }
+    root /var/www/html;
+    index index.html;
+    access_log /var/log/nginx/www.uscwifi.cn-access.log;
+    error_log /var/log/nginx/www.uscwifi.cn-error.log;
+    ssl_certificate /etc/nginx/ssl/www.uscwifi.cn.crt;
+    ssl_certificate_key /etc/nginx/ssl/www.uscwifi.cn.key;
+    ssl_protocols       SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers         ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS;
+}
+</code></pre>
+<figure data-type="image" tabindex="5"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191101113212.png" alt="" loading="lazy"></figure>
+<p><strong>然后就可以访问了。不过这样肯定会影响baidu的收录</strong></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/ycg_qQA4v/" class="tag">
+                    nginx
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/auth_basic_module/">
+                  <h3 class="post-title">
+                    auth_basic_module
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

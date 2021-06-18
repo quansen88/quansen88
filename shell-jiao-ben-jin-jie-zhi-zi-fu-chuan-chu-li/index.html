@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>shell脚本进阶之字符串处理 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="字符串处理
+1、获取字符串长度
+[root@linux1 ~]# string='hello world'
+[root@linux1 ~]# echo ${#string}
+11
+[root@linux1 ~]# echo ${string..." />
+    <meta name="keywords" content="shell,linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">shell脚本进阶之字符串处理</h2>
+            <div class="post-date">2021-04-22</div>
+            
+              <div class="feature-container" style="background-image: url('https://gitee.com/kill0es/blogimage/raw/master/img/20210422185720.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="字符串处理">字符串处理</h1>
+<h3 id="1-获取字符串长度"><strong>1、获取字符串长度</strong></h3>
+<pre><code class="language-bash">[root@linux1 ~]# string='hello world'
+[root@linux1 ~]# echo ${#string}
+11
+[root@linux1 ~]# echo ${string}
+hello world
+</code></pre>
+<h3 id="2-字符串切片"><strong>2、字符串切片</strong></h3>
+<p><strong>格式：</strong></p>
+<p><span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>p</mi><mi>a</mi><mi>r</mi><mi>a</mi><mi>m</mi><mi>e</mi><mi>t</mi><mi>e</mi><mi>r</mi><mo>:</mo><mi>o</mi><mi>f</mi><mi>f</mi><mi>s</mi><mi>e</mi><mi>t</mi></mrow><annotation encoding="application/x-tex">{parameter:offset}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.8888799999999999em;vertical-align:-0.19444em;"></span><span class="mord"><span class="mord mathdefault">p</span><span class="mord mathdefault">a</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mord mathdefault">a</span><span class="mord mathdefault">m</span><span class="mord mathdefault">e</span><span class="mord mathdefault">t</span><span class="mord mathdefault">e</span><span class="mord mathdefault" style="margin-right:0.02778em;">r</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mrel">:</span><span class="mspace" style="margin-right:0.2777777777777778em;"></span><span class="mord mathdefault">o</span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mord mathdefault" style="margin-right:0.10764em;">f</span><span class="mord mathdefault">s</span><span class="mord mathdefault">e</span><span class="mord mathdefault">t</span></span></span></span></span>{parameter:offset:length}<br>
+截取从 offset 个字符开始，向后 length 个字符。</p>
+<pre><code class="language-bash">[root@linux1 ~]# string='hello world'
+#截取hello
+[root@linux1 ~]# echo ${string:0:5}
+hello
+#截取wo
+[root@linux1 ~]# echo ${string:6:2}
+wo
+#截取world
+[root@linux1 ~]# echo ${string:5}
+world
+#截取最后一个字符
+[root@linux1 ~]# echo ${string:(-1)}
+d
+#截取最后两个字符
+[root@linux1 ~]# echo ${string:(-2)}
+ld
+#截取从倒数第三个字符后的2个字符
+[root@linux1 ~]# echo ${string:(-3):2}
+rl
+</code></pre>
+<h3 id="3-替换字符串"><strong>3、替换字符串</strong></h3>
+<p><strong>格式：</strong>${parameter/pattern/string}</p>
+<pre><code class="language-bash">[root@linux1 ~]# string='hello world world.'
+#将第一个word替换为WORLD
+[root@linux1 ~]# echo ${string/world/WORLD}
+hello WORLD world.
+#将所有world替换为WORLD
+[root@linux1 ~]# echo ${string//world/WORLD}
+hello WORLD WORLD.
+
+#替换正则匹配为空，使用了正则表达式
+[root@linux1 ~]# string=abc123
+#将所有非数字字符替换为空
+[root@linux1 ~]# echo ${string//[^0-9]/}
+123
+#替换所有数字字符为空
+[root@linux1 ~]# echo ${string//[0-9]/}
+abc
+</code></pre>
+<h3 id="4-字符串截取"><strong>4、字符串截取</strong></h3>
+<p><strong>格式：</strong></p>
+<pre><code class="language-bash">${parameter#word} # 删除匹配前缀
+${parameter##word}
+${parameter%word} # 删除匹配后缀
+${parameter%%word}
+
+# 去掉左边，最短匹配模式，##最长匹配模式。
+
+% 去掉右边，最短匹配模式，%%最长匹配模式。
+</code></pre>
+<p><strong>示例：</strong></p>
+<p>好记一点：#删左边，所以*放分隔符左边</p>
+<p>%删右边，所有*放分隔符右边</p>
+<pre><code class="language-bash">[root@linux1 ~]# URL=&quot;https://www.ithome.com/0/441/491.htm&quot;
+#以//为分隔符，删除左边留下右边
+[root@linux1 ~]# echo ${URL##*//}
+www.ithome.com/0/441/491.htm
+#以/作为分隔符，删除左边，留下右边
+[root@linux1 ~]# echo ${URL##*/}
+491.htm
+#以:为分隔符，删除右边，留下左边
+[root@linux1 ~]# echo ${URL%%:*}
+https
+#以/为分隔符，删除右边，留下左边
+[root@linux1 ~]# echo ${URL%/*}
+https://www.ithome.com/0/441
+#以点为分隔符，删除左边留下，右边
+[root@linux1 ~]# echo ${URL##*.}
+htm
+</code></pre>
+<h3 id="5-变量状态赋值"><strong>5、变量状态赋值</strong></h3>
+<pre><code class="language-bash">${VAR:-string} 如果 VAR 变量为空则返回 string
+${VAR:+string} 如果 VAR 变量不为空则返回 string
+${VAR:=string} 如果 VAR 变量为空则重新赋值 VAR 变量值为 string
+${VAR:?string} 如果 VAR 变量为空则将 string 输出到 stderr
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1566888713459.png" alt="1566888713459" loading="lazy"></figure>
+<pre><code class="language-bash">如果变量为空就返回 hello world!：
+# VAR=
+# echo ${VAR:-'hello world!'}
+hello world!
+如果变量不为空就返回 hello world!：
+# VAR=&quot;hello&quot;
+# echo ${VAR:+'hello world!'}
+hello world!
+如果变量为空就重新赋值：
+# VAR=
+# echo ${VAR:=hello}
+hello
+# echo $VAR
+hello
+如果变量为空就将信息输出 stderr：
+# VAR=
+# echo ${VAR:?value is null}
+-bash: VAR: value is null
+</code></pre>
+<h3 id="6-变量颜色"><strong>6、变量颜色</strong></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">字体颜色</th>
+<th style="text-align:left">字体背景颜色</th>
+<th style="text-align:left">显示方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>30：黑</strong><br/><strong>31：红</strong><br/><strong>32：绿</strong><br/><strong>33：黄</strong><br/><strong>34：蓝色</strong><br/><strong>35：紫色</strong><br/><strong>36：深绿</strong><br/><strong>37：白色</strong></td>
+<td style="text-align:left"><strong>40：黑<br/>41：深红<br/>42：绿<br/>43：黄色<br/>44：蓝色<br/>45：紫色<br/>46：深绿<br/>47：白色</strong></td>
+<td style="text-align:left"><strong>0：终端默认设置<br/>1：高亮显示<br/>4：下划线<br/>5：闪烁<br/>7：反白显示<br/>8：隐藏</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>格式：</strong></p>
+<pre><code>\033[1;31;40m 		# 1 是显示方式，可选。31 是字体颜色。40m 是字体背景颜色。
+\033[0m 			# 恢复终端默认颜色，即取消颜色设置。
+</code></pre>
+<h3 id="7-字符大小写转换">7、字符大小写转换</h3>
+<pre><code class="language-bash">[root@linux1 ~]# string=abc123ABC
+[root@linux1 ~]# echo ${string}
+abc123ABC
+#转换成大写
+[root@linux1 ~]# echo ${string^^}
+ABC123ABC
+#转换成小写
+[root@linux1 ~]# echo ${string,,}
+abc123abc
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/bxxKg4_pZ/" class="tag">
+                    shell
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/shell-jiao-ben-shell-shu-zu-ji-chu/">
+                  <h3 class="post-title">
+                    SHELL脚本--shell数组基础
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>zabbix监控入门基础，监控tomcat，主被动模式 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="（三）zabbix监控入门基础，监控tomcat，主被动模式
+通过apt/yum安装zabbix-agent，对tomcat监控，导入模版
+JMX监控参考官方文档：https://www.zabbix.com/documentation/4..." />
+    <meta name="keywords" content="zabbix" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">zabbix监控入门基础，监控tomcat，主被动模式</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="三zabbix监控入门基础监控tomcat主被动模式">（三）zabbix监控入门基础，监控tomcat，主被动模式</h2>
+<p>通过apt/yum安装zabbix-agent，对tomcat监控，导入模版</p>
+<p>JMX监控参考官方文档：https://www.zabbix.com/documentation/4.0/zh/manual/config/items/itemtypes/jmx_monitoring</p>
+<p>zabbix_agent配置文件选项参考：<a href="https://www.zabbix.com/documentation/4.0/zh/manual/appendix/config/zabbix_agentd">https://www.zabbix.com/documentation/4.0/zh/manual/appendix/config/zabbix_agentd</a></p>
+<p>zabbix_server配置文件选项参考：https://www.zabbix.com/documentation/4.0/zh/manual/appendix/config/zabbix_server</p>
+<p>资料在这：<a href="https://www.lanzous.com/i85szqh">https://www.lanzous.com/i85szqh</a>包含模版，脚本，pdf文档等</p>
+<h3 id="一-zabbix-agent安装">一、zabbix agent安装</h3>
+<p>下面是服务器是ubuntu18.04的系统，</p>
+<pre><code class="language-bash">#阿里云快一点
+[root@mysql ~]# echo &quot;deb http://mirrors.aliyun.com/zabbix/zabbix/4.0/ubuntu/ `lsb_release -cs` main&quot;     | sudo tee /etc/apt/sources.list.d/zabbix.list
+[root@mysql ~]# curl -sSL http://mirrors.aliyun.com/zabbix/zabbix-official-repo.key | sudo apt-key add -
+[root@mysql ~]# apt update
+[root@mysql ~]# apt install zabbix-agent  -y
+</code></pre>
+<h3 id="二-配置zabbix_agentdconf">二、配置zabbix_agentd.conf</h3>
+<pre><code class="language-bash">[root@mysql ~]# vim /etc/zabbix/zabbix_agentd.conf 
+Server=192.168.38.159    #zabbix server的IP
+# ListenPort=10050       #端口默认是10050可以不改
+StartAgents=4            #被动状态时默认启动的实例数，为0不监听任何端口
+#Hostname=mysql          #这个时主机名，web界面添加主机要和这个对应，但不适合脚本，可以用HostnameItem自动获取主机名，但是web界面还是要和主机名填一样的
+HostnameItem=system.hostname 
+ServerActive=127.0.0.1   #如果使用主动模式的话这里应该填zabbix server IP，主动模式就是agent主动给server发数据
+</code></pre>
+<p><strong>所以下面这个配置就是被动模式的配置。被动模式需要zabbix server 可以访问agent的10050端口。</strong></p>
+<p>主动模式需要配置ServerActive到server的IP，并且zabbix server要允许客户端连接自己的10051端口</p>
+<pre><code class="language-bash">[root@mysql ~]# grep ^[a-Z] /etc/zabbix/zabbix_agentd.conf
+PidFile=/var/run/zabbix/zabbix_agentd.pid
+LogFile=/var/log/zabbix/zabbix_agentd.log
+LogFileSize=0
+Server=192.168.38.159
+StartAgents=3
+ServerActive=127.0.0.1
+HostnameItem=system.hostname
+Include=/etc/zabbix/zabbix_agentd.d/*.conf
+</code></pre>
+<pre><code class="language-bash">[root@mysql ~]# systemctl restart zabbix-agent
+[root@mysql ~]# systemctl enable zabbix-agent
+</code></pre>
+<h3 id="三-web界面添加主机">三、web界面添加主机</h3>
+<p><strong>先创建组，不同业务用组来区分</strong></p>
+<p>配置 -&gt; 主机群组 -&gt; 创建主机群组</p>
+<p><strong>然后添加主机</strong></p>
+<p>配置 -&gt; 主机 -&gt;添加主机-&gt; 填写主机信息 -&gt; 添加模版（模版里有监控项，告警，图表等）</p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220164138.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220164257.png" alt="" loading="lazy"></figure>
+<p><strong>绿了就正常</strong></p>
+<figure data-type="image" tabindex="3"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220171507.png" alt="" loading="lazy"></figure>
+<h3 id="四-用zabbix_get检测主机是不是通">四、用zabbix_get检测主机是不是通</h3>
+<p>zabbix_get用来检测agent端的监控项</p>
+<pre><code class="language-bash">[root@zabbix fonts]# zabbix_get -s 192.168.38.160 -p 10050 -k agent.ping
+1
+</code></pre>
+<p><strong>可以查看图标看是否有数据</strong></p>
+<figure data-type="image" tabindex="4"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220180527.png" alt="" loading="lazy"></figure>
+<h3 id="五-监控tomcat">五、监控tomcat</h3>
+<p>学习通过java gateway实现对tomcat的指标进行数据采集和图形展示，如堆栈内存利用率当前会话连接数，繁忙线程等。</p>
+<h4 id="51-给tomcat服务器ubuntu1804安装zabbix-agent">5.1 给tomcat服务器(ubuntu18.04)安装zabbix agent</h4>
+<pre><code class="language-bash">[root@tomcat1 ~]# cat install_zabbix.sh 
+[root@tomcat1 ~]# cat install_zabbix.sh 
+#!/bin/bash
+echo &quot;deb http://mirrors.aliyun.com/zabbix/zabbix/4.0/ubuntu/ `lsb_release -cs` main&quot; | \
+	sudo tee /etc/apt/sources.list.d/zabbix.list
+curl -sSL http://mirrors.aliyun.com/zabbix/zabbix-official-repo.key | sudo apt-key add -
+apt update
+apt install zabbix-agent  -y
+cat &gt; /etc/zabbix/zabbix_agentd.conf &lt;&lt;EOF
+PidFile=/var/run/zabbix/zabbix_agentd.pid
+LogFile=/var/log/zabbix/zabbix_agentd.log
+LogFileSize=0
+Server=192.168.38.159
+StartAgents=3
+ServerActive=127.0.0.1
+HostnameItem=system.hostname
+Include=/etc/zabbix/zabbix_agentd.d/*.conf
+EOF
+sleep 3
+systemctl restart zabbix-agent &amp;&amp; systemctl enable zabbix-agent
+[root@tomcat1 ~]# bash install_zabbix.sh 
+</code></pre>
+<figure data-type="image" tabindex="5"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220181453.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220181555.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220182005.png" alt="" loading="lazy"></figure>
+<p><strong>上面zabbix_agentd.conf的配置因为没有指定ServerActice，因此是被动模式，通过抓包可以看看数据怎么传输的,被动模式是zabbix server的随机端口请求agent的10050端口</strong></p>
+<pre><code class="language-bash">[root@zabbix fonts]# tcpdump -i eth0 -vv -nn host 192.168.38.162
+</code></pre>
+<figure data-type="image" tabindex="8"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220182309.png" alt="" loading="lazy"></figure>
+<h4 id="52-准备java环境">5.2 准备java环境</h4>
+<p>参考：https://xyz.uscwifi.xyz/post/D_3XBdJBN/</p>
+<pre><code class="language-bash">[root@tomcat1 ~]# apt install openjdk-8-jdk -y
+[root@tomcat1 ~]# java -version
+openjdk version &quot;1.8.0_232&quot;
+OpenJDK Runtime Environment (build 1.8.0_232-8u232-b09-0ubuntu1~18.04.1-b09)
+OpenJDK 64-Bit Server VM (build 25.232-b09, mixed mode)
+</code></pre>
+<h4 id="53-准备tomcat">5.3 准备tomcat</h4>
+<pre><code class="language-bash">[root@tomcat1 ~]# wget http://ftp.meisei-u.ac.jp/mirror/apache/dist/tomcat/tomcat-8/v8.5.50/bin/apache-tomcat-8.5.50.tar.gz
+[root@tomcat1 ~]# tar xf apache-tomcat-8.5.50.tar.gz -C /usr/local/
+[root@tomcat1 ~]# echo 'PATH=&quot;/usr/local/apache-tomcat-8.5.50/bin/:$PATH&quot;' &gt;&gt; /etc/profile
+[root@tomcat1 ~]# . /etc/environment
+
+#创建测试app
+[root@tomcat1 ~]# cd /usr/local/apache-tomcat-8.5.50/webapps/
+[root@tomcat1 webapps]# mkdir myweb
+[root@tomcat1 webapps]# cat &gt; myweb/index.html &lt;&lt;'EOF'
+Hello,boy!
+EOF
+#启动tomcat
+[root@tomcat1 webapps]# catalina.sh start
+[root@tomcat1 webapps]# ss -ltn | grep :8080
+LISTEN  0        100                          *:8080                   *:*      
+#测试访问
+[root@tomcat1 webapps]# curl 192.168.38.162:8080/myweb/
+Hello,boy!
+</code></pre>
+<h4 id="54-部署java-gateway服务器">5.4 部署java gateway服务器</h4>
+<p>jave gateway是一台独立于zabbix server 和zabbix agent的组件，也就是java gateway 可以是一台单独的服务器，但是也可以和zabbix server 或者zabbix agent公用一台服务器，前提是端口别冲突了。</p>
+<p>本次条件有限，和zabbix server公用一台</p>
+<p><strong>安装</strong>zabbix-java-gateway并修改配置</p>
+<pre><code class="language-bash">[root@zabbix fonts]# apt install zabbix-java-gateway -y
+[root@zabbix fonts]# vim /etc/zabbix/zabbix_java_gateway.conf
+[root@zabbix fonts]# grep ^[a-Z] /etc/zabbix/zabbix_java_gateway.conf
+LISTEN_IP=&quot;0.0.0.0&quot;
+LISTEN_PORT=10052
+PID_FILE=&quot;/var/run/zabbix/zabbix_java_gateway.pid&quot;
+START_POLLERS=50
+TIMEOUT=30
+[root@zabbix fonts]# systemctl restart zabbix-java-gateway &amp;&amp; systemctl enable zabbix-java-gateway
+[root@zabbix ~]#  lsof -i:10052
+COMMAND   PID   USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+java    53827 zabbix   11u  IPv6 432771      0t0  TCP *:10052 (LISTEN)
+</code></pre>
+<h4 id="55-配置zabbix-server-调用java-gateway">5.5 配置zabbix server 调用java gateway</h4>
+<pre><code class="language-bash">#zabbix server中加入下面三行
+[root@zabbix ~]# vim /etc/zabbix/zabbix_server.conf
+JavaGateway=127.0.0.1      #Zabbix Java gateway的地址
+JavaGatewayPort=10052		# Zabbix Java gateway监听的地址
+StartJavaPollers=20    		#Java 轮询子进程的初始实例数量。
+</code></pre>
+<pre><code class="language-bash">[root@zabbix ~]# systemctl restart zabbix-server
+[root@zabbix ~]# ps -ef | grep java | wc -l
+22
+</code></pre>
+<figure data-type="image" tabindex="9"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220190225.png" alt="" loading="lazy"></figure>
+<h4 id="56-tomcat开启jmx监控">5.6 tomcat开启JMX监控</h4>
+<p>参考：https://www.zabbix.com/documentation/4.0/zh/manual/config/items/itemtypes/jmx_monitoring</p>
+<p>参考：https://blog.csdn.net/Hu_wen/article/details/53587250?locationNum=14&amp;fps=1</p>
+<p>JMX在JAVA编程语言中定义了应用程序以及网络管理和监控的体系结构、设计模式、应用程序接口以及服务，通常使用JMX来监控系统的运行状态</p>
+<p>参考：<a href="https://www.jianshu.com/p/8c5133cab858">https://www.jianshu.com/p/8c5133cab858</a></p>
+<p><strong>这里加参数遇到了坑，下面的方法可行，这个谁的文档不能用，这里要么写成一行，要么写成多行</strong></p>
+<figure data-type="image" tabindex="10"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220195741.png" alt="" loading="lazy"></figure>
+<p>上面图片写法报这个错误：</p>
+<pre><code class="language-bash">[root@tomcat1 ~]# tail -f /usr/local/apache-tomcat-8.5.50/logs/catalina.out 
+/usr/local/apache-tomcat-8.5.50/bin/catalina.sh: 2: eval: -Dcom.sun.management.jmxremote: not found
+/usr/local/apache-tomcat-8.5.50/bin/catalina.sh: 3: eval: -Dcom.sun.management.jmxremote.port=10086: not found
+/usr/local/apache-tomcat-8.5.50/bin/catalina.sh: 4: eval: -Dcom.sun.management.jmxremote.authenticate=false: not found
+/usr/local/apache-tomcat-8.5.50/bin/catalina.sh: 5: eval: -Dcom.sun.management.jmxremote.ssl=false: not found
+</code></pre>
+<pre><code class="language-bash">#这个文件/usr/local/apache-tomcat-8.5.50/bin//catalina.sh中说明不要修改此文件，如有需要，修改CATALINA_BASE/bin/setenv.sh
+#写成一行
+[root@tomcat1 apache-tomcat-8.5.50]# cat bin/setenv.sh
+[root@tomcat1 apache-tomcat-8.5.50]# cat bin/setenv.sh 
+CATALINA_OPTS=&quot;${CATALINA_OPTS}  -Djava.rmi.server.hostname=192.168.38.162  -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.port=10086  -Dcom.sun.management.jmxremote.authenticate=false   -Dcom.sun.management.jmxremote.ssl=false&quot;
+#写成多行
+[root@tomcat1 apache-tomcat-8.5.50]# cat bin/setenv.sh
+CATALINA_OPTS=&quot;${CATALINA_OPTS} -Djava.rmi.server.hostname=192.168.38.162&quot;
+CATALINA_OPTS=&quot;${CATALINA_OPTS} -Djavax.management.builder.initial=&quot;
+CATALINA_OPTS=&quot;${CATALINA_OPTS} -Dcom.sun.management.jmxremote=true&quot;
+CATALINA_OPTS=&quot;${CATALINA_OPTS} -Dcom.sun.management.jmxremote.port=10086&quot;
+CATALINA_OPTS=&quot;${CATALINA_OPTS} -Dcom.sun.management.jmxremote.ssl=false&quot;
+CATALINA_OPTS=&quot;${CATALINA_OPTS} -Dcom.sun.management.jmxremote.authenticate=false&quot;
+[root@tomcat1 apache-tomcat-8.5.50]# catalina.sh stop
+[root@tomcat1 apache-tomcat-8.5.50]# catalina.sh start
+[root@tomcat1 apache-tomcat-8.5.50]# lsof -i:10086
+COMMAND   PID USER   FD   TYPE DEVICE SIZE/OFF NODE NAME
+java    12088 root   31u  IPv6  58136      0t0  TCP *:10086 (LISTEN)
+</code></pre>
+<figure data-type="image" tabindex="11"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220200631.png" alt="" loading="lazy"></figure>
+<h4 id="57-通过jconsole验证jmx数据">5.7 通过jconsole验证JMX数据</h4>
+<p>通过这个链接：https://docs.oracle.com/javase/1.5.0/docs/guide/management/jconsole.html</p>
+<p>知道jconsole在jdk_home/bin下面</p>
+<p>C:\Program Files\Java\jdk1.8.0_102\bin</p>
+<figure data-type="image" tabindex="12"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220201256.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220201424.png" alt="" loading="lazy"></figure>
+<h4 id="58-zabbix-server添加-jmx监控项">5.8 zabbix server添加 JMX监控项</h4>
+<p>zabbix模版里有这个JMX模版</p>
+<figure data-type="image" tabindex="14"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220201640.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="15"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220201755.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="16"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220201952.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="17"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220202121.png" alt="" loading="lazy"></figure>
+<h4 id="59-导入zabbix模版">5.9 导入zabbix模版</h4>
+<p>资料在这：<a href="https://www.lanzous.com/i85szqh">https://www.lanzous.com/i85szqh</a></p>
+<figure data-type="image" tabindex="18"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220203557.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="19"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220203837.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="20"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220204051.png" alt="" loading="lazy"></figure>
+<h4 id="510-linix获取jmx监控指标">5.10 Linix获取JMX监控指标</h4>
+<p><strong>使用jar包</strong></p>
+<p>资料在这：<a href="https://www.lanzous.com/i85szqh">https://www.lanzous.com/i85szqh</a></p>
+<pre><code class="language-bash">[root@zabbix ~]# java -jar cmdline-jmxclient-0.10.3.jar - 192.168.38.162:10086 'Catalina:name=&quot;http-nio-8080&quot;,type=ThreadPool'   currentThreadCount
+12/20/2019 12:57:03 +0000 org.archive.jmx.Client currentThreadCount: 10
+[root@zabbix ~]# java -jar cmdline-jmxclient-0.10.3.jar - 192.168.38.162:10086 'Catalina:name=&quot;http-nio-8080&quot;,type=ThreadPool' maxThreads
+12/20/2019 12:58:06 +0000 org.archive.jmx.Client maxThreads: 200
+</code></pre>
+<p>脚本获取：<a href="https://zabbix.org/wiki/Docs/howto/zabbix_get_jmx">https://zabbix.org/wiki/Docs/howto/zabbix_get_jmx</a><strong>反正我是没成功</strong></p>
+<h3 id="六-zabbix主动与被动模式">六、zabbix主动与被动模式</h3>
+<h4 id="61-被动模式介绍">6.1 被动模式介绍</h4>
+<p>无论主动模式，被动模式，都是基于zabbis_agent的。</p>
+<p>被动模式：zabbix server周期性向agent发送数据收集指令。被动模式下，zabbix server 会根据主机关联的模版中的监控项和数据采集间隔时间，周期性地打开随机端口向agent的10050端口发起tcp连接，然后发送获取监控项数据的指令，即zabbix server发送什么指令，zabbix agent就收集什么数据，zabbix server什么时候发送，zabbix agent就什么时候采集；zabbix server一直不发送，zabbix agent就一直不采集不响应，所以zabbix agent不关系监控项和监控间隔。</p>
+<p>**被动模式优势：**配置简单，安装后即用，也是zabbix的默认监控模式，</p>
+<p>**被动模式缺点：**加大zabbix server工作量，在数百上千台服务器下会导致zabbix server 需要轮训每个agent 发送数据采集指令，会导致zabbix server 压力山大，负载高的话还无法获取到最新的数据。</p>
+<p><strong>之前公司的zabbix基本都是被动模式监控，200台服务器其实压力还好，配置8核16G</strong></p>
+<h4 id="612被动模式端口状态">6.12被动模式端口状态</h4>
+<p><strong>之前tcpdump抓包其实也看到了</strong></p>
+<figure data-type="image" tabindex="21"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220212445.png" alt="" loading="lazy"></figure>
+<h4 id="63-主动模式介绍">6.3 主动模式介绍</h4>
+<p>主动模式：zabbix agent主动向zabbix server的10051端口发起tcp请求，因此主动模式下必须在zabbix agent配置文件中指定zabbix server的Ip和ServerActive均为server的IP</p>
+<p>在连接到zabbix server之前，agent也不知道自己要采集哪些数据，隔多久采集一次，连接到zabbix server后获取到自己的监控项和收集间隔，然后再去采集并返回zabbix server，这样zabbix server就很轻松了</p>
+<p><strong>总结：可以把zabbix server看成包租婆，agent就是租她房子的。主动模式就是agent坐在那收钱就行；被动模式就是包租婆挨家挨户跑去收钱。跑着当然累咯，哪有坐着收钱舒服</strong></p>
+<h4 id="64-修改监控模式为主动模式">6.4 修改监控模式为主动模式</h4>
+<p>将mysql这个服务器的监控模式改下，<strong>只需要设置SererActive即可</strong></p>
+<pre><code class="language-bash">[root@tomcat1 ~]# grep ^[a-Z] /etc/zabbix/zabbix_agentd.conf
+PidFile=/var/run/zabbix/zabbix_agentd.pid
+LogFile=/var/log/zabbix/zabbix_agentd.log
+LogFileSize=0
+Server=192.168.38.159
+StartAgents=3
+ServerActive=192.168.38.159
+HostnameItem=system.hostname
+Include=/etc/zabbix/zabbix_agentd.d/*.conf
+[root@tomcat1 ~]# systemctl restart zabbix-agent
+</code></pre>
+<p><strong><code>[root@tomcat1 ~]# ss -an</code></strong></p>
+<h4 id="65-生成主动模式模版">6.5 生成主动模式模版</h4>
+<p>配置-&gt; 模版-&gt; 选择模版 -&gt; 全克隆 -&gt;新的模版</p>
+<p>新的模版-&gt; 监控项 -&gt;批量更新 -&gt; 类型修改为客户端(主动式)</p>
+<p>配置-&gt; 主机-&gt;选择主机 -&gt;取消原来的模版，替换为新的主动式模版</p>
+<figure data-type="image" tabindex="22"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220215636.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="23"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220215925.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="24"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220220111.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="25"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220220559.png" alt="" loading="lazy"></figure>
+<pre><code class="language-bash">[root@tomcat1 ~]# ss -an | grep 10051
+tcp   TIME-WAIT   0        0                                     192.168.38.162:46126                                          192.168.38.159:10051 
+[root@zabbix ~]# ss -an | grep 162
+tcp  TIME-WAIT 0      0                                          192.168.38.159:10051                                         192.168.38.162:46130              
+tcp  TIME-WAIT 0      0                                          192.168.38.159:10051                                         192.168.38.162:46128              
+tcp  TIME-WAIT 0      0                                 [::ffff:192.168.38.159]:43588                                [::ffff:192.168.38.162]:10086              
+tcp  ESTAB     0      0                                 [::ffff:192.168.38.159]:43640                                [::ffff:192.168.38.162]:10086              
+tcp  ESTAB     0      0                                 [::ffff:192.168.38.159]:16360                                [::ffff:192.168.38.162]:38517              
+tcp  TIME-WAIT 0      0                                 [::ffff:192.168.38.159]:43530                                [::ffff:192.168.38.162]:10086              
+tcp  TIME-WAIT 0      0                                 [::ffff:192.168.38.159]:16198                                [::ffff:192.168.38.162]:38517              
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/z1AO6a8fT/" class="tag">
+                    zabbix
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/zabbix-gui-hua-ji-bu-shu-yu-yan-xiu-gai/">
+                  <h3 class="post-title">
+                    zabbix规划及部署，语言修改
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191030dockerfile中基本镜像apline添加glibc | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="dockerfile中基本镜像apline添加glibc
+参考：http://imoocc.com/jeson/2018/08/16/dockerfileaplineglibc/
+方法一：使用官方的镜像：
+[root@glowing-bli..." />
+    <meta name="keywords" content="glibc,aloine,dockerfile,docker" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191030dockerfile中基本镜像apline添加glibc</h2>
+            <div class="post-date">2021-04-29</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.alpinelinux.org/alpinelinux-logo.svg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="dockerfile中基本镜像apline添加glibc">dockerfile中基本镜像apline添加glibc</h1>
+<p>参考：http://imoocc.com/jeson/2018/08/16/dockerfileaplineglibc/</p>
+<p>方法一：使用官方的镜像：</p>
+<pre><code class="language-bash">[root@glowing-bliss-1 ~]# docker pull jlesage/baseimage:alpine-3.10-glibc-v2.4
+[root@glowing-bliss-1 ~]# docker images | grep glibc
+jlesage/baseimage    alpine-3.10-glibc-v2.4   a073b949c78a        3 weeks ago         22.4MB
+#使用
+FROM jlesage/baseimage:alpine-3.10-glibc-v2.4
+</code></pre>
+<p>方法二：使用dockerfile来</p>
+<p><strong>国内服务器这么慢怎么办，没事国外服务器就块了</strong></p>
+<pre><code class="language-dock">FROM alpine:3.10
+
+RUN ALPINE_GLIBC_BASE_URL=&quot;https://github.com/sgerrand/alpine-pkg-glibc/releases/download&quot; &amp;&amp; \
+    ALPINE_GLIBC_PACKAGE_VERSION=&quot;2.27-r0&quot; &amp;&amp; \
+    ALPINE_GLIBC_BASE_PACKAGE_FILENAME=&quot;glibc-$ALPINE_GLIBC_PACKAGE_VERSION.apk&quot; &amp;&amp; \
+    ALPINE_GLIBC_BIN_PACKAGE_FILENAME=&quot;glibc-bin-$ALPINE_GLIBC_PACKAGE_VERSION.apk&quot; &amp;&amp; \
+    ALPINE_GLIBC_I18N_PACKAGE_FILENAME=&quot;glibc-i18n-$ALPINE_GLIBC_PACKAGE_VERSION.apk&quot; &amp;&amp; \
+    apk add --no-cache --virtual=.build-dependencies wget ca-certificates &amp;&amp; \
+    echo \
+        &quot;-----BEGIN PUBLIC KEY-----\
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApZ2u1KJKUu/fW4A25y9m\
+        y70AGEa/J3Wi5ibNVGNn1gT1r0VfgeWd0pUybS4UmcHdiNzxJPgoWQhV2SSW1JYu\
+        tOqKZF5QSN6X937PTUpNBjUvLtTQ1ve1fp39uf/lEXPpFpOPL88LKnDBgbh7wkCp\
+        m2KzLVGChf83MS0ShL6G9EQIAUxLm99VpgRjwqTQ/KfzGtpke1wqws4au0Ab4qPY\
+        KXvMLSPLUp7cfulWvhmZSegr5AdhNw5KNizPqCJT8ZrGvgHypXyiFvvAH5YRtSsc\
+        Zvo9GI2e2MaZyo9/lvb+LbLEJZKEQckqRj4P26gmASrZEPStwc+yqy1ShHLA0j6m\
+        1QIDAQAB\
+        -----END PUBLIC KEY-----&quot; | sed 's/   */\n/g' &gt; &quot;/etc/apk/keys/sgerrand.rsa.pub&quot; &amp;&amp; \
+    wget \
+        &quot;$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BASE_PACKAGE_FILENAME&quot; \
+        &quot;$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_BIN_PACKAGE_FILENAME&quot; \
+        &quot;$ALPINE_GLIBC_BASE_URL/$ALPINE_GLIBC_PACKAGE_VERSION/$ALPINE_GLIBC_I18N_PACKAGE_FILENAME&quot; &amp;&amp; \
+    apk add --no-cache \
+        &quot;$ALPINE_GLIBC_BASE_PACKAGE_FILENAME&quot; \
+        &quot;$ALPINE_GLIBC_BIN_PACKAGE_FILENAME&quot; \
+        &quot;$ALPINE_GLIBC_I18N_PACKAGE_FILENAME&quot; &amp;&amp; \
+    \
+    rm &quot;/etc/apk/keys/sgerrand.rsa.pub&quot; &amp;&amp; \
+    /usr/glibc-compat/bin/localedef --force --inputfile POSIX --charmap UTF-8 &quot;$LANG&quot; || true &amp;&amp; \
+    echo &quot;export LANG=$LANG&quot; &gt; /etc/profile.d/locale.sh &amp;&amp; \
+    \
+    apk del glibc-i18n &amp;&amp; \
+    \
+    rm &quot;/root/.wget-hsts&quot; &amp;&amp; \
+    apk del .build-dependencies &amp;&amp; \
+    rm \
+        &quot;$ALPINE_GLIBC_BASE_PACKAGE_FILENAME&quot; \
+        &quot;$ALPINE_GLIBC_BIN_PACKAGE_FILENAME&quot; \
+        &quot;$ALPINE_GLIBC_I18N_PACKAGE_FILENAME&quot;
+
+
+RUN  apk add -U tzdata curl \
+&amp;&amp; cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \ 
+&amp;&amp; apk del tzdata \
+&amp;&amp; rm -rf /var/cache/apk/*
+</code></pre>
+<pre><code class="language-bash">[root@glowing-bliss-1 ~]# docker images | grep alpine-glibc
+alpine-glibc         latest                   f232b2425f74        10 hours ago        14MB
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/JA26TP-rc/" class="tag">
+                    glibc
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/XmggTltj2/" class="tag">
+                    aloine
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/kNjQz_ZLc/" class="tag">
+                    dockerfile
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/pw00jdDde/" class="tag">
+                    docker
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191030alpine-jing-xiang-zhi-chi-zhong-wen-zi-fu/">
+                  <h3 class="post-title">
+                    20191030alpine镜像支持中文字符
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

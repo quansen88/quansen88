@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190910DNS术语；主从DNS服务器配置；DNS综合实验 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="DNS术语；主从DNS服务器配置；DNS综合实验
+权威服务器和(非)权威应答
+**权威服务器（权威者）可以理解为直接上层域的DNS服务器。**例如www.baidu.com这台主机的上层域是baidu.com，那么对www来说，它的权威服务..." />
+    <meta name="keywords" content="DNS" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190910DNS术语；主从DNS服务器配置；DNS综合实验</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://alidns.com/public/img/selections/trouble/trouble.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="dns术语主从dns服务器配置dns综合实验">DNS术语；主从DNS服务器配置；DNS综合实验</h1>
+<h2 id="权威服务器和非权威应答">权威服务器和(非)权威应答</h2>
+<p>**权威服务器（权威者）可以理解为直接上层域的DNS服务器。**例如www.baidu.com这台主机的上层域是baidu.com，那么对www来说，它的权威服务器就是baidu.com这个域内负责解析的DNS服务器，而对于baidu.com这个主机来说，它的权威服务器是.com这个域负责解析的DNS服务器。</p>
+<p>更具体的说，某域的权威服务器是可以直接查看该域数据(即区域数据文件)的DNS服务器，主、从DNS服务器都是权威服务器。</p>
+<p>只有权威服务器给出的应答才是权威应答，否则就是非权威应答。为什么呢？因为一个域中所有的主机都是在DNS服务器中的区域数据文件中记录的，对于主机来说，它们的位置只有直接上层才知道在哪里。</p>
+<p>因此如果解析www.baidu.com时要获得权威应答，应该将DNS指向baidu.com这个域内负责解析的DNS服务器。</p>
+<p>只有权威服务器直接给出的答案才是永远正确的，通过缓存得到的答案基本都是非权威应答。当然这不是一定的，因为权威服务器给的答案也是缓存中的结果，但是这是权威答案。DNS服务器缓存解析的数据库时间长度是由权威服务器决定的。</p>
+<hr>
+<h2 id="dns缓存">DNS缓存</h2>
+<p>在Client和DNS服务器这些个人订制的DNS解析系统中都会使用缓存来加速解析以减少网络流量和查询压力，就算是解析不到的否定答案也会缓存。</p>
+<p>但是要访问的主机IP可能会改变，所有使用缓存得到的答案不一定是对的，因此缓存给的答案是非权威的，只有对方主机的上一级给的答案才是权威答案。缓存给的非权威答案应该设定缓存时间，这个缓存时间的长短由权威者指定。</p>
+<p>另外访问某个域下根本不存在的主机，这个域的DNS服务器也会给出答案，但是这是否定答案，否定答案也会缓存，并且有缓存时间。例如某个Client请求51cto.com域下的ftp主机，但是实际上51cto.com下面可能根本没有这个ftp主机，那么51cto.com就会给否定答案，为了防止Client不死心的访问ftp搞破坏，51cto.com这个域负责解析的DNS服务器有必要给Client指定否定答案的缓存时间。</p>
+<hr>
+<h2 id="主-从dns服务器">主、从dns服务器</h2>
+<p>dns服务器也称为name server，每个域都必须有dns服务器负责该域相关数据的解析。但dns服务器要负责整个域的数据解析，压力相对来说是比较大的，且一旦出现问题，整个域都崩溃无法向外提供服务，这是非常严重的事。所以，无论是出于负载均衡还是域数据安全可用的考虑，两台dns服务器已经是最低要求了，多数时候应该配置多台dns服务器。</p>
+<p>多台dns服务器之间有主次之分，主dns服务器称为master，从dns服务器称为slave。slave上的域数据都是从master上获取的，这样slave和master就都能向外提供名称解析服务。</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1568377435342.png" alt="1568377435342" loading="lazy"></figure>
+<p><strong>1、主DNS服务器</strong></p>
+<pre><code class="language-bash">[root@dns-master ~]# yum install bind -y
+[root@dns-master ~]# vim /etc/named.conf 
+//      listen-on port 53 { 127.0.0.1; };
+//      allow-query     { localhost; };
+        allow-transfer { 192.168.38.137;};
+[root@dns-master ~]# vim /etc/named.rfc1912.zones
+zone &quot;taobao.com&quot; IN {
+        type master;
+        file &quot;db.taobao.com&quot;;                                                                                         
+};
+[root@dns-master ~]# cd /var/named/
+[root@dns-master named]# cp -a named.localhost db.taobao.com
+[root@dns-master named]# vim db.taobao.com
+[root@dns-master named]# cat db.taobao.com 
+$TTL 1D
+@	IN SOA	master.taobao.com. admin.taobao.com. (
+					1	; serial
+					1D	; refresh
+					1H	; retry
+					1W	; expire
+					3H )	; minimum
+	NS 	master
+	NS 	slave
+master  A	192.168.38.130
+slave  	A	192.168.38.137
+websrv	A	192.168.38.128
+www	CNAME	websrv
+[root@dns-master named]# systemctl start named
+</code></pre>
+<p><strong>测试：</strong>[root@client ~]# nslookup www.taobao.com 192.168.38.130</p>
+<p><strong>2、从DNS配置</strong></p>
+<pre><code class="language-absh">[root@dns-slave ~]# yum install bind -y
+[root@dns-slave ~]# vim /etc/named.conf
+//      listen-on port 53 { 127.0.0.1; };
+//      allow-query     { localhost; };
+		allow-transfer { none; };
+[root@dns-slave ~]# vim /etc/named.rfc1912.zones 
+zone &quot;taobao.com&quot; IN {
+        type slave;
+        masters { 192.168.38.130; };
+        file &quot;slaves/db.taobao.com&quot;;                                  
+};
+[root@dns-slave ~]# systemctl restart named
+[root@dns-slave ~]# ls /var/named/slaves/
+db.taobao.com
+</code></pre>
+<p><strong>测试：</strong>[root@client ~]# nslookup www.taobao.com 192.168.38.137</p>
+<hr>
+<h1 id="配置仅缓存dns服务器">配置&quot;仅缓存&quot;dns服务器</h1>
+<p><strong>清空缓存的命令：rndc flush</strong></p>
+<p><strong>dig和nslookup都可以指定DNS服务器查询</strong></p>
+<p>仅用作提供缓存的dns服务器，当有客户端请求该dns服务器帮忙解析某个地址时，它不会直接为外界主机提供dns解析，而是自己去找其他dns服务器解析，并将结果缓存在本地，并将缓存结果提供给客户端。</p>
+<p>也就是说，仅缓存dns服务器其实扮演的角色和客户端一样，只不过它还未其他客户端提供解析查询而已。</p>
+<p>要配置仅缓存dns服务器，只要配置3个任何时候都必要的域：根域&quot;.&quot;、&quot;localhost&quot;域和&quot;1.0.0.127.in-addr.arpa&quot;。也就是说，任何一台完整的dns服务器，至少都是&quot;缓存&quot;服务器。</p>
+<p>所以，仅缓存dns服务器配置如下：</p>
+<pre><code>[root@xuexi ~]# vim /etc/named.conf
+options {
+    directory &quot;/var/named&quot;;
+};
+
+#zone &quot;jd.com&quot; {
+#    type master;
+#    file &quot;db.jd.com&quot;;
+#};
+
+zone &quot;.&quot; IN {
+    type hint;
+    file &quot;named.ca&quot;;
+};
+
+include &quot;/etc/named.rfc1912.zones&quot;;
+</code></pre>
+<hr>
+<h1 id="配置dns转发服务器">配置dns转发服务器</h1>
+<p>配置成了转发服务器，named.conf里所有的zone都将失效(除非配置转发区和空转发区)，也就是不会再做任何解析（包括对根的查询），收到的解析请求全都提交给转发选项里指定的机器，转发选项所指定的机器称为转发器。转发器还可以指定给上一层。</p>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1568114064179.png" alt="1568114064179" loading="lazy"></figure>
+<p>如图：192.168.38.133为转发者，192.168.38.138配置方式为：</p>
+<pre><code class="language-bash">#options中使用一个forwarders指令
+options {
+    directory &quot;/var/named&quot;;
+    forwarders { 192.168.38.128; }; 
+//    forward only;		#默认是forward first，即先转发，转发失败自行查询；forward only即仅转发，仅转发的那也不需要域文件了，删掉directory一行即可
+};
+include /etc/named.rfc1912.zones;
+</code></pre>
+<p>这表示将192.168.38.133收到的所有查询请求都交给192.168.38.128这台转发器，由这台转发器帮忙查询相关请求，然后回复给转发者，由转发者回复给客户端</p>
+<p><strong>转发者转发给转发器的查询是递归查询，转发器必须要亲自回复转发者</strong></p>
+<p><strong>同样，如果forward留空的，表示该区禁止转发</strong></p>
+<pre><code class="language-bah">options {
+    directory &quot;/var/named&quot;;
+    forwarders { 192.168.38.130; };
+};
+
+zone &quot;taobao.com&quot; IN {
+    type master;
+    forwarders {};
+};
+
+zone &quot;.&quot; IN {
+    type hint;
+    file &quot;named.ca&quot;;
+};
+
+include /etc/named.rfc1912.zones;
+</code></pre>
+<hr>
+<h1 id="acl">ACL</h1>
+<p>顾名思义，访问控制列表，定义一组规则，方便下面引用</p>
+<pre><code class="language-bash">acl &quot;acl_name&quot; { 192.168.38/24;192.168.39/24 };
+</code></pre>
+<p>此外，还有4个预定义的acl值：<strong>any、none、localhost(DNS服务器的任一IP地址)、localnets(DNS服务器任一ip地址所在网段)</strong></p>
+<h1 id="递归查询">递归查询</h1>
+<p>​		<strong>dns解析器发起的查询都是递归查询，所以一般客户端配置DNS指向谁就表示找谁帮忙做递归查询。如果dns服务器接受它的递归查询请求，则它会去帮助查询，如果dns服务器不接受它的递归查询请求，则会将递归查询当成迭代查询看待，让请求者自己去查询。</strong></p>
+<p>​		<strong>另外，允许递归查询的服务器，由于要帮忙查询，所以在递归查询服务器上总是缓存了一些非权威数据，如果是非递归查询服务器，则不用缓存任何数据，只需返回其负责的域的权威数据即可，这对减轻压力的作用是非常大的。</strong></p>
+<p>​		<strong>不要将非递归查询dns服务器设置为转发器，因为转发者转发给转发器的查询是递归查询</strong>。</p>
+<h3 id="一-主从dns服务器的配置">一、主从DNS服务器的配置</h3>
+<h4 id="主服务器配置">主服务器配置</h4>
+<p><strong>1是修改/etc/named.conf</strong></p>
+<pre><code class="language-bash">#监听端口这一行，简单一点注释了
+// listen-on
+#将仅允许localhost查询这一行注释，简单粗暴
+// allow-query
+#添加一行allow-transfer，简单理解为只允许192.168.38.130作为从服务器获取DNS数据，放在文件前面就是全局，放在区域中就只对区域生效，没有这一行的话，黑客就能通过dig -t axfr jd.com @192.168.38.128获取到jd.com的所有域名解析情况
+allow-transfer { 192.168.38.130; }; 
+</code></pre>
+<p><strong>2是修改/etc/named.rfc1912.zones，添加域</strong></p>
+<pre><code class="language-bash">#在/etc/named.rfc1912.zones中添加区域，当然添加/etc/named.conf也是可以的，/etc/named.conf最下面两行写着include /etc/named.rfc1912.zones
+zone &quot;jd.com&quot; {
+        type master;
+        file &quot;jd.com.zone&quot;;
+};
+</code></pre>
+<p><strong>3是添加正向解析域文件/var/named/jd.com.zone</strong></p>
+<p><strong>不写了。如上面所示</strong></p>
+<h1 id="dns大实验">DNS大实验</h1>
+<p>不写了。</p>
+<p>参考：https://thson.blog.csdn.net/article/details/94427779</p>
+<p>注意，这位同学的文章某些地方还是有些小问题的</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/N4D_upAhB/" class="tag">
+                    DNS
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190909-you-pan-quan-zi-dong-an-zhuang-centos7/">
+                  <h3 class="post-title">
+                    20190909优盘全自动安装CentOS7
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

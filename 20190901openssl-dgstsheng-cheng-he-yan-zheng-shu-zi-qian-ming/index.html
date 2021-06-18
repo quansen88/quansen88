@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190901openssl dgst(生成和验证数字签名) | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="openssl dgst(生成和验证数字签名)
+该伪命令是单向加密工具，用于生成文件的摘要信息，也可以进行数字签名，验证数字签名。
+首先要明白的是，数字签名的过程是计算出数字摘要，然后使用私钥对数字摘要进行签名，而摘要是使用md5、sha5..." />
+    <meta name="keywords" content="openssl,证书" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190901openssl dgst(生成和验证数字签名)</h2>
+            <div class="post-date">2021-04-23</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="openssl-dgst生成和验证数字签名">openssl dgst(生成和验证数字签名)</h1>
+<p>该伪命令是单向加密工具，用于生成文件的摘要信息，也可以进行数字签名，验证数字签名。</p>
+<p>首先要明白的是，<strong>数字签名的过程是计算出数字摘要，然后使用私钥对数字摘要进行签名</strong>，而摘要是使用md5、sha512等算法计算得出的，理解了这一点，openssl dgst命令的用法就完全掌握了。</p>
+<pre><code class="language-bash">openssl dgst [-md5|-sha1|...] [-hex | -binary] [-out filename] [-sign filename] [-passin arg] [-verify filename] [-prverify filename] [-signature filename] [file...]
+
+选项说明：
+
+file...：指定待签名的文件。
+
+-hex：以hex格式输出数字摘要。如果不以-hex显示，签名或验证签名时很可能乱码。
+
+-binary：以二进制格式输出数字摘要，或以二进制格式进行数字签名。这是默认格式。
+
+-out filename：指定输出文件，若不指定则输出到标准输出。
+
+-sign filename：使用filename中的私钥对file数字签名。签名时绝对不能加-hex等格式的选项，否则验证签名必失败，亲测。
+
+ 
+
+-signature filename：指定待验证的签名文件。
+
+-verify filename：使用filename中的公钥验证签名。
+
+-prverify filename：使用filename中的私钥验证签名。
+
+-passin arg：传递解密密码。若验证签名时实用的公钥或私钥文件是被加密过的，则需要传递密码来解密。密码的格式见&quot;openssl 密码格式&quot;
+</code></pre>
+<p>支持如下几种单向加密算法，即签名时使用的hash算法。</p>
+<pre><code class="language-bash">-md4            to use the md4 message digest algorithm
+
+-md5            to use the md5 message digest algorithm
+
+-ripemd160      to use the ripemd160 message digest algorithm
+
+-sha            to use the sha message digest algorithm
+
+-sha1           to use the sha1 message digest algorithm
+
+-sha224         to use the sha224 message digest algorithm
+
+-sha256         to use the sha256 message digest algorithm
+
+-sha384         to use the sha384 message digest algorithm
+
+-sha512         to use the sha512 message digest algorithm
+
+-whirlpool      to use the whirlpool message digest algorithm
+</code></pre>
+<p>注意：openssl dgst -md5和openssl md5的作用是一样的，其他单向加密算法也一样，例如openssl dgst -sha等价于openssl sha。</p>
+<p><strong>1、随机生成一段摘要信息</strong></p>
+<pre><code class="language-bash">root@qqq:~# echo 123456 | openssl md5
+(stdin)= f447b20a7fcbf53a5d5be013ea0b15af
+</code></pre>
+<p><strong>2、对/root/OpenArkCompiler-0.2.tar.gz文件生成MD5和sha512摘要信息</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl dgst -md5 OpenArkCompiler-0.2.tar.gz
+MD5(OpenArkCompiler-0.2.tar.gz)= e7dc8b8c242f2d26429e2ad71dae3112
+
+root@qqq:~# openssl sha512 OpenArkCompiler-0.2.tar.gz 
+SHA512(OpenArkCompiler-0.2.tar.gz)= aacc7dc575108f11817e86c5c00cf7636e6f82ac96afc47a93fdbe4fc133d3b8b077a102e2b89b145cf0c30ac044b7e02fbe11f4a9949f0abe2a9f42409e4f26
+</code></pre>
+<p><strong>3、生成一个私钥genrsa.pri，然后使用该私钥对/root/OpenArkCompiler-0.2.tar.gz文件签名。使用-hex选项，否则默认输出格式为二进制会乱码</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl genrsa -out genrsa.pri
+root@qqq:~# openssl dgst -md5 -hex -sign genrsa.pri OpenArkCompiler-0.2.tar.gz 
+RSA-MD5(OpenArkCompiler-0.2.tar.gz)= af5bf93240cd1ae6594fb1fd774b1f0cf19b5f6b4f8861325cf44fd9529b88a19a0713d56c6dde7eacb4419cd7c6a6300d05734ad9db04d9d949e8a29e954a35b540a3f852179b7336a019a16604f439fb40e2f79fac5c62df66228fb134741bf6751f1d26bfb42beab67d2a368a7536aa2e7ab5eece2ad29dff528e494b1df85fcfdec77f5a233a880bc68ddb6e3737a2bd64376b0b53aaf801aeac9468e765a8b4eaab2eca038eb4d898ba14b92a1799d764bbe6d83a2a877988be7f74fb77f4d79c5516303c2584bf4ac2ca3898d80e58f5b9482adc37dff18a24e2c6489671a66e70e24a62e19e3ed145fccbdad453b47231367064597085b3d1218337d8+
+</code></pre>
+<p>如果要验证签名，那么这个生成的签名要保存到一个文件中，且<font color=red><strong>一定不能使用&quot;-hex&quot;选项，否则验证签名必失败</strong></font>。以下分别生成使用和不使用hex格式的签名文件以待验证签名测试</p>
+<pre><code class="language-absh">root@qqq:~# openssl dgst -md5  -hex -out md5_hex.sign -sign genrsa.pri OpenArkCompiler-0.2.tar.gz 
+root@qqq:~# openssl dgst -md5   -out md5_nohex.sign -sign genrsa.pri OpenArkCompiler-0.2.tar.gz
+</code></pre>
+<p><strong>4、<font color=red>验证签名。验证签名的过程实际上是对待验证文件新生成签名，然后与已有签名文件进行比对，如果比对结果相同，则验证通过。所以，在验证签名时不仅要给定待验证的签名文件，也要给定相同的算法，相同的私钥或公钥文件以及待签名文件以生成新签名信息。</font></strong></p>
+<p>以下先测试以私钥来验证数字签名文件。</p>
+<p>首先对未使用hex格式的签名文件md5_nohex.sign进行验证。由于生成md5_nohex.sign时使用的是md5算法，所以这里必须也要指定md5算法。</p>
+<pre><code class="language-bash">root@qqq:~# openssl dgst -md5 -prverify genrsa.pri -signature md5_nohex.sign OpenArkCompiler-0.2.tar.gz 
+Verified OK
+</code></pre>
+<p>再对使用了hex格式的签名文件md5_hex.sign进行验证，不论在验证时是否使用了hex选项，结果都是验证失败。</p>
+<pre><code class="language-bash">#验证时不使用-hex，失败
+root@qqq:~# openssl dgst -md5 -prverify genrsa.pri -signature md5_hex.sign OpenArkCompiler-0.2.tar.gz 
+Verification Failure
+#验证时使用-hex，失败
+root@qqq:~# openssl dgst -md5 -hex -prverify genrsa.pri -signature md5_hex.sign OpenArkCompiler-0.2.tar.gz 
+Verification Failure
+</code></pre>
+<p>再测试使用公钥来验证数字签名。</p>
+<pre><code class="language-bash">#从私钥导出公钥
+root@qqq:~# openssl rsa -in genrsa.pri -pubout -out rsa.pub
+root@qqq:~# openssl dgst -md5 -verify rsa.pub -signature md5_nohex.sign OpenArkCompiler-0.2.tar.gz 
+Verified OK
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/cx2hRHr8nL/" class="tag">
+                    证书
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190901openssl-caqian-shu-he-zi-jian-ca/">
+                  <h3 class="post-title">
+                    20190901openssl ca(签署和自建CA)
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

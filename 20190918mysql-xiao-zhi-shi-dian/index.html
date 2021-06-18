@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190918mysql小知识点 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="mysql小知识点
+参考：https://www.cnblogs.com/geaozhang/p/6834780.html
+一、mysql选项查看，要会看这张表：
+https://dev.mysql.com/doc/refman/5.7/e..." />
+    <meta name="keywords" content="mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190918mysql小知识点</h2>
+            <div class="post-date">2021-04-26</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="mysql小知识点">mysql小知识点</h1>
+<h4 id="参考httpswwwcnblogscomgeaozhangp6834780html">参考：https://www.cnblogs.com/geaozhang/p/6834780.html</h4>
+<h4 id="一-mysql选项查看要会看这张表"><strong>一、mysql选项查看，要会看这张表：</strong></h4>
+<p>https://dev.mysql.com/doc/refman/5.7/en/server-option-variable-reference.html</p>
+<p>https://mariadb.com/kb/en/library/full-list-of-mariadb-options-system-and-status-variables/</p>
+<p>mysqld选项：</p>
+<p>选项名称；是否可以作为命令行选项；是否可以作为为配置文件选项；是否是系统变量，是否为状态变量；变量的作用范围（有global和session两种）；是否是动态参数</p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20190918172211.png" alt="" loading="lazy"></figure>
+<p><strong>以sql-mode为例</strong>，它是命令行选项，又是文件选项，又是系统变量，变量作用范围为全局，动态：</p>
+<table>
+<thead>
+<tr>
+<th>sql-mode</th>
+<th>Yes</th>
+<th>Yes</th>
+<th>Yes</th>
+<th></th>
+<th>Both</th>
+<th>Yes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>1、sql-mode可以在运行mysqld时指定,下面指定seq-mode为空</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# /usr/local/mysql/bin/mysqld --basedir=/usr/local/mysql --datadir=/data/mysql --plugin-dir=/usr/local/mysql/lib/plugin --user=mysql --log-error=/var/log/mysqld.log --pid-file=/var/run/mysqld/mysqld.pid --socket=/var/lib/mysql/mysql.sock --sql-mode=''
+#可以在mysql中看到其值为空
+mysql&gt; SELECT @@sql_mode;
++------------+
+| @@sql_mode |
++------------+
+|            |
++------------+
+1 row in set (0.00 sec)
+</code></pre>
+<p><strong>2、可以作为文件选项，可以在mysql的配置文件my.cnf的mysqld段指定</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# vim /etc/my.cnf
+[mysqld]
+sql-mode='ONLY_FULL_GROUP_BY'
+...
+[root@localhost ~]# systemctl restart mysqld
+mysql&gt; SELECT @@sql_mode;
++--------------------+
+| @@sql_mode         |
++--------------------+
+| ONLY_FULL_GROUP_BY |
++--------------------+
+1 row in set (0.00 sec)
+</code></pre>
+<p><strong>3、sql-mode是系统变量，系统变量可以使用show variables查看,也可以通过set global设置</strong></p>
+<pre><code class="language-bash">#服务器系统变量分为全局变量和会话变量两种
+#获取系统变量有三种命令
+mysql&gt; SHOW VARIABLES LIKE 'sql_mode';
++---------------+--------------------+
+| Variable_name | Value              |
++---------------+--------------------+
+| sql_mode      | ONLY_FULL_GROUP_BY |
++---------------+--------------------+
+1 row in set (0.01 sec)
+mysql&gt; select @@sql_mode;
++--------------------+
+| @@sql_mode         |
++--------------------+
+| ONLY_FULL_GROUP_BY |
++--------------------+
+1 row in set (0.00 sec)
+mysql&gt; SHOW GLOBAL VARIABLES LIKE 'sql_mode';
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| sql_mode      |       |
++---------------+-------+
+1 row in set (0.00 sec)
+#修改全局变量，两种命令
+mysql&gt; set @@global.sql_mode='';
+Query OK, 0 rows affected (0.00 sec)
+mysql&gt; SET GLOBAL sql_mode='';
+Query OK, 0 rows affected (0.00 sec)
+#查看会话变量
+mysql&gt; SHOW SESSION VARIABLES;
+#修改会话变量两种方式
+SET @@session.system_var_name=value;
+SET SESSION system_var_name=value;
+</code></pre>
+<p><strong>4、sql_mode不是</strong>状态变量，因此查不到</p>
+<pre><code class="language-bashj">#服务器状态变量分为全局和会话两种，状态变量只读
+mysql&gt; SHOW GLOBAL STATUS;
+mysql&gt; SHOW SESSION STATUS;
+mysql&gt; SHOW GLOBAL STATUS LIKE 'sql_mode';
+Empty set (0.00 sec)
+</code></pre>
+<p><strong>5、sql-mode该变量的范围是global和session，可以分别查看下</strong></p>
+<pre><code class="language-bash">#全局变量下sql_mode为空是我上面使用SET GLOBAL sql_mode='';设置的
+mysql&gt; SHOW GLOBAL VARIABLES LIKE 'sql_mode';
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| sql_mode      |       |
++---------------+-------+
+1 row in set (0.00 sec)
+
+mysql&gt; SHOW SESSION VARIABLES LIKE 'sql_mode';
++---------------+--------------------+
+| Variable_name | Value              |
++---------------+--------------------+
+| sql_mode      | ONLY_FULL_GROUP_BY |
++---------------+--------------------+
+1 row in set (0.00 sec)
+</code></pre>
+<p><strong>6、sql_mode是动态参数</strong></p>
+<h4 id="二-sql_mode的含义">二、sql_mode的含义</h4>
+<p>​		对其设置可以完成一些约束检查的工作,可分别进行全局的设置或当前会话的设置</p>
+<p>​		参考：https://mariadb.com/kb/en/library/sql-mode/</p>
+<p>比如： ONLY_FULL_GROUP_BY</p>
+<p>​		对于GROUP BY聚合操作，如果在SELECT中的列，没有在GROUP BY中出现，那么将认为这个SQL是不合法的。</p>
+<h4 id="三-mysqladmin检测mysql状态">三、mysqladmin检测mysql状态</h4>
+<p>mysqladmin可以修改密码，删除，创建数据库，刷新表，刷新日志，查看状态，关闭数据库</p>
+<pre><code class="language-bash">[root@localhost support-files]# mysqladmin -uroot -p ping 
+Enter password: 
+mysqld is alive
+[root@localhost support-files]# mysqladmin -uroot -p status
+Enter password: 
+Uptime: 6295  Threads: 1  Questions: 57  Slow queries: 0  Opens: 109  Flush tables: 1  Open tables: 102  Queries per second avg: 0.00
+</code></pre>
+<h4 id="四-mysql忘记密码">四、mysql忘记密码</h4>
+<p>网上文章还是挺多的！！！</p>
+<p>https://dev.mysql.com/doc/refman/5.7/en/server-option-variable-reference.html</p>
+<p>从上面链接的表上可以看到，skip-grant-tables变量可以作为命令行选项用，也可以当配置文件选项来使用</p>
+<table>
+<thead>
+<tr>
+<th><a href="https://dev.mysql.com/doc/refman/5.7/en/server-options.html#option_mysqld_skip-grant-tables">skip-grant-tables</a></th>
+<th>Yes</th>
+<th>Yes</th>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>在命令行中使用：</strong></p>
+<pre><code class="language-bash">关闭数据库，以--skip-grant-tables启动mysqld
+[root@localhost ~]# /usr/local/mysql/bin/mysqld_safe --datadir=/data/mysql --skip-grant-tables &amp;
+[root@localhost ~]# mysql -uroot -p
+Enter password: 
+mysql&gt; UPDATE mysql.user SET authentication_string=password('123456789') WHERE user='root' AND host='localhost';
+mysql&gt; FLUSH PRIVILEGES;
+mysql&gt; QUIT
+[root@localhost ~]# pkill mysql
+[root@localhost ~]# systemctl start mysql
+</code></pre>
+<p><strong>在配置文件中使用</strong></p>
+<pre><code class="language-bash">#my.cnf加一行或两行都加上
+[root@localhost ~]# vim /etc/my.cnf
+[mysqld]
+skip-grant-tables
+skip-networking
+[root@localhost ~]# systemctl restart mysql
+[root@localhost ~]# mysql -uroot -p
+Enter password: 
+mysql&gt; UPDATE mysql.user SET authentication_string=password('123456') WHERE user='root' AND host='localhost';
+mysql&gt; FLUSH PRIVILEGES;
+mysql&gt; QUIT
+#删掉my.cnf中的那两行，重启mysql
+[root@localhost ~]# vim /etc/my.cnf
+[root@localhost ~]# systemctl restart mysql
+</code></pre>
+<h4 id="五-mysql的3306端口抓包实验">五、mysql的3306端口抓包实验</h4>
+<p>通过wireshark抓包，看到将mysql的数据包全部截获，并且全部是明文，mysql加密后的密码也截获到，mysql的密码加密机器简单，通过在线解密工具很容易得到其真实密码，这就是为何mysql的3306端口坚决不能暴露的原因。还有就是mysql一般监听在本地或者局域网内，公网的话如果必须要，那么一定要设置防火墙，安全组。</p>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20190918212759.png" alt="" loading="lazy"></figure>
+<h4 id="六-mysql怎么允许别的主机连">六、mysql怎么允许别的主机连</h4>
+<pre><code class="language-bash">首先selinux和防火墙关掉或者设置规则
+然后mysql的my.cnf要设置监听在所有地址上:bind-address=*，并重启mysql
+接着mysql对其授权：mysql&gt; GRANT ALL ON wordpress.* TO 'tom'@'192.168.38.%' IDENTIFIED BY '123456';
+接着刷新权限：mysql&gt; FLUSH PRIVILEGES;
+不出意外就可以了：[root@web ~]# mysql -utom -p -h192.168.38.132
+</code></pre>
+<h4 id="七-mysql备份还原注意">七、mysql备份还原注意</h4>
+<p>写好备份脚本后，一定要手动备份一次，看能否成功，并且将备份的数据库文件在测试机上做还原演练，看备份的对不对，能不能用</p>
+<h4 id="八-mysql的索引">八、mysql的索引</h4>
+<p>索引的查看，添加，删除，以及explain查询是否使用了索引</p>
+<p>查看表上的索引：</p>
+<pre><code class="language-bash">mysql&gt; DESC students;		#主键也是索引，索引分好多种
+mysql&gt; SHOW INDEX FROM hellodb.students;
++----------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| Table    | Non_unique | Key_name | Seq_in_index | Column_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment | Index_comment |
++----------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+| students |          0 | PRIMARY  |            1 | StuID       | A         |          25 |     NULL | NULL   |      | BTREE      |         |               |
+| students |          1 | idx_name |            1 | Name        | A         |          25 |     NULL | NULL   |      | BTREE      |         |               |
++----------+------------+----------+--------------+-------------+-----------+-------------+----------+--------+------+------------+---------+---------------+
+2 rows in set (0.00 sec)
+</code></pre>
+<p>添加索引：</p>
+<pre><code class="language-bash">mysql&gt; CREATE INDEX idx_name ON students(name);
+</code></pre>
+<p>如何确认查询使用了索引：</p>
+<pre><code class="language-bash">mysql&gt; explain select * from students where stuid=16;
++----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+| id | select_type | table    | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra |
++----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+|  1 | SIMPLE      | students | NULL       | const | PRIMARY       | PRIMARY | 4       | const |    1 |   100.00 | NULL  |
++----+-------------+----------+------------+-------+---------------+---------+---------+-------+------+----------+-------+
+1 row in set, 1 warning (0.00 sec)
+</code></pre>
+<p>删除索引：</p>
+<pre><code class="language-bash\">mysql&gt; DROP INDEX idx_name ON students;
+</code></pre>
+<h4 id="九-myisam和innodb区别">九、myisam和innodb区别</h4>
+<p><strong>我记得最深刻的一点就是myisam是表级锁，而innodb支持行级锁。好处就是不至于我改表上内容，别人完全无法修改此表</strong></p>
+<p>然后：Myisam不支持事务，不支持事务就比较难受了，innode支持</p>
+<p>Myisam不支持热备，innode支持</p>
+<p>（明天补充）</p>
+<h4 id="十-索引不是必须有">十、索引不是必须有</h4>
+<p>常用的索引类型是B tree，有助于读请求，但不利于写请求。</p>
+<h4 id="十一-事务的四个特性">十一、事务的四个特性</h4>
+<p>参考：https://www.cnblogs.com/geaozhang/p/10478918.html</p>
+<p>看到事务，让我联想到银行取钱，不会因为银行突然断电，钱取出来了钱没扣</p>
+<p><strong>ACID</strong></p>
+<p>A：原子性：一个事务中的操作要么都成功，要么都失败回滚</p>
+<p>C：一致性：在整个事务的生命周期里面，查询到的数据是一致的；</p>
+<p>I：隔离性：隔离级别；</p>
+<p>D：持久性： 只要事务commit，这个事务不会因为系统的崩溃而丢失；</p>
+<h4 id="十二-mysql默认每一条sql都是一条事务">十二、MySQL默认每一条SQL都是一条事务</h4>
+<p>意思是：我这个命令只要回车了，立马会执行</p>
+<pre><code class="language-bash">mysql&gt; SHOW VARIABLES LIKE '%autocommit%';
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| autocommit    | ON    |
++---------------+-------+
+1 row in set (0.00 sec)
+</code></pre>
+<p><strong>有DBA工程师说，关闭SQL的自动提交，避免误操作</strong></p>
+<h4 id="十三-事务的隔离级别">十三、事务的隔离级别</h4>
+<p>1234</p>
+<h4 id="十四-mysqldump-single-transaction参数的作用">十四、mysqldump --single-transaction参数的作用</h4>
+<p>--single-transaction参数的作用，设置事务的隔离级别为可重复读，即REPEATABLE READ，这样能保证在一个事务中所有相同的查询读取到同样的数据，也就大概保证了在dump期间，如果其他innodb引擎的线程修改了表的数据并提交，对该dump线程的数据并无影响，在这期间不会锁表。</p>
+<h4 id="十五-my_print_defaults">十五、my_print_defaults</h4>
+<p><strong>my_print_defaults 这个程序是用来解析my.cnf文件的，将其中的参数打印到终端。这个小程序在mysql的启动脚本中会有用到。</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# my_print_defaults --defaults-file=/etc/my.cnf client 
+--socket=/var/lib/mysql/mysql.sock
+--port=3306
+[root@localhost ~]# my_print_defaults --defaults-file=/etc/my.cnf mysqld
+--server-id=2
+--gtid-mode=on
+--enforce_gtid_consistency=on
+--datadir=/data/mysql
+--socket=/var/lib/mysql/mysql.sock
+--symbolic-links=0
+--log-error=/var/log/mysqld.log
+--pid-file=/var/run/mysqld/mysqld.pid
+</code></pre>
+<h4 id="十六-binlog相关命令">十六、binlog相关命令</h4>
+<pre><code class="language-bash">#mysql外面看binlog，可以指定某一范围
+[root@localhost ~]# mysqlbinlog -vvv /data/mysql/mysql-bin.000008 
+#mysql里面看binlog名字和大小
+mysql&gt; show binary logs;
+#mysql里面看当前的binlog文件名和position位置
+mysql&gt; show master status;
+#slave查看同步状态
+mysql&gt; show slave status\G
+#开启线程，第一次开启后，以后重启数据库会自启
+mysql&gt; show slave status\G
+#slave停止线程
+mysql&gt; stop slave;
+#删除指定日期前面的binlog
+mysql&gt; PURGE BINARY LOGS BEFORE '2019-04-02 22:46:26';
+</code></pre>
+<pre><code class="language-bash">sync_binlog=1 	#每次写后立即同步二进制日志到此磁盘，性能差
+innodb_flush_log_at_trx_commit=1	#每次事务提交立即同步日志写磁盘
+
+</code></pre>
+<p>十七、DDL，DML</p>
+<p>DDL：数据定义语言，管理数据库的对象（CREATE，DROP，ALTER，TRUNCATE）</p>
+<p>DML：数据操纵语言：SELECT，INSERT，UPDATE，DELETE，CALL，EXPLAIN</p>
+<h4 id="十八-从数据库如果还想再连slave数据库">十八、从数据库如果还想再连slave数据库</h4>
+<pre><code class="language-bash">#slave开启binlog和更新master的binlog到自己
+[mysqld]
+log_bin
+log_slave_updates
+</code></pre>
+<h4 id="十九-压力测试-优化吞吐量">十九、压力测试、优化吞吐量</h4>
+<p>参考：https://blog.csdn.net/qq_18312025/article/details/78897023</p>
+<h4 id="二十-事务">二十、事务</h4>
+<pre><code class="language-bash">事务(Transaction)：组织多个操作为一个整体，要么全部都成功执行，要么失败回滚；
+一个存储系统是否支持事务，测试标准：
+	ACID：
+		A：原子性；
+		C：一致性；
+		I：隔离性；
+		D：持久性；
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190918mysql-de-an-zhuang/">
+                  <h3 class="post-title">
+                    20190918mysql的安装
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

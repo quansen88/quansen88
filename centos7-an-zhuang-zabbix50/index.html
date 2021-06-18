@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> centos7安装zabbix5.0 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="centos7安装zabbix5.0
+！root用户！
+#命令
+一、安装mysql
+
+参考：https://blog.csdn.net/qq_36582604/article/details/80526287
+
+1 下载并安装MySQL官方..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> centos7安装zabbix5.0</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="centos7安装zabbix50">centos7安装zabbix5.0</h2>
+<p>！root用户！</p>
+<p>#命令</p>
+<h3 id="一-安装mysql">一、安装mysql</h3>
+<blockquote>
+<p>参考：https://blog.csdn.net/qq_36582604/article/details/80526287</p>
+</blockquote>
+<h5 id="1-下载并安装mysql官方的-yum-repository">1 下载并安装MySQL官方的 Yum <strong>Repository</strong></h5>
+<pre><code>wget -i -c http://dev.mysql.com/get/mysql57-community-release-el7-10.noarch.rpm
+</code></pre>
+<p>使用上面的命令就直接下载了安装用的Yum Repository，大概25KB的样子，然后就可以直接yum安装了。</p>
+<pre><code>yum -y install mysql57-community-release-el7-10.noarch.rpm
+</code></pre>
+<p>之后就开始安装MySQL服务器。</p>
+<pre><code>yum -y install mysql-community-server
+</code></pre>
+<p>这步可能会花些时间，安装完成后就会覆盖掉之前的mariadb。</p>
+<h5 id="2-mysql数据库设置">2 MySQL数据库设置</h5>
+<p>首先启动MySQL</p>
+<pre><code>systemctl start  mysqld.service
+</code></pre>
+<p>此时MySQL已经开始正常运行，不过要想进入MySQL还得先找出此时root用户的密码，通过如下命令可以在日志文件中找出密码：</p>
+<pre><code>[root@izt4n51g9tpto8eu51l4oyz ~]# grep &quot;password&quot; /var/log/mysqld.log
+2020-05-15T16:16:31.274154Z 1 [Note] A temporary password is generated for root@localhost: 5axt_ktGs:jm
+</code></pre>
+<p>如下命令进入数据库：</p>
+<pre><code>[root@izt4n51g9tpto8eu51l4oyz ~]# mysql -uroot -p
+Enter password:
+</code></pre>
+<p>输入初始密码（是上一步最后面的‘5axt_ktGs:jm’），此时不能做任何事情，因为MySQL默认必须</p>
+<p>修改密码之后才能操作数据库：</p>
+<pre><code>ALTER USER 'root'@'localhost' IDENTIFIED BY 'new password';
+</code></pre>
+<p>其中‘new password’替换成你要设置的密码，注意:密码设置必须要大小写字母数字和特殊符号（,/';:等）,不然不能配置成功</p>
+<h3 id="二-下载zabbix">二、下载zabbix</h3>
+<blockquote>
+<p>参考：https://www.zabbix.com/cn/download?zabbix=5.0&amp;os_distribution=centos&amp;os_version=7&amp;db=mysql&amp;ws=nginx</p>
+</blockquote>
+<h4 id="1-选择系统">1. 选择系统</h4>
+<p>详见上述参考链接</p>
+<h4 id="2-选择您zabbix服务器的平台">2. 选择您Zabbix服务器的平台</h4>
+<h5 id="a-安装-zabbix的软件仓库">a. 安装 zabbix的软件仓库</h5>
+<pre><code>rpm -Uvh https://repo.zabbix.com/zabbix/5.0/rhel/7/x86_64/zabbix-release-5.0-1.el7.noarch.rpm
+
+yum clean all
+</code></pre>
+<h5 id="b-安装zabbix服务器和代理">b. 安装Zabbix服务器和代理</h5>
+<pre><code>yum install zabbix-server-mysql zabbix-agent
+</code></pre>
+<h5 id="c-安装zabbix前端web界面">C。安装Zabbix前端web界面</h5>
+<pre><code>yum install centos-release-scl
+</code></pre>
+<p>编辑配置文件 /etc/yum.repos.d/zabbix.repo</p>
+<p>并启用zabbix-frontend存储库。</p>
+<pre><code>[zabbix-frontend]
+...
+enabled=1
+...
+</code></pre>
+<p>安装Zabbix前端软件包。</p>
+<pre><code>yum install zabbix-web-mysql-scl zabbix-nginx-conf-scl
+</code></pre>
+<h5 id="d-创建初始数据库">d. 创建初始数据库</h5>
+<p>在数据库主机上运行以下命令。</p>
+<pre><code># mysql -uroot -p
+password
+
+mysql&gt; create database zabbix character set utf8 collate utf8_bin;
+mysql&gt; create user zabbix@localhost identified by 'password';
+mysql&gt; grant all privileges on zabbix.* to zabbix@localhost;
+mysql&gt; quit;
+</code></pre>
+<p>其中‘password’替换成你要设置的密码，注意:密码设置必须要大小写字母数字和特殊符号（,/';:等）,不然不能配置成功</p>
+<p>导入初始架构和数据，系统将提示您输入新创建的密码。</p>
+<pre><code>zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -uzabbix -p zabbix
+</code></pre>
+<h5 id="e-为zabbix-server配置数据库">e. 为Zabbix server配置数据库</h5>
+<p>编辑配置文件 /etc/zabbix/zabbix_server.conf</p>
+<pre><code>DBPassword=password
+</code></pre>
+<p>其中‘password’替换成你要设置的密码</p>
+<h5 id="f-为zabbix前端配置php">f. 为Zabbix前端配置PHP</h5>
+<p>编辑配置文件 /etc/opt/rh/rh-nginx116/nginx/conf.d/zabbix.conf</p>
+<p>取消注释并设置“ listen”和“ server_name”指令。</p>
+<pre><code># listen 80;
+# server_name example.com;
+</code></pre>
+<p>其中‘example.com’可以替换成你要设置的域名（或可能 ip，未测试）</p>
+<p>编辑配置文件 /etc/opt/rh/rh-php72/php-fpm.d/zabbix.conf</p>
+<p>将nginx添加到listen.acl_users指令。</p>
+<pre><code>listen.acl_users = apache,nginx
+</code></pre>
+<p>然后取消注释并为您设置正确的时区。</p>
+<pre><code>php_value[date.timezone] = Asia/Shanghai
+
+</code></pre>
+<p>其中，前缀分号“;”为注释符</p>
+<h5 id="g-启动zabbix-server和agent进程">g. 启动Zabbix server和agent进程</h5>
+<p>启动Zabbix server和agent进程，并为它们设置开机自启：</p>
+<pre><code>systemctl restart zabbix-server zabbix-agent rh-nginx116-nginx rh-php72-php-fpm
+systemctl enable zabbix-server zabbix-agent rh-nginx116-nginx rh-php72-php-fpm
+</code></pre>
+<h5 id="h-配置zabbix前端">h. 配置Zabbix前端</h5>
+<p>连接到新安装的Zabbix前端： http://server_ip_or_name<br>
+根据Zabbix文件里步骤操作： <a href="https://www.zabbix.com/documentation/5.0/manual/installation/install#installing_frontend">Installing frontend</a></p>
+<h4 id="3-开始使用zabbix">3. 开始使用Zabbix</h4>
+<p>查看<a href="https://www.zabbix.com/documentation/5.0/manual/quickstart/login">快速开始指南</a></p>
+<h5 id="安装前端">安装前端</h5>
+<h5 id="步骤1">步骤1</h5>
+<p>在浏览器中，打开Zabbix URL：http：// &lt;server_ip_or_name&gt; / zabbix</p>
+<p>您应该看到前端安装向导的第一个屏幕。</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1589593741636.png" alt="1589593741636" loading="lazy"></figure>
+<h5 id="第2步">第2步</h5>
+<p>确保满足所有软件先决条件。</p>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1589593806046.png" alt="1589593806046" loading="lazy"></figure>
+<p>前提条件最低值描述</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>PHP版本</em></td>
+<td>7.2.0</td>
+<td></td>
+</tr>
+<tr>
+<td><em>PHP memory_limit选项</em></td>
+<td>128MB</td>
+<td>在php.ini中：       memory_limit = 128M</td>
+</tr>
+<tr>
+<td><em>PHP post_max_size选项</em></td>
+<td>16MB</td>
+<td>在php.ini中：       post_max_size = 16M</td>
+</tr>
+<tr>
+<td><em>PHP upload_max_filesize选项</em></td>
+<td>2MB</td>
+<td>在php.ini中：       upload_max_filesize = 2M</td>
+</tr>
+<tr>
+<td><em>PHP max_execution_time选项</em></td>
+<td>300秒（允许使用值0和-1）</td>
+<td>在php.ini中：       max_execution_time = 300</td>
+</tr>
+<tr>
+<td><em>PHP max_input_time选项</em></td>
+<td>300秒（允许使用值0和-1）</td>
+<td>在php.ini中：       max_input_time = 300</td>
+</tr>
+<tr>
+<td><em>PHP session.auto_start选项</em></td>
+<td>必须禁用</td>
+<td>在php.ini中：       session.auto_start = 0</td>
+</tr>
+<tr>
+<td><em>数据库支持</em></td>
+<td>其中之一：MySQL，Oracle，PostgreSQL。</td>
+<td>必须安装以下模块之一：       mysql，oci8，pgsql</td>
+</tr>
+<tr>
+<td><em>bcmath</em></td>
+<td></td>
+<td>php-bcmath</td>
+</tr>
+<tr>
+<td><em>mbstring</em></td>
+<td></td>
+<td>php-mbstring</td>
+</tr>
+<tr>
+<td><em>PHP mbstring.func_overload选项</em></td>
+<td>必须禁用</td>
+<td>In php.ini:       mbstring.func_overload = 0</td>
+</tr>
+<tr>
+<td><em>sockets</em></td>
+<td></td>
+<td>php-net-socket.   Required for user script support.</td>
+</tr>
+<tr>
+<td><em>gd</em></td>
+<td>2.0.28</td>
+<td>php-gd. PHP GD   extension must support PNG images (<em>--with-png-dir</em>),   JPEG (<em>--with-jpeg-dir</em>) images and   FreeType 2 (<em>--with-freetype-dir</em>).</td>
+</tr>
+<tr>
+<td><em>libxml</em></td>
+<td>2.6.15</td>
+<td>php-xml</td>
+</tr>
+<tr>
+<td><em>xmlwriter</em></td>
+<td></td>
+<td>php-xmlwriter</td>
+</tr>
+<tr>
+<td><em>xmlreader</em></td>
+<td></td>
+<td>php-xmlreader</td>
+</tr>
+<tr>
+<td><em>ctype</em></td>
+<td></td>
+<td>php-ctype</td>
+</tr>
+<tr>
+<td><em>session</em></td>
+<td></td>
+<td>php-session</td>
+</tr>
+<tr>
+<td><em>gettext</em></td>
+<td></td>
+<td>php-gettext       Since Zabbix 2.2.1, the PHP gettext   extension is not a mandatory requirement for installing Zabbix. If gettext is   not installed, the frontend will work as usual, however, the translations   will not be available.</td>
+</tr>
+</tbody>
+</table>
+<p>列表中还可能包含可选的先决条件。失败的可选前提条件以橙色显示，并且具有<em>警告</em>状态。如果可选的先决条件失败，则设置可以继续。</p>
+<h5 id="第三步">第三步</h5>
+<p>输入用于连接数据库的详细信息。Zabbix数据库必须已经创建。</p>
+<figure data-type="image" tabindex="3"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1589593965803.png" alt="1589593965803" loading="lazy"></figure>
+<p>如果选中了<em>TLS加密</em>选项，则会以以下形式显示另外五个字段，用于<a href="https://www.zabbix.com/documentation/current/manual/appendix/install/db_encrypt">配置</a>与数据库<a href="https://www.zabbix.com/documentation/current/manual/appendix/install/db_encrypt">的TLS连接</a>：（仅MySQL或PostgreSQL）。</p>
+<h5 id="第四步">第四步</h5>
+<p>输入Zabbix服务器详细信息。</p>
+<figure data-type="image" tabindex="4"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1589594016362.png" alt="1589594016362" loading="lazy"></figure>
+<p>输入Zabbix服务器的名称是可选的，但是，如果提交了名称，它将显示在菜单栏和页面标题中。</p>
+<h5 id="第5步">第5步</h5>
+<p>查看设置摘要。</p>
+<figure data-type="image" tabindex="5"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1589594048060.png" alt="1589594048060" loading="lazy"></figure>
+<h5 id="第6步">第6步</h5>
+<p>下载配置文件，并将其放在将Zabbix PHP文件复制到的Web服务器HTML文档子目录中的conf /下。</p>
+<p>此版本未遇到该情况</p>
+<h5 id="步骤7">步骤7</h5>
+<p>完成安装。</p>
+<figure data-type="image" tabindex="6"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1589594219515.png" alt="1589594219515" loading="lazy"></figure>
+<h5 id="步骤8">步骤8</h5>
+<p>Zabbix前端已准备就绪！默认用户名为<strong>Admin</strong>，密码为<strong>zabbix</strong>。</p>
+<figure data-type="image" tabindex="7"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1589594261126.png" alt="1589594261126" loading="lazy"></figure>
+<p>进到<a href="https://www.zabbix.com/documentation/current/manual/quickstart/login">入门的zabbix</a>。</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/nginx-pei-zhi-wen-jian-mo-ban/">
+                  <h3 class="post-title">
+                    nginx配置文件模版
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

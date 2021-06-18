@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> sed基本用法 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="sed基本用法
+sed面试题：https://blog.51cto.com/14012942/2427099
+1、sed介绍
+	sed是一个流式编辑器程序，它读取输入流(可以是文件、标准输入)的每一行放进模式空间(pattern space..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> sed基本用法</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="sed基本用法">sed基本用法</h1>
+<h3 id="sed面试题httpsblog51ctocom140129422427099"><strong>sed面试题：</strong><a href="https://blog.51cto.com/14012942/2427099">https://blog.51cto.com/14012942/2427099</a></h3>
+<h2 id="1-sed介绍">1、sed介绍</h2>
+<pre><code>	sed是一个流式编辑器程序，它读取输入流(可以是文件、标准输入)的每一行放进模式空间(pattern space)，同时将此行行号通过sed行号计数器记录在内存中，然后对模式空间中的行进行模式匹配，如果能匹配上则使用sed程序内部的命令进行处理，处理结束后，从模式空间中输出(默认)出去，并清空模式空间，随后再从输入流中读取下一行到模式空间中进行相同的操作，直到输入流中的所有行都处理完成。由此可见，sed是一个循环一个循环处理内容的。
+	
+</code></pre>
+<p><strong>这是sed的一个循环的过程：</strong></p>
+<ol>
+<li>读取输入流的一行到模式空间。</li>
+<li>对模式空间中的内容进行匹配和处理。</li>
+<li>自动输出模式空间内容。</li>
+<li>清空模式空间内容。</li>
+<li>读取输入流的下一行到模式空间。</li>
+</ol>
+<p>(注：(如看不懂，请跳过)如果是读取文件数据，则会每次需要的时候一次性加载一定量(比如多行)的数据到os buffer，然后sed从os buffer中一行一行读取，并不是要读一行就从磁盘文件中加载一行。另外，如果是管道或其它输入流，则直接从对应的缓存中一行一行读取。验证命令：sed ‘p;s/.*/:&gt;filename/e;d’ filename)</p>
+<p>​		上述整个循环过程中，<strong>第2步是我们写sed命令所修改的地方，其余的几个步骤，通过命令行无法改变</strong>。但是，sed有几个命令和选项能改变第3、4步的行为，使其输出总是输出空内容或无法清空模式空间。</p>
+<p><strong>如果使用编程结构来描述，则大致过程如下：</strong></p>
+<pre><code>for ((line=1;line&lt;=last_line_num;++line))
+do
+    read $line to pattern_space;
+    while pattern_space is not null
+    do
+        execute cmd1 in SCRIPT;
+        execute cmd2 in SCRIPT;
+        execute cmd3 in SCRIPT;
+        ……
+        auto_print;
+        remove_pattern_space;
+    done
+done
+</code></pre>
+<p>​		其中while循环执行的正是SCRIPT中的所有命令，只不过一般情况下，while循环只执行一轮就退出并进入外层的for循环。于是，外层的for循环称之为&quot;sed循环&quot;，内层的while循环称之为&quot;SCRIPT&quot;循环。所以，for循环只包含了两个动作：读取下一行和执行SCRIPT循环。</p>
+<p>​		其实while循环中是有continue、break甚至是exit的，分别表示回到SCRIPT的顶端(即进入下一个SCRIPT循环)、退出当前SCRIPT循环回到外层sed循环以及退出整个sed循环。显然，这不是&quot;花拳绣腿&quot;的内容。</p>
+<p>​		最后，说明下sed命令行如何书写，其实就是写SCRIPT部分，这部分的写法比较灵活，大致有以下几种：</p>
+<pre><code># 一行式。多个命令使用分号分隔
+sed Address{cmd1;cmd2;cmd3...}
+
+# 多个表达式时，可以使用&quot;-e&quot;选项，也可以不用，但使用分号分隔
+sed Address1{cmd1;cmd2;cmd3};Address2{cmd1;cmd2;cmd3}...
+sed  -e 'Address1{cmd1;cmd2;cmd3}' -e 'Address2{cmd1;cmd2;cmd3}' ...
+
+# 分行写时
+sed Address1{
+    cmd1
+    cmd2
+    cmd3
+}
+Address2{
+    cmd1
+    cmd2
+    cmd3
+}
+</code></pre>
+<p>​		如果是写在文件中，即sed脚本，以文件名为a.sed为例。</p>
+<pre><code>#!/usr/bin/sed -f
+#注释行
+Address1{cmd1;cmd2...}
+Address2{cmd1;cmd2...}
+......
+</code></pre>
+<p>​		其中cmd部分还可以进行模式匹配，也即类似于&quot;Address{{pattern1}cmd1;{pattern2}cmd2}&quot;的写法。例如， /^abc/{2d;p} 。</p>
+<p>​		有了以上基本的大纲性知识，理解和深入sed机制就简单多了。</p>
+<h2 id="2-sed选项">2、sed选项</h2>
+<p>sed选项不算多，能用到的更没几个。</p>
+<pre><code>sed OPTIONS SCRIPT INPUT_STREAM
+</code></pre>
+<p>可能用到的几个选项：</p>
+<p><code>'-n'</code><br>
+默认情况下，sed将在<strong>每轮script循环结束</strong>时自动输出模式空间中的内容。使用该选项后可以使得这次自动输出动作输出<strong>空内容</strong>，而不是当前模式空间中的内容。注意，&quot;-n&quot;是输出空内容而不是禁用输出动作，虽然两者的结果都是不输出任何内容，但在有些依赖于输出动作和输出流的地方，它们的区别是很大的，前者有输出流，只是输出空流，后者则没有输出流。</p>
+<p><code>'-e SCRIPT'</code><br>
+前文说了，SCRIPT中包含的是命令的集合，&quot;-e&quot;选项就是向SCRIPT中添加命令的。可以省略&quot;-e&quot;选项，但如果命令行容易产生歧义，则使用&quot;-e&quot;选项可明确说明这部分是SCRIPT中的命令。另外，如果一个&quot;-e&quot;选项不方便描述所需命令集合时，可以指定多个&quot;-e&quot;选项。</p>
+<p><code>'-f SCRIPT-FILE'</code><br>
+指定包含命令集合的SCRIPT文件，让sed根据SCRIPT文件中的命令集处理输入流。</p>
+<p><code>'-i[SUFFIX]'</code><br>
+该选项指定要将sed的输出结果保存(覆盖的方式)到当前编辑的文件中。GNU sed是通过创建一个临时文件并将输入写入到该临时文件，然后重命名为源文件来实现的。</p>
+<p>当当前输入流处理结束后，临时文件被重命名为<strong>源文件</strong>的名称。如果还提供了SUFFIX，则在重命名临时文件之前，先使用该SUFFIX修改源文件名，从而生成一个源文件的备份文件。</p>
+<p><strong>临时文件总是会被重命名为源文件名称</strong>，也就是说输入流处理结束后，仍使用源文件名的文件是sed修改后的文件。文件名中包含了SUFFIX的文件则是最原始文件的备份。例如源文件为a.txt，<code>sed -i'.log' SCRIPT a.txt</code>将生成两个文件：a.txt和a.txt.log，前者是sed修改后的文件，a.txt.log是源a.txt的备份文件。</p>
+<p>重命名的规则如下：如果扩展名不包含符号&quot;<em>&quot;，将SUFFIX添加到原文件名的后面当作文件后缀；如果SUFFIX中包含了一个或多个字符&quot;</em>&quot;，则每个&quot;*&quot;都替换为原文件名。这使得你可以为备份文件添加一个前缀，而不是后缀。如果没有提供SUFFIX，源文件被覆盖，且不会生成备份文件。</p>
+<p>该选项隐含了&quot;-s&quot;选项。</p>
+<p><code>'-r'</code><br>
+使用扩展正则表达式，而不是使用默认的基础正则表达式。sed所支持的扩展正则表达式和<code>egrep</code>一样。使用扩展正则表达式显得更简洁，因为有些元字符不用再使用反斜线&quot;&quot;。正则表达式见<a href="http://www.cnblogs.com/f-ck-need-u/p/7462706.html#blog3">grep命令中文手册</a>。</p>
+<p><code>'-s'</code><br>
+默认情况下，如果为sed指定了多个输入文件，如<code>sed OPTIONS SCRIPT file1 file2 file3</code>，则多个文件会被sed当作一个长的输入流，也就是说所有文件被当成一个大文件。指定该选项后，sed将认为命令行中给定的每个文件都是独立的输入流。</p>
+<p>既然是独立的输入流，<strong>范围定址(如/abc/,/def/)就无法跨越多个文件进行匹配，行号也会在处理每个文件时重置，&quot;$&quot;代表的也将是每个文件的最后一行</strong>。这也意味着，如果不使用该选项，则这几个行为都是可以完成的。</p>
+<hr>
+<p>示例：以sed命令&quot;p&quot;和&quot;=&quot;为例，其中&quot;p&quot;命令用于强制输出当前模式空间中的内容，&quot;=&quot;命令用于输出sed行号计数器当前的值，即刚被读入到模式空间中的行是输入流中的第几行。</p>
+<p>(1).只输出a.txt中的第5行。</p>
+<pre><code>sed -n 5p a.txt
+</code></pre>
+<p>这里使用了&quot;-n&quot;选项，使得读取到模式空间的每一行都无法被输出，只有明确使用了&quot;p&quot;选项才能被&quot;p&quot;动作输出。由于只有读入的第5行内容能匹配&quot;5&quot;，才能被&quot;p&quot;输出。</p>
+<p>其实上面的命令和<code>sed -n -e '5p' a.txt</code>是完全一样的，因为&quot;5p&quot;在sed解析命令行时不会产生歧义，所以可以省略&quot;-e&quot;选项。</p>
+<p>(2).输出a.txt，并输出每行的行号。</p>
+<pre><code>sed '=' a.txt
+</code></pre>
+<p>由于要输出a.txt的内容，所以不使用&quot;-n&quot;选项，同时&quot;=&quot;命令会输出每行行号。</p>
+<p>(3).分别输出a.txt和b.txt的第5行，并分别保存到&quot;.bak&quot;后缀的文件中。</p>
+<pre><code>sed -i'*.bak' -n '5p' a.txt b.txt
+</code></pre>
+<p>此处必须使用&quot;-s&quot;选项，否则将只会输出&quot;a.txt+b.txt&quot;结合后的第5行。但&quot;-i&quot;隐含了&quot;-s&quot;选项。这会生成4个文件：a.txt、b.txt和a.txt.bak、b.txt.bak。前两个是第5行内容，后两个是源文件的备份文件。</p>
+<p>(4).使用扩展正则表达式，输出a.txt和b.txt中能包含3个以上字母&quot;a&quot;的行。</p>
+<pre><code>sed -r -n '/aaa+/p' a.txt b.txt
+</code></pre>
+<h2 id="3-定址表达式">3、定址表达式</h2>
+<p>当sed将输入流中的行读取到模式空间后，就需要对模式空间中的内容进行匹配，如果能匹配就能执行对应的命令，如果不能匹配就直接输出、清空模式空间并进入下一个sed循环读取下一行。</p>
+<p>匹配的过程称为定址。定址表达式有多种，但总的来说，其格式为<code>[ADDR1][,ADDR2]</code>。这可以分为3种方式：</p>
+<ol>
+<li>ADDR1和ADDR2都省略时，表示所有行都能被匹配上。</li>
+<li>省略ADDR2时，表示只有被ADDR1表达式匹配上的行才符合条件。</li>
+<li>不省略ADDR2时，是范围地址。表示从ADDR1匹配成功的行开始，到ADDR2匹配成功的行结束。</li>
+</ol>
+<p>无论是ADDR1还是ADDR2，都可以使用两种方式进行匹配：行号和正则表达式。如下：</p>
+<p><code>'N'</code><br>
+指定一个行号，sed将只匹配该行。(需要注意，除非使用了&quot;-s&quot;或&quot;-i&quot;选项，sed将对所有输入文件的行连续计数。)</p>
+<p><code>'FIRST~STEP'</code><br>
+表示从第FIRST行开始，每隔STEP行就再取一次。也就是取行号满足<code>FIRST+(N*STEP)</code> (其中N&gt;=0)的行。因此，要选择所有奇数行，使用&quot;1<sub>2&quot;；要从第2行开始每隔3行取一次，使用&quot;2</sub>3&quot;；要从第10行开始每隔5行取一次，使用&quot;10<sub>5&quot;；而&quot;50</sub>0&quot;则表示只取第50行。</p>
+<p><code>'$'</code><br>
+默认该符号匹配的是最后一个文件的最后一行，如果指定了&quot;-i&quot;或&quot;-s&quot;，则匹配的是每个文件的最后一行。总之，&quot;$&quot;匹配的是每个输入流的最后一行。</p>
+<p>需要注意的是，**sed采用行号计数器来临时记录当前行的行号，因此sed在读取到最后一行前即使是倒数第二行的时候，完全不知道最后一行是第几行，所以代表最后一行的&quot;<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">&quot;</mi><mi mathvariant="normal">无</mi><mi mathvariant="normal">法</mi><mi mathvariant="normal">进</mi><mi mathvariant="normal">行</mi><mi mathvariant="normal">任</mi><mi mathvariant="normal">何</mi><mi mathvariant="normal">数</mi><mi mathvariant="normal">学</mi><mi mathvariant="normal">运</mi><mi mathvariant="normal">算</mi><mo>∗</mo><mo>∗</mo><mi mathvariant="normal">，</mi><mi mathvariant="normal">例</mi><mi mathvariant="normal">如</mi><mi mathvariant="normal">倒</mi><mi mathvariant="normal">数</mi><mi mathvariant="normal">第</mi><mi mathvariant="normal">二</mi><mi mathvariant="normal">行</mi><mi mathvariant="normal">使</mi><mi mathvariant="normal">用</mi><mi mathvariant="normal">&quot;</mi></mrow><annotation encoding="application/x-tex">&quot;无法进行任何数学运算**，例如倒数第二行使用&quot;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord">&quot;</span><span class="mord cjk_fallback">无</span><span class="mord cjk_fallback">法</span><span class="mord cjk_fallback">进</span><span class="mord cjk_fallback">行</span><span class="mord cjk_fallback">任</span><span class="mord cjk_fallback">何</span><span class="mord cjk_fallback">数</span><span class="mord cjk_fallback">学</span><span class="mord cjk_fallback">运</span><span class="mord cjk_fallback">算</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span><span class="mbin">∗</span><span class="mspace" style="margin-right:0.2222222222222222em;"></span></span><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord">∗</span><span class="mord cjk_fallback">，</span><span class="mord cjk_fallback">例</span><span class="mord cjk_fallback">如</span><span class="mord cjk_fallback">倒</span><span class="mord cjk_fallback">数</span><span class="mord cjk_fallback">第</span><span class="mord cjk_fallback">二</span><span class="mord cjk_fallback">行</span><span class="mord cjk_fallback">使</span><span class="mord cjk_fallback">用</span><span class="mord">&quot;</span></span></span></span>-1&quot;表示是错误的。而且，&quot;<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi mathvariant="normal">&quot;</mi><mi mathvariant="normal">只</mi><mi mathvariant="normal">是</mi><mi mathvariant="normal">一</mi><mi mathvariant="normal">个</mi><mi mathvariant="normal">额</mi><mi mathvariant="normal">外</mi><mi mathvariant="normal">的</mi><mi mathvariant="normal">标</mi><mi mathvariant="normal">记</mi><mi mathvariant="normal">符</mi><mi mathvariant="normal">号</mi><mi mathvariant="normal">，</mi><mi mathvariant="normal">当</mi><mi>s</mi><mi>e</mi><mi>d</mi><mi mathvariant="normal">读</mi><mi mathvariant="normal">取</mi><mi mathvariant="normal">到</mi><mi mathvariant="normal">输</mi><mi mathvariant="normal">入</mi><mi mathvariant="normal">流</mi><mi mathvariant="normal">的</mi><mi mathvariant="normal">最</mi><mi mathvariant="normal">后</mi><mi mathvariant="normal">一</mi><mi mathvariant="normal">行</mi><mi mathvariant="normal">时</mi><mi mathvariant="normal">，</mi><mi mathvariant="normal">发</mi><mi mathvariant="normal">现</mi><mi mathvariant="normal">这</mi><mi mathvariant="normal">就</mi><mi mathvariant="normal">是</mi><mi mathvariant="normal">最</mi><mi mathvariant="normal">后</mi><mi mathvariant="normal">一</mi><mi mathvariant="normal">行</mi><mi mathvariant="normal">，</mi><mi mathvariant="normal">于</mi><mi mathvariant="normal">是</mi><mi mathvariant="normal">为</mi><mi mathvariant="normal">此</mi><mi mathvariant="normal">行</mi><mi mathvariant="normal">打</mi><mi mathvariant="normal">上</mi><mi mathvariant="normal">&quot;</mi></mrow><annotation encoding="application/x-tex">&quot;只是一个额外的标记符号，当sed读取到输入流的最后一行时，发现这就是最后一行，于是为此行打上&quot;</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord">&quot;</span><span class="mord cjk_fallback">只</span><span class="mord cjk_fallback">是</span><span class="mord cjk_fallback">一</span><span class="mord cjk_fallback">个</span><span class="mord cjk_fallback">额</span><span class="mord cjk_fallback">外</span><span class="mord cjk_fallback">的</span><span class="mord cjk_fallback">标</span><span class="mord cjk_fallback">记</span><span class="mord cjk_fallback">符</span><span class="mord cjk_fallback">号</span><span class="mord cjk_fallback">，</span><span class="mord cjk_fallback">当</span><span class="mord mathdefault">s</span><span class="mord mathdefault">e</span><span class="mord mathdefault">d</span><span class="mord cjk_fallback">读</span><span class="mord cjk_fallback">取</span><span class="mord cjk_fallback">到</span><span class="mord cjk_fallback">输</span><span class="mord cjk_fallback">入</span><span class="mord cjk_fallback">流</span><span class="mord cjk_fallback">的</span><span class="mord cjk_fallback">最</span><span class="mord cjk_fallback">后</span><span class="mord cjk_fallback">一</span><span class="mord cjk_fallback">行</span><span class="mord cjk_fallback">时</span><span class="mord cjk_fallback">，</span><span class="mord cjk_fallback">发</span><span class="mord cjk_fallback">现</span><span class="mord cjk_fallback">这</span><span class="mord cjk_fallback">就</span><span class="mord cjk_fallback">是</span><span class="mord cjk_fallback">最</span><span class="mord cjk_fallback">后</span><span class="mord cjk_fallback">一</span><span class="mord cjk_fallback">行</span><span class="mord cjk_fallback">，</span><span class="mord cjk_fallback">于</span><span class="mord cjk_fallback">是</span><span class="mord cjk_fallback">为</span><span class="mord cjk_fallback">此</span><span class="mord cjk_fallback">行</span><span class="mord cjk_fallback">打</span><span class="mord cjk_fallback">上</span><span class="mord">&quot;</span></span></span></span>&quot;记号，并读取到模式空间中。</p>
+<p><code>'/REGEXP/'</code><br>
+将选择能被正则表达式REGEXP匹配的所有行。如果REGEXP中自身包含了字符&quot;/&quot;，则必须使用反斜线转义，即<code>&quot;\/&quot;</code>。</p>
+<p><code>'/REGEXP/I'</code><br>
+和&quot;/REGEXP/&quot;是一样的，只不过匹配的时候不区分大小写。</p>
+<p><code>'\%REGEXP%'</code><br>
+('%'可以使用其他任意单个字符替换。) 这和上一个定址表达式的作用是一样的，只不过是使用符号&quot;%&quot;替换了符号&quot;/&quot;。当REGEXP中包含&quot;/&quot;符号时，使用该定址表达式就无需对&quot;/&quot;使用反斜线&quot;&quot;转义。但如果此时REGEXP中包含了&quot;%&quot;符号时，该符号需要使用&quot;&quot;转义。<br>
+总之，定址表达式中使用的分隔符在REGEXP中出现时，都需要使用反斜线转义。</p>
+<p><code>'ADDR1,+N'</code><br>
+匹配ADDR1和其后的N行。</p>
+<p><code>'ADDR1,~N'</code><br>
+匹配ADDR1和其后的行直到出现N的倍数行。倍数可为随意整数倍，只要N的倍数是最接近且大于ADDR1的即可。 如<code>ADDR1=1,N=3</code>匹配1-3行，<code>ADDR1=5,N=4</code>匹配5-8行。而&quot;1,+3&quot;匹配的是第一行和其后的3行即1-4行。</p>
+<p>另外，在定址表达式的后面加&quot;!&quot;符号表示反转匹配的含义。也就是说那些匹配的行将不被选择，而是不匹配的行被选择。</p>
+<p>例如，以下几个定址的示例：</p>
+<pre><code>1
+2
+3
+4
+5
+sed -n '3p' INPUTFILE
+sed -n '3,5!p' INPUTFILE
+sed -n '3,/^# .*/! p' INPUTFILE
+sed -n '/abc/,/xyz/p' INPUTFILE
+sed -n '!p' INPUTFILE   # 这个有悖常理，但确实是允许的
+</code></pre>
+<h1 id="4sed常用命令">4.sed常用命令</h1>
+<p>sed命令很多，本文的只简单介绍几个最常见的。</p>
+<p><strong>此处不以命令的用法为重，而是通过这几个命令，引出sed最重要的原理和执行机制(还包括本文的第一节内容)</strong>，并为阅读下一篇文章<a href="http://www.cnblogs.com/f-ck-need-u/p/7478188.html">sed武功心法：info sed</a>打下基础。而且理解了这些原理，再使用sed做任何操作都有理可循，遇到疑难之处也知道如何进行分析。而这，是任何书籍(包括广为推崇的sed &amp;&amp; awk)、教学视频和网络文章中都没有的内容(至少我从未见过，这些内容也是我花费大量精力经过大量实验推演出来)。</p>
+<p><strong>(1).强制输出命令&quot;p&quot;。</strong></p>
+<p>该命令能强制输出当前模式空间的内容。即使使用了&quot;-n&quot;选项。</p>
+<p>事实上，它们本就不冲突，因为循环过程如下：</p>
+<pre><code>for ((line=1;line&lt;=last_line_num;++line))
+do
+    read $line to pattern_space;
+    while pattern_space is not null
+    do
+        execute cmd1 in SCRIPT;
+        execute cmd2 in SCRIPT;
+        ADDR1,ADDR2{print};        # &quot;p&quot; command
+        ……
+        auto_print;
+        remove_pattern_space;
+    done
+done
+</code></pre>
+<p>在sed处理的过程中，&quot;p&quot;和&quot;auto_print&quot;是两个输出动作，都是输出当前模式空间的内容，只不过auto_print是隐含动作。使用了&quot;-n&quot;选项，其所影响的动作仅是&quot;auto_print&quot;，使其输出空内容。也因此，当没有使用&quot;-n&quot;选项时，模式空间的内容会被输出两次。</p>
+<p>例如，仅输出标准输入的第2行内容。</p>
+<pre><code>[root@xuexi ~]# echo -e 'abc\nxyz' | sed -n 2p
+xyz
+</code></pre>
+<p>不加&quot;-n&quot;选项，在&quot;p&quot;输出之后，SCRIPT循环的结尾处还会被auto_print输出一次。</p>
+<pre><code>[root@xuexi ~]# echo -e 'abc\nxyz' | sed 2p   
+abc
+xyz    # 这是p命令输出的结果
+xyz    # 这是自动输出的结果
+</code></pre>
+<p><strong>(2).删除命令&quot;d&quot;。</strong></p>
+<p>命令&quot;d&quot;用于删除<strong>整个模式空间</strong>中的内容，<strong>并立即退出当前SCRIPT循环，进入下一个sed循环，即读取下一行</strong>。</p>
+<p>循环大致格式如下:</p>
+<pre><code>for ((line=1;line&lt;=last_line_num;++line))
+do
+    read $line to pattern_space;
+    while pattern_space is not null
+    do
+        execute cmd1 in SCRIPT;
+        execute cmd2 in SCRIPT;
+        ADDR1,ADDR2{delete;break};     # &quot;d&quot; command
+        ……
+        auto_print;
+        remove_pattern_space;
+    done
+done
+</code></pre>
+<p>唯一需要注意的一点是立即退出当前SCRIPT循环，这意味着如果&quot;d&quot;命令后面还有其他的命令，则这些命令都不会执行。</p>
+<p>例如：删除a.txt中的第5行，并保存到原文件中。</p>
+<pre><code>sed -i '5d' a.txt
+</code></pre>
+<p>这里不能使用重定向的方式保存，因为重定向是在sed命令执行前被shell执行的，所以会截断a.txt，使得sed读取的输入流为空，或者结果出乎意料之外。而&quot;-i&quot;选项则不会操作原文件，而是生成临时文件并在结束时重命名为原文件名。</p>
+<p>删除a.sh中包含&quot;#&quot;开头的注释行，但第一行的<code>#!/bin/bash</code>不删除。</p>
+<pre><code>sed '/^#/{1!d}' a.sh 
+</code></pre>
+<p>如果&quot;d&quot;后面还有命令，在删除模式空间后，这些命令不会执行，因为会立即退出当前SCRIPT循环。例如：</p>
+<pre><code>echo -e 'abc\nxyz' | sed '{/abc/d;=}'
+2
+xyz
+</code></pre>
+<p>其中&quot;=&quot;这个命令用于输出行号，但是结果并没有输出被&quot;abc&quot;匹配的行的行号。</p>
+<p><strong>(3).退出sed程序命令&quot;q&quot;和&quot;Q&quot;。</strong></p>
+<p>使用&quot;q&quot;和&quot;Q&quot;命令的作用是立即退出当前sed程序，使其不再执行后面的命令，也不再读取后面的行。因此，在处理大文件或大量文件时，使用&quot;q&quot;或&quot;Q&quot;命令能提高很大效率。它们之间的不同之处在于&quot;q&quot;命令被执行后还会使用自动输出动作输出模式空间的内容，除非使用了&quot;-n&quot;选项。而&quot;Q&quot;命令则会立即退出，不会输出模式空间内容。另外，可以为它们指定退出状态码，例如&quot;q 1&quot;。</p>
+<p>使用了&quot;q&quot;和&quot;Q&quot;的sed循环结构大致如下：</p>
+<pre><code># &quot;q&quot;命令
+for ((line=1;line&lt;=last_line_num;++line))
+do
+    read $line to pattern_space;
+    while pattern_space is not null
+    do
+        execute cmd1 in SCRIPT;
+        execute cmd2 in SCRIPT;
+        ADDR1,ADDR2{auto_print;exit};     # &quot;q&quot; command
+        ……
+        auto_print;
+        remove_pattern_space;
+    done
+done
+
+# &quot;Q&quot;命令
+for ((line=1;line&lt;=last_line_num;++line))
+do
+    read $line to pattern_space;
+    while pattern_space is not null
+    do
+        execute cmd1 in SCRIPT;
+        execute cmd2 in SCRIPT;
+        ADDR1,ADDR2{exit};      # &quot;Q&quot; command
+        ……
+        auto_print;
+        remove_pattern_space;
+    done
+done
+</code></pre>
+<p>例如，搜索脚本a.sh，当搜索到使用了&quot;.&quot;或&quot;source&quot;命令加载环境配置脚本时就输出并立即退出。</p>
+<pre><code>sed -n -r '/^[ \t]*(\.|source) /{p;q}' a.sh 
+</code></pre>
+<p><strong>(4).输出行号命令&quot;=&quot;。</strong></p>
+<p>&quot;=&quot;命令用于输出最近被读取行的行号。在sed内部，使用行号计数器进行行号计数，每读取一行，行号计数器加1。计数器的值存储在内存中，在要求输出行号时，直接插入在输出流中的指定位置。由于值是存在于内存中，而非模式空间中，因此不受&quot;-n&quot;选项的影响。</p>
+<p>这是一个<strong>依赖于输出流的命令，只要有输出动作就会追加在该输出流的尾部</strong>。</p>
+<p>例如，搜索出httpd.conf中&quot;DocumentRoot&quot;开头的行的行号，允许有前导空白字符。</p>
+<pre><code>sed -n '/^[ \t]*DocumentRoot/{p;=}' httpd.conf        
+DocumentRoot &quot;/var/www/html&quot;
+119
+</code></pre>
+<p>如果&quot;=&quot;命令前没有&quot;p&quot;输出命令，且没有使用&quot;-n&quot;选项，则是输出在Document所在行的前一行，因为SCRIPT最后的自动输出动作也有输出流。</p>
+<p><strong>(5).字符一一对应替换命令&quot;y&quot;。</strong></p>
+<p>该命令和&quot;tr&quot;命令的映射功能一样，都是将字符进行一一替换。</p>
+<p>例如，将a.txt中包含大写字母的YES、Yes等替换成小写的yes。</p>
+<pre><code>sed 'y/YES/yes/' a.txt
+</code></pre>
+<p><strong>(6).手动读取下一行命令&quot;n&quot;。</strong></p>
+<p>在sed的循环过程中，每个sed循环的第一步都是读取输入流的下一行到模式空间中，这是我们无法控制的动作。但sed有读取下一行的命令&quot;n&quot;。</p>
+<p>由于是读取下一行，所以它会触发自动输出的动作，于是就有了输出流。不仅如此，还应该记住的是：<strong>只要有读取下一行的行为，在其真正开始读取之前一定有隐式自动输出的行为</strong>。</p>
+<p>但需注意，当没有下一行可供&quot;n&quot;读取时(例如文件的最后一行已经被读取过了)，将输出模式空间内容后直接退出sed程序，使得&quot;n&quot;命令后的所有命令都不会执行，即使是那两个隐含动作。</p>
+<p>相应的循环结构如下：</p>
+<pre><code>for ((line=1;line&lt;=last_line_num;++line))
+do
+    read $line to pattern_space;
+    while pattern_space is not null
+    do
+        execute cmd1 in SCRIPT;
+        execute cmd2 in SCRIPT;
+        ADDR1,ADDR2{              # &quot;n&quot; command
+            if [ &quot;$line&quot; -ne &quot;$last_line_num&quot; ];then
+                auto_print;
+                remove_pattern_space;
+                read next_line to pattern_space;
+            else
+                auto_print;
+                remove_pattern_space;
+                exit;
+            fi
+        }; 
+        ……
+        auto_print;
+        remove_pattern_space;
+    done
+done
+</code></pre>
+<p>注意，是先判断是否有下一行可读取，再输出和清空pattern space中的内容，所以then和else语句中都有这两个动作。 也许感觉上似乎更应该像下面这样的优化形式：</p>
+<pre><code> ADDR1,ADDR2{              # &quot;n&quot; command
+         auto_print;
+         remove_pattern_space;
+         [ &quot;$line&quot; -ne &quot;$last_line_num&quot; ] &amp;&amp; read next_line to pattern_space || exit;
+ }; 
+</code></pre>
+<p>但事实证明并非如此，证明过程在<a href="https://www.cnblogs.com/f-ck-need-u/p/7488469.html#blog5">本文结尾</a>。此处暂不讨论这些复杂的东西，先看看&quot;n&quot;命令的示例。</p>
+<p>例如，搜索a.txt中包含&quot;redirect&quot;字符串的行以及其下一行，并输出。</p>
+<pre><code>sed -n '/redirect/{p;n;p}' a.txt
+</code></pre>
+<p>再例如下面的命令。</p>
+<pre><code>echo -e &quot;abc\ndef\nxyz&quot; | sed '/abc/{n;=;p}' 
+abc
+2
+def
+def
+xyz
+</code></pre>
+<p>从结果中可以分析出，&quot;n&quot;读取下一行前输出了&quot;abc&quot;，然后立即读入了下一行，所以输出的行号是2而不是1，因为这时候行号计数器已经读取了下一行，随后命令&quot;p&quot;输出了该模式空间的内容，输出后还有一次自动输出的隐含动作，所以&quot;def&quot;被输出了两次。</p>
+<p><strong>(7).替换命令&quot;s&quot;。</strong></p>
+<p>这是sed用的最多的命令。两个字就能概括其功能：替换。将匹配到的内容替换成指定的内容。</p>
+<p>&quot;s&quot;命令的语法格式为：其中&quot;/&quot;可以替换成任意其他单个字符。</p>
+<pre><code>s/REGEXP/REPLACEMENT/FLAGS
+</code></pre>
+<p>它使用REGEXP去匹配行，将匹配到的那部分字符替换成REPLACEMENT。FLAGS是&quot;s&quot;命令的修饰符，常见的有&quot;g&quot;、&quot;p&quot;和&quot;i&quot;或&quot;I&quot;。</p>
+<ul>
+<li>&quot;g&quot;：表示替换行中所有能被REGEXP匹配的部分。不使用g时，默认只替换行中的第一个匹配内容。此外，&quot;g&quot;还可以替换成一个数值N，表示只替换行中第N个被匹配的内容。</li>
+<li>&quot;p&quot;：输出替换后模式空间中的内容。</li>
+<li>&quot;i&quot;或&quot;I&quot;：REGEXP匹配时不区分大小写。</li>
+</ul>
+<p>REPLACEMENT中可以使用&quot;\N&quot;(N是从1到9的整数)进行后向引用，所代表的是REGEXP第N个括号(...)中匹配的内容。另外，REPLACEMENT中可以包含未转义的&quot;&amp;&quot;符号，这表示引用pattern space中被匹配的整个内容。需要注意，&quot;&amp;&quot;是引用pattern space中的所有匹配，不仅仅只是括号的分组匹配。</p>
+<p>例如，删除a.sh中所有&quot;#&quot;开头(可以包括前导空白)的注释符号&quot;#&quot;，但第一行&quot;#!/bin/bash&quot;不处理。</p>
+<pre><code>sed -i '2,$s/^[ \t]*#//' a.sh
+</code></pre>
+<p>为a.sh文件中的第5行到最后一行的行首加上注释符号&quot;#&quot;。</p>
+<pre><code>sed '5,$s/^/#/' a.sh
+</code></pre>
+<p>将a.sh中所有的&quot;int&quot;单词替换成&quot;SIGINT&quot;。</p>
+<pre><code>sed 's/\bint\b/SIGINT/g' a.sh
+</code></pre>
+<p>将a.sh中&quot;cmd1 &amp;&amp; cmd2 || cmd3&quot;的cmd2和cmd3命令对调个位置。</p>
+<pre><code>sed 's%&amp;&amp;\(.*\) ||\(.*\)%\&amp;\&amp;\2 ||\1%' a.sh  
+</code></pre>
+<p>这里使用了&quot;%&quot;代替&quot;/&quot;，且在REPLACEMENT部分对&quot;&amp;&quot;进行了转义，因为该符号在REPLACEMENT中时表示的是引用REGEXP所匹配的所有内容。</p>
+<p><strong>(8).追加、插入和修改命令&quot;a&quot;、&quot;i&quot;、&quot;c&quot;。</strong></p>
+<p>这3个命令的格式是&quot;[a|i|c] TEXT&quot;，表示将TEXT内容队列化到内存中，当有输出流或者说有输出动作的时候，半路追上输出流，分别追加、插入和替换到该输出流然后输出。追加是指追加在输出流的尾部，插入是指插入在输出流的首部，替换是指将整个输出流替换掉。&quot;c&quot;命令和&quot;a&quot;、&quot;i&quot;命令有一丝不同，它替换结束后立即退出当前SCRIPT循环，并进入下一个sed循环，因此&quot;c&quot;命令后的命令都不会被执行。</p>
+<p>例如：</p>
+<pre><code>echo -e &quot;abc\ndef&quot; | sed '/abc/a xyz'
+abc
+xyz
+def
+</code></pre>
+<p>其实&quot;a&quot;、&quot;i&quot;和&quot;c&quot;命令的TEXT部分写法是比较复杂的，如果TEXT只是几个简单字符，如上即可。但如果要TEXT是分行文本，或者包含了引号，或者这几个命令是写在&quot;{}&quot;中的，则上面的写法就无法实现。需要使用符号&quot;&quot;来转义行尾符号，这表示开启一个新行，此后输入的内容都是TEXT，直到遇到引号或者&quot;;&quot;开头的行时。</p>
+<p>例如，在a.sh的<code>#!/bin/bash</code>行后添加一个注释行&quot;# Script filename: a.sh&quot;以及一个空行。由于是追加在尾部，所以使用&quot;a&quot;命令。</p>
+<pre><code>sed '\%#!/bin/bash%a\# Script filename: a.sh\n' a.sh
+</code></pre>
+<p>&quot;a&quot;命令后的第一个反斜线用于标记TEXT的开始，&quot;\n&quot;用于添加空白行。如果分行写，或者&quot;a&quot;命令写在大括号&quot;{}&quot;中，则格式如下：</p>
+<pre><code>sed '\%#!/bin/bash%a\
+# Script filename: a.sh\n
+' a.sh
+
+sed '\%#!/bin/bash%{p;a\
+# Script filename: a.sh\n
+;p}' a.sh
+</code></pre>
+<p>最后需要说的是，<strong>这3个命令的TEXT是存放在内存中的，不会进入模式空间，因此不受&quot;-n&quot;选项或某些命令的影响。此外，这3个命令依赖于输出流，只要有输出动作，不管是空输出流还是非空的输出流，只要有输出，这几个命令就会半路&quot;劫杀&quot;</strong>。如果不理解这两句话，这3个命令的结果有时可能会比较疑惑。</p>
+<p>例如，&quot;a&quot;命令是追加在当前匹配行行尾的，但为什么下面的&quot;haha&quot;却插入到匹配行&quot;def&quot;的前面去了呢？</p>
+<pre><code>echo -e &quot;abc\ndef\nxyz&quot; | sed '/def/{a\
+haha
+;N}'
+
+abc
+haha
+def
+xyz
+</code></pre>
+<p>阅读了下面的&quot;N&quot;命令之后，再回头看这个示例，应该能知道为什么。在<a href="http://www.cnblogs.com/f-ck-need-u/p/7499309.html#blog5">sed修炼系列(四)：sed中的疑难杂症</a>中给出了解释。</p>
+<p><strong>(9).多行模式命令&quot;N&quot;、&quot;D&quot;、&quot;P&quot;简单说明。</strong></p>
+<p>在前面已经解释了&quot;n&quot;、&quot;d&quot;和&quot;p&quot;命令，sed还支持它们的大写命令&quot;N&quot;、&quot;D&quot;和&quot;P&quot;。</p>
+<ul>
+<li>&quot;N&quot;命令：读取下一行内容追加到模式空间的尾部。其和&quot;n&quot;命令不同之处在于：&quot;n&quot;命令会输出模式空间的内容(除非使用了&quot;-n&quot;选项)并清空模式空间，然后才读取下一行到模式空间，也就是说&quot;n&quot;命令虽然读取了下一行到模式空间，但模式空间仍然是单行数据。而&quot;N&quot;命令在读取下一行前，虽然也有自动输出和清空模式空间的动作，但该命令会把当前模式空间的内容<strong>锁住</strong>，使得自动输出的内容为空，也无法清空模式空间，然后读取下一行追加到当前模式空间中的尾部。追加时，原有内容和新读取内容使用换行符&quot;\n&quot;分隔，这样在模式空间中就实现了多行数据。即所谓的&quot;多行模式&quot;。 另外，当无法读取到下一行时(到了文件尾部)，将直接退出sed程序，使得&quot;N&quot;命令后的命令不会再执行，这和&quot;n&quot;命令是一样的。</li>
+<li>&quot;D&quot;命令：删除模式空间中第一个换行符&quot;\n&quot;之前的内容，然后立即回到SCRIPT循环的顶端，即进入下一个SCRIPT循环。如果&quot;D&quot;删除后，模式空间中已经没有内容了，则SCRIPT循环自动退出进入下一个sed循环；如果模式空间还有剩余内容，则继续从头执行SCRIPT循环。也就是说，&quot;D&quot;命令后的命令不会被执行。</li>
+<li>&quot;P&quot;命令：输出模式空间中第一个换行符&quot;\n&quot;之前的内容。</li>
+</ul>
+<p>&quot;N&quot;、&quot;D&quot;和&quot;P&quot;命令作用非常大，它们是绝佳的组合命令，因为借助它们能实现&quot;窗口滑动&quot;技术，这对于复杂的文本行操作来说大有裨益。但显然，这不是本文的内容，在<a href="http://www.cnblogs.com/f-ck-need-u/p/7496916.html">sed修炼系列(三)：sed高级应用之实现窗口滑动技术</a>中详细说明了这3个命令的功能。</p>
+<p>此处按照惯例，还是给出它们的大致循环结构：其中&quot;N&quot;命令的if判断和前文的&quot;n&quot;一样，在<a href="https://www.cnblogs.com/f-ck-need-u/p/7488469.html#blog5">本文结尾证明</a>。</p>
+<pre><code># &quot;N&quot;命令的大致循环结构 
+for ((line=1;line&lt;=last_line_num;++line))
+do
+    read $line to pattern_space;
+    while pattern_space is not null
+    do
+        execute cmd1 in SCRIPT;
+        execute cmd2 in SCRIPT;
+        ADDR1,ADDR2{           # &quot;N&quot; command
+            if [ &quot;$line&quot; -ne &quot;$last_line_num&quot; ];then
+                lock pattern_space;
+                auto_print;
+                remove_pattern_space;
+                unlock pattern_space;
+                append &quot;\n&quot; to pattern_space;
+                read next_line to pattern_space;
+            else
+                auto_print;
+                remove_pattern_space;                   
+                exit;
+            fi
+        }; 
+        ……
+        auto_print;
+        remove_pattern_space;
+    done
+done
+
+# &quot;D&quot;命令的大致循环结构
+for ((line=1;line&lt;=last_line_num;++line))
+do
+    read $line to pattern_space;
+    while pattern_space is not null
+    do
+        execute cmd1 in SCRIPT;
+        execute cmd2 in SCRIPT;
+        ADDR1,ADDR2{               # &quot;D&quot; command
+            delete first line in pattern_space;
+            continue;
+        }; 
+        ……
+        auto_print;
+        remove_pattern_space;
+    done
+done
+
+# &quot;P&quot;命令的大致循环结构
+for ((line=1;line&lt;=last_line_num;++line))
+do
+    read $line to pattern_space;
+    while pattern_space is not null
+    do
+        execute cmd1 in SCRIPT;
+        execute cmd2 in SCRIPT;
+        ADDR1,ADDR2{               # &quot;P&quot; command
+            print first line in pattern_space;
+        }; 
+        ……
+        auto_print;
+        remove_pattern_space;
+    done
+done
+</code></pre>
+<p><strong>(10).buffer空间数据交换命令&quot;h&quot;、&quot;H&quot;、&quot;g&quot;、&quot;G&quot;、&quot;x&quot;简单说明。</strong></p>
+<p>sed除了维护模式空间(pattern space)，还维护另一个buffer空间：保持空间(hold space)。这两个空间初始状态都是空的。</p>
+<p>绝大多数时候，sed仅依靠模式空间就能达到目的，但有些复杂的数据操作则只能借助保持空间来实现。之所以称之为保持空间，是因为它是暂存数据用的，除了仅有的这几个命令外，没有任何其他命令可以操作该空间，因此借助它能实现数据的持久性。</p>
+<p>保持空间的作用很大，它和模式空间之间的数据交换能实现很多看上去不能实现的功能，是实现sed高级功能所必须的，例如&quot;窗口滑动&quot;。同样，这不是本文的内容。所以只简单解释这几个命令的作用：</p>
+<ul>
+<li>&quot;h&quot;命令：将当前模式空间中的内容覆盖到保持空间。</li>
+<li>&quot;H&quot;命令：在保持空间的尾部加上一个换行符&quot;\n&quot;，并将当前模式空间的内容追加到保持空间的尾部。</li>
+<li>&quot;g&quot;命令：将保持空间的内容覆盖到当前模式空间。</li>
+<li>&quot;G&quot;命令：在模式空间的尾部加上一个换行符&quot;\n&quot;，并将当前保持空间的内容追加到模式空间的尾部。</li>
+<li>&quot;x&quot;命令：交换模式空间和保持空间的内容。</li>
+</ul>
+<p>注意，无论是交换、追加还是覆盖，原空间的内容都不会被删除。</p>
+<h3 id="转载自httpswwwcnblogscomf-ck-need-up7488469html">转载自<a href="https://www.cnblogs.com/f-ck-need-u/p/7488469.html">https://www.cnblogs.com/f-ck-need-u/p/7488469.html</a></h3>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/centos7-de-swap-fen-qu-guan-li-fen-qu-huo-wen-jian/">
+                  <h3 class="post-title">
+                    CentOS7的swap分区管理（分区或文件）
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

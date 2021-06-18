@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>podman制作镜像 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="20200905podman制作镜像
+podman制作镜像
+
+原帖地址http://quansen88.cn/post/zhi-zuo-podman-jing-xiang
+
+podman是使用docker容器格式的容器管理软件，有k8s的p..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">podman制作镜像</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content" v-pre>
+              <p>20200905podman制作镜像</p>
+<h1 id="podman制作镜像">podman制作镜像</h1>
+<blockquote>
+<p>原帖地址<a href="http://quansen88.cn/post/zhi-zuo-podman-jing-xiang">http://quansen88.cn/post/zhi-zuo-podman-jing-xiang</a></p>
+</blockquote>
+<h3 id="podman是使用docker容器格式的容器管理软件有k8s的pod容器组理念"><strong>podman是使用docker容器格式的容器管理软件，有k8s的pod容器组理念</strong></h3>
+<h2 id="一-安装">一、安装</h2>
+<blockquote>
+<p>详见：https://podman.io</p>
+</blockquote>
+<p><strong>这里我用的是centos</strong></p>
+<pre><code>yum install podman
+</code></pre>
+<h2 id="二-编写dockerfile或containerfile">二、编写Dockerfile或Containerfile</h2>
+<blockquote>
+<p>dockerfile参考：https://www.runoob.com/docker/docker-dockerfile.html</p>
+<p><a href="https://podman.readthedocs.io/en/latest/markdown/podman-build.1.html">建立</a>利用Containerfiles说明生成的图像:https://podman.readthedocs.io/en/latest/markdown/podman-build.1.html</p>
+</blockquote>
+<h3 id="podman的使用与docker十分相似甚至可以使用docker的dockerfile构建镜像"><strong>podman的使用与docker十分相似，甚至可以使用docker的Dockerfile构建镜像</strong></h3>
+<p><strong>我最近的dockerfile:</strong></p>
+<pre><code># Description: mc-server image
+
+FROM centos:7
+
+MAINTAINER &quot;qs &lt;quansen@88.com&gt;&quot;
+#LABEL maintainer=&quot;qs &lt;quansen@88.com&gt;&quot;
+
+COPY mc-server /mc-server/
+RUN yum install java -y
+WORKDIR /mc-server/
+CMD java -Xmx1024M -Xms1024M -jar /mc-server/server.jar nogui
+</code></pre>
+<p>*<em>我遇到的错误：COPY mc-server / ,其相当于 cp mc-server/</em> / **</p>
+<h3 id="使用-copy-时会自动创建不存在的目录">使用 COPY 时，会自动创建不存在的目录</h3>
+<h3 id="copy-源文件需要放在dockerfile同属文件夹或子文件夹也无法使用绝对路径必须使用相对路径">COPY 源文件需要放在dockerfile同属文件夹或子文件夹，也无法使用绝对路径，必须使用相对路径</h3>
+<h2 id="三-构建镜像">三、构建镜像</h2>
+<pre><code>podman build -t quansen88/mc-server:v0.4.0.7 .
+</code></pre>
+<h3 id="podman构建镜像事实上只是将docker改成podman">podman构建镜像，事实上只是将docker改成podman</h3>
+<p><strong>'.'表示当前目录下的Dockerfile</strong></p>
+<h2 id="四-podman试运行镜像">四、podman试运行镜像</h2>
+<pre><code>podman run --name mc-server7 -d -p 25565:25565 localhost/quansen88/mc-server:v0.4.0.7
+</code></pre>
+<h3 id="查看运行进程">查看运行进程</h3>
+<pre><code>podman ps
+</code></pre>
+<h3 id="运行截图">运行截图：</h3>
+<pre><code>[root@localhost ~]# docker ps
+CONTAINER ID  IMAGE                                   COMMAND               CREATED      STATUS          PORTS                     NAMES
+9a4e36c944d3  localhost/quansen88/mc-server:v0.4.0.7  /bin/sh -c java -...  3 hours ago  Up 3 hours ago  0.0.0.0:25565-&gt;25565/tcp  mc-server7
+
+</code></pre>
+<h3 id="运行成功">运行成功！</h3>
+<h3 id="官方建议其中docker-ps-是别名因为使用习惯一时半会改不过来">官方建议：其中docker ps 是别名，因为使用习惯一时半会改不过来</h3>
+<h3 id="改别名">改别名：</h3>
+<pre><code>alias -p docker=podman
+</code></pre>
+<h2 id="五-未完待续">五、未完待续</h2>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/20200905165357.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/dockerpodman-yi-jian-bu-shu-postwoman/">
+                  <h3 class="post-title">
+                    docker/podman一键部署postwoman
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190925error &#39;Can&#39;t connect to local MySQL server through socket | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="error: 'Can't connect to local MySQL server through socket
+背景：我写了个脚本一键部署mysql多实例，最后使用mysqladmin改密码发生这个错误
+change_default_..." />
+    <meta name="keywords" content="mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190925error &#39;Can&#39;t connect to local MySQL server through socket</h2>
+            <div class="post-date">2021-04-26</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="error-cant-connect-to-local-mysql-server-through-socket">error: 'Can't connect to local MySQL server through socket</h1>
+<p>背景：我写了个脚本一键部署mysql多实例，最后使用mysqladmin改密码发生这个错误</p>
+<pre><code class="language-bash">change_default_pass(){
+    for i in ${PORTS};do
+        /etc/init.d/mysqld_multi start $i
+        mysql_check $i
+        #mysqladmin -uroot -p&quot;$((PASSWORD$i))&quot; -S ${DATA_DIR}${i}/sock/mysql.sock password 123456 &amp;&gt; /dev/null                                                                                                              
+        mysqladmin -uroot -p$(grep &quot;temporary password&quot; ${DATA_DIR}${i}/log/mysql_install.log | awk '{print $NF}') -S ${DATA_DIR}${i}/sock/mysql.sock password 123456
+        if [ &quot;$?&quot; -eq 0 ];then
+            StandardOutput &quot;change passwd successful...&quot;
+        else
+            ErrorOutput &quot;change passwd failed...&quot;
+            exit 200
+        fi
+    done
+    #修改my.cnf
+    sed -i '3a pass=123456' /etc/my.cnf
+}
+</code></pre>
+<p>百度无解：</p>
+<p>最终加了个sleep 8(sleep 5也偶尔报错)，可以了，貌似是脚本执行的有点快，mysqladmin执行之前sock文件还没创建完</p>
+<pre><code class="language-bash">change_default_pass(){
+    for i in ${PORTS};do
+        /etc/init.d/mysqld_multi start $i
+        mysql_check $i
+        #mysqladmin -uroot -p&quot;$((PASSWORD$i))&quot; -S ${DATA_DIR}${i}/sock/mysql.sock password 123456 &amp;&gt; /dev/null
+        #which mysqladmin
+        #sleep 5
+        sleep 8
+        mysqladmin -uroot -p$(grep &quot;temporary password&quot; ${DATA_DIR}${i}/log/mysql_install.log | awk '{print $NF}') -S ${DATA_DIR}${i}/sock/mysql.sock password 123456
+        if [ &quot;$?&quot; -eq 0 ];then
+            StandardOutput &quot;change passwd successful...&quot;
+        else
+            ErrorOutput &quot;change passwd failed...&quot;
+            exit 200
+        fi
+    done
+    #修改my.cnf
+    sed -i '3a pass=123456' /etc/my.cnf
+}
+</code></pre>
+<p>如果脚本报错怎么办：</p>
+<pre><code class="language-bash">rm -rf /usr/local/mysql
+rm -rf /usr/local/mysql-5.7.27-linux-glibc2.12-x86_64/
+rm -rf /etc/init.d/mysqld_multi /etc/profile.d/mysql.sh /data/mysql/
+pkill mysql
+bash mysql_mutil_instance_deploy.sh
+</code></pre>
+<p><strong>执行效果：</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20190925141026.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20190925141124.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190924-shu-ju-ku-xing-neng-ce-shi-sysbench-yong-fa-xiang-jie/">
+                  <h3 class="post-title">
+                    20190924数据库性能测试：sysbench用法详解
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

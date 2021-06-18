@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191006getopt：命令行选项、参数处理 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="getopt：命令行选项、参数处理
+参考：https://linuxeye.com/389.html
+今天在之前的脚本中看到这么一段
+大致可以可以看出来是用来解析命令行选项执行相应的功能的
+# 可以看到case判断里面每个选项执行完就exi..." />
+    <meta name="keywords" content="getopt" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191006getopt：命令行选项、参数处理</h2>
+            <div class="post-date">2021-04-27</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="getopt命令行选项-参数处理">getopt：命令行选项、参数处理</h1>
+<p>参考：https://linuxeye.com/389.html</p>
+<h3 id="今天在之前的脚本中看到这么一段">今天在之前的脚本中看到这么一段</h3>
+<p>大致可以可以看出来是用来解析命令行选项执行相应的功能的</p>
+<pre><code class="language-bash"># 可以看到case判断里面每个选项执行完就exit，所以脚本只能接收一个选项，-hc这种只会执行-h
+get_options() {
+while getopts 'hcatpsio' OPTION		#getopts识别短选项，-h，-c，-at等
+  do
+    case &quot;$OPTION&quot; in	#使用case判断选项
+      h)    help		#-h选项就执行help函数并退出
+		exit 0
+		;;
+      c)    clean_files		#-c选项就执行clean_files函数并退出
+		exit 0
+		;;
+      a)    sync_api	#-a选项就执行sync_api函数并退出
+		exit 0
+		;;
+      t)    sync_thumbnail	#-t选项就执行sync_thumbnail函数并退出
+		exit 0
+		;;
+      p)    sync_push
+		exit 0
+		;;
+      s)    sync_async
+		exit 0
+		;; 
+      i)    sync_icache
+		exit 0
+		;; 
+      o)    sync_ocache
+		exit 0
+		;; 
+      ?)    help &gt;&amp;2	#当有不认识的选项时执行help函数
+		exit 2
+		;;
+    esac
+    # if a parameter entered by the user is '-'
+    if [ -z &quot;$OPTION&quot; ]; then	#这个没看懂，应该是不会执行的
+      echo -e &quot;$RED ERROR: Invalid option entered $NO_COLOR&quot; &gt;&amp;2
+      help &gt;&amp;2
+      exit 2
+    fi
+  done
+}
+</code></pre>
+<h3 id="一-简化脚本">一、简化脚本</h3>
+<pre><code class="language-bash">[root@node1 ~]# cat vim.sh 
+#!/bin/bash
+while getopts 'hcatpsio' OPTION	#可以使用的选项有-h,-c,-a等
+  do
+    case &quot;$OPTION&quot; in
+      h)
+        echo &quot;help...&quot;
+        ;;
+      c)
+        echo &quot;crazy...&quot;
+        ;;
+    esac
+  done
+[root@nod
+</code></pre>
+<h3 id="二-执行脚本">二、执行脚本</h3>
+<pre><code class="language-bash">[root@node1 ~]# bash vim.sh -h 
+help...
+[root@node1 ~]# bash vim.sh -c
+crazy...
+[root@node1 ~]# bash vim.sh -c -h
+crazy...
+help...
+#可以连起来使用
+[root@node1 ~]# bash vim.sh -ch
+crazy...
+help...
+#只能解析短选项
+[root@node1 ~]# bash vim.sh --c
+vim.sh: illegal option -- -
+crazy...
+#未知选项就报错
+[root@node1 ~]# bash vim.sh -l
+vim.sh: illegal option -- l
+</code></pre>
+<h3 id="三-冒号用于指定选项必须得有参数">三、冒号用于指定选项必须得有参数</h3>
+<pre><code class="language-bash">[root@node1 ~]# cat vim.sh 
+#!/bin/bash
+while getopts 'h:c' OPTION	#冒号表示-h后面必须得有参数，不然报错；两个冒号表示该选项有一个可选参数，可选参数必须紧贴选项
+  do
+    case &quot;$OPTION&quot; in
+      h)
+        echo &quot;help...&quot;
+        exit 0
+        ;;
+      c)
+        echo &quot;crazy...&quot;
+        ;;
+    esac
+  done
+[root@node1 ~]# bash vim.sh -h
+vim.sh: option requires an argument -- h
+[root@node1 ~]# bash vim.sh -h wang
+help...
+</code></pre>
+<h3 id="四-参数内容放在optarg中">四、参数内容放在OPTARG中</h3>
+<pre><code class="language-bash">[root@node1 ~]# cat vim.sh 
+#!/bin/bash
+while getopts 'h:c' OPTION
+  do
+    case &quot;$OPTION&quot; in
+      h)
+        echo &quot;help...&quot;
+        echo &quot;name: $OPTARG&quot;
+        exit 0
+        ;;
+      c)
+        echo &quot;crazy...&quot;
+        ;;
+    esac
+  done
+[root@node1 ~]# bash vim.sh -h wang
+help...
+name: wang
+</code></pre>
+<h3 id="五-长选项用getopt参考httpslinuxeyecom389html">五、长选项用getopt，参考https://linuxeye.com/389.html</h3>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/uTyZK_hzg/" class="tag">
+                    getopt
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190929mysql-zhu-cong-fu-zhi-jia-mi/">
+                  <h3 class="post-title">
+                    20190929mysql主从复制加密
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

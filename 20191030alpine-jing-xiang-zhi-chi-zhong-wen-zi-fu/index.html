@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191030alpine镜像支持中文字符 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="alpine镜像支持中文字符
+参考：https://www.clxz.top/2019/05/09/160241/
+本实验未经过生产环境测试
+方法一：他构建好的镜像
+[root@node1 tmp]# docker image ls | g..." />
+    <meta name="keywords" content="aloine,dockerfile,docker" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191030alpine镜像支持中文字符</h2>
+            <div class="post-date">2021-04-29</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.alpinelinux.org/alpinelinux-logo.svg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="alpine镜像支持中文字符">alpine镜像支持中文字符</h1>
+<p>参考：https://www.clxz.top/2019/05/09/160241/</p>
+<p><strong>本实验未经过生产环境测试</strong></p>
+<h3 id="方法一他构建好的镜像">方法一：他构建好的镜像</h3>
+<pre><code class="language-bash">[root@node1 tmp]# docker image ls | grep jdk
+hlwojiv/alpine-jdk8          latest              f726e71fd441        5 months ago        237MB
+[root@node1 tmp]# docker pull hlwojiv/alpine-jdk8
+</code></pre>
+<pre><code class="language-bash">[root@node1 tmp]# docker run -it --rm hlwojiv/alpine-jdk8 /usr/glibc-compat/bin/locale -a | grep zh
+zh_CN.utf8
+zh_HK.utf8
+zh_SG.utf8
+zh_TW.utf8
+[root@node1 tmp]# docker run -it --rm hlwojiv/alpine-jdk8 env
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/java/jdk/bin
+HOSTNAME=ebb732aa197d
+TERM=xterm
+LANG=en_US.UTF-8
+LANGUAGE=en_US.UTF-8
+JAVA_HOME=/usr/java/jdk
+HOME=/root
+</code></pre>
+<h3 id="方法二使用他的dcokerfile构建">方法二：使用他的dcokerfile构建</h3>
+<pre><code class="language-bash">$ git clone https://github.com/hlwojiv/docker-alpine-jdk8.git
+$ cd docker-alpine-jdk8/
+$ ls
+Dockerfile   README.md    jre8.tar.gz  locale.md
+$ cat Dockerfile 
+FROM docker.io/jeanblanchard/alpine-glibc
+MAINTAINER hlwojiv
+
+
+ADD jre8.tar.gz /usr/java/jdk/
+
+RUN  echo 'http://mirrors.ustc.edu.cn/alpine/v3.5/main' &gt; /etc/apk/repositories \
+ &amp;&amp; echo 'http://mirrors.ustc.edu.cn/alpine/v3.5/community' &gt;&gt;/etc/apk/repositories \
+ &amp;&amp; apk update &amp;&amp; apk add tzdata \
+ &amp;&amp; ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \ 
+ &amp;&amp; echo &quot;Asia/Shanghai&quot; &gt; /etc/timezone
+
+RUN apk --no-cache add ca-certificates wget &amp;&amp; \
+    wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub &amp;&amp; \
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-2.25-r0.apk &amp;&amp; \
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-bin-2.25-r0.apk &amp;&amp; \
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-i18n-2.25-r0.apk &amp;&amp; \
+    apk add glibc-bin-2.25-r0.apk glibc-i18n-2.25-r0.apk glibc-2.25-r0.apk
+
+# Iterate through all locale and install it
+# Note that locale -a is not available in alpine linux, use `/usr/glibc-compat/bin/locale -a` instead
+COPY ./locale.md /locale.md
+RUN cat locale.md | xargs -i /usr/glibc-compat/bin/localedef -i {} -f UTF-8 {}.UTF-8
+
+# Set the lang, you can also specify it as as environment variable through docker-compose.yml
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+
+ENV JAVA_HOME /usr/java/jdk
+ENV PATH ${PATH}:${JAVA_HOME}/bin
+
+WORKDIR /opt
+</code></pre>
+<p><strong>$ cat locale.md</strong></p>
+<pre><code class="language-bash">aa_DJ
+aa_ER
+aa_ET
+af_ZA
+am_ET
+an_ES
+ar_AE
+ar_BH
+ar_DZ
+ar_EG
+ar_IN
+ar_IQ
+ar_JO
+ar_KW
+ar_LB
+ar_LY
+ar_MA
+ar_OM
+ar_QA
+ar_SA
+ar_SD
+ar_SY
+ar_TN
+ar_YE
+as_IN
+ast_ES
+ayc_PE
+az_AZ
+be_BY
+bem_ZM
+ber_DZ
+ber_MA
+bg_BG
+bho_IN
+bn_BD
+bn_IN
+bo_CN
+bo_IN
+br_FR
+brx_IN
+bs_BA
+byn_ER
+ca_AD
+ca_ES
+ca_FR
+ca_IT
+crh_UA
+csb_PL
+cs_CZ
+cv_RU
+cy_GB
+da_DK
+de_AT
+de_BE
+de_CH
+de_DE
+de_LU
+doi_IN
+dv_MV
+dz_BT
+el_CY
+el_GR
+en_AG
+en_AU
+en_BW
+en_CA
+en_DK
+en_GB
+en_HK
+en_IE
+en_IN
+en_NG
+en_NZ
+en_PH
+en_SG
+en_US
+en_ZA
+en_ZM
+en_ZW
+es_AR
+es_BO
+es_CL
+es_CO
+es_CR
+es_CU
+es_DO
+es_EC
+es_ES
+es_GT
+es_HN
+es_MX
+es_NI
+es_PA
+es_PE
+es_PR
+es_PY
+es_SV
+es_US
+es_UY
+es_VE
+et_EE
+eu_ES
+fa_IR
+ff_SN
+fi_FI
+fil_PH
+fo_FO
+fr_BE
+fr_CA
+fr_CH
+fr_FR
+fr_LU
+fur_IT
+fy_DE
+fy_NL
+ga_IE
+gd_GB
+gez_ER
+gez_ET
+gl_ES
+gu_IN
+gv_GB
+ha_NG
+he_IL
+hi_IN
+hne_IN
+hr_HR
+hsb_DE
+ht_HT
+hu_HU
+hy_AM
+ia_FR
+id_ID
+ig_NG
+ik_CA
+is_IS
+it_CH
+it_IT
+iu_CA
+iw_IL
+ja_JP
+ka_GE
+kk_KZ
+kl_GL
+km_KH
+kn_IN
+kok_IN
+ko_KR
+ks_IN
+ku_TR
+kw_GB
+ky_KG
+lb_LU
+lg_UG
+li_BE
+lij_IT
+li_NL
+lo_LA
+lt_LT
+lv_LV
+mag_IN
+mai_IN
+mg_MG
+mhr_RU
+mi_NZ
+mk_MK
+ml_IN
+mni_IN
+mn_MN
+mr_IN
+ms_MY
+mt_MT
+my_MM
+nb_NO
+nds_DE
+nds_NL
+ne_NP
+nhn_MX
+niu_NU
+niu_NZ
+nl_AW
+nl_BE
+nl_NL
+nn_NO
+no_NO
+nr_ZA
+nso_ZA
+oc_FR
+om_ET
+om_KE
+or_IN
+os_RU
+pa_IN
+pap_AN
+pa_PK
+pl_PL
+ps_AF
+pt_BR
+pt_PT
+ro_RO
+ru_RU
+ru_UA
+rw_RW
+sa_IN
+sat_IN
+sc_IT
+sd_IN
+se_NO
+shs_CA
+sid_ET
+si_LK
+sk_SK
+sl_SI
+so_DJ
+so_ET
+so_KE
+so_SO
+sq_AL
+sq_MK
+sr_ME
+sr_RS
+ss_ZA
+st_ZA
+sv_FI
+sv_SE
+sw_KE
+sw_TZ
+szl_PL
+ta_IN
+ta_LK
+te_IN
+tg_TJ
+th_TH
+ti_ER
+ti_ET
+tig_ER
+tk_TM
+tl_PH
+tn_ZA
+tr_CY
+tr_TR
+ts_ZA
+tt_RU
+ug_CN
+uk_UA
+unm_US
+ur_IN
+ur_PK
+uz_UZ
+ve_ZA
+vi_VN
+wa_BE
+wae_CH
+wal_ET
+wo_SN
+xh_ZA
+yi_US
+yo_NG
+yue_HK
+zh_CN
+zh_HK
+zh_SG
+zh_TW
+zu_ZA
+</code></pre>
+<pre><code class="language-bash">$ docker build -t alpine-utf8-jdk .
+# 构建报错，locale.md某些语言报错
+cannot open locale definition file `iw_IL': No such file or directory
+cannot open locale definition file `no_NO': No such file or directory
+cannot open locale definition file `pap_AN': No such file or directory
+</code></pre>
+<h4 id="在dockerfile中修改语言环境">在dockerfile中修改语言环境</h4>
+<pre><code class="language-bash">FROM alpine:3.6
+
+# ---not shown here---
+
+# Install language pack
+RUN apk --no-cache add ca-certificates wget &amp;&amp; \
+    wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub &amp;&amp; \
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-2.25-r0.apk &amp;&amp; \
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-bin-2.25-r0.apk &amp;&amp; \
+    wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-i18n-2.25-r0.apk &amp;&amp; \
+    apk add glibc-bin-2.25-r0.apk glibc-i18n-2.25-r0.apk glibc-2.25-r0.apk
+
+# Iterate through all locale and install it
+# Note that locale -a is not available in alpine linux, use `/usr/glibc-compat/bin/locale -a` instead
+COPY ./locale.md /locale.md
+RUN cat locale.md | xargs -i /usr/glibc-compat/bin/localedef -i {} -f UTF-8 {}.UTF-8
+
+# Set the lang, you can also specify it as as environment variable through docker-compose.yml
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+</code></pre>
+<h3 id="小结">小结：</h3>
+<p><strong>删了一些东西，重新构建</strong></p>
+<p><strong>Dockerfile</strong></p>
+<pre><code class="language-dockerfile">FROM docker.io/jeanblanchard/alpine-glibc
+
+COPY ./locale.md /locale.md
+
+# Install language pack
+#RUN echo 'http://mirrors.ustc.edu.cn/alpine/v3.5/main' &gt; /etc/apk/repositories \
+#    &amp;&amp; echo 'http://mirrors.ustc.edu.cn/alpine/v3.5/community' &gt;&gt;/etc/apk/repositories \
+RUN apk update \
+    &amp;&amp; apk add tzdata \
+    &amp;&amp; cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    &amp;&amp; apk del tzdata \
+    &amp;&amp; apk --no-cache add ca-certificates wget \
+    &amp;&amp; wget -q -O /etc/apk/keys/sgerrand.rsa.pub https://alpine-pkgs.sgerrand.com/sgerrand.rsa.pub \
+    &amp;&amp; wget https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-2.25-r0.apk \
+        https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-bin-2.25-r0.apk \
+        https://github.com/sgerrand/alpine-pkg-glibc/releases/download/2.25-r0/glibc-i18n-2.25-r0.apk \
+    &amp;&amp; apk add glibc-bin-2.25-r0.apk glibc-i18n-2.25-r0.apk glibc-2.25-r0.apk \
+    &amp;&amp; sleep 3 \
+    &amp;&amp; cat /locale.md | xargs -i /usr/glibc-compat/bin/localedef -i {} -f UTF-8 {}.UTF-8 \
+    &amp;&amp; rm /etc/apk/keys/sgerrand.rsa.pub \
+    &amp;&amp; rm /locale.md \
+        glibc-2.25-r0.apk \
+        glibc-bin-2.25-r0.apk \
+        glibc-i18n-2.25-r0.apk \
+    &amp;&amp; apk del wget  ca-certificates\
+    &amp;&amp; rm -rf /var/cache/apk/* \
+    &amp;&amp; rm &quot;/root/.wget-hsts&quot;  
+
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8 
+</code></pre>
+<p><strong>locale.md</strong></p>
+<pre><code class="language-bash">[root@glowing-bliss-1 tmp]# cat locale.md 
+en_AG
+en_AU
+en_BW
+en_CA
+en_DK
+en_GB
+en_HK
+en_IE
+en_IN
+en_NG
+en_NZ
+en_PH
+en_SG
+en_US
+en_ZA
+en_ZM
+en_ZW
+zh_CN
+zh_HK
+zh_SG
+zh_TW
+zu_ZA
+</code></pre>
+<pre><code class="language-bash">[root@glowing-bliss-1 tmp]# docker build -t my:v0.6 .
+[root@glowing-bliss-1 tmp]# docker images | grep v0.6
+my                           v0.6                29a1b86617b0        4 minutes ago       37.7MB
+</code></pre>
+<pre><code class="language-bash">[root@glowing-bliss-1 tmp]# docker run --rm -it my:v0.6 env
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+HOSTNAME=ca966becfb4c
+TERM=xterm
+GLIBC_VERSION=2.30-r0
+LANG=en_US.UTF-8
+LANGUAGE=en_US.UTF-8
+HOME=/root
+failed to resize tty, using default size
+[root@glowing-bliss-1 tmp]# docker run --rm -it my:v0.6 /usr/glibc-compat/bin/locale -a | grep zh
+zh_CN.utf8
+zh_HK.utf8
+zh_SG.utf8
+zh_TW.utf8
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/XmggTltj2/" class="tag">
+                    aloine
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/kNjQz_ZLc/" class="tag">
+                    dockerfile
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/pw00jdDde/" class="tag">
+                    docker
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191029nginx-pei-zhi-tls13/">
+                  <h3 class="post-title">
+                    20191029nginx配置TLS1.3
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

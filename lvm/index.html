@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>LVM | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="LVM
+
+创建逻辑卷，逻辑卷扩容，vg扩容，vg中移除pv，缩容，vg，lv重命名，xfs与ext4快照还原
+
+一、LVM相关概念和机制：
+​		LVM（Logical Volume Manager）可以让分区变得弹性，可以随时随地地扩大和..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">LVM</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="lvm">LVM</h1>
+<blockquote>
+<p>创建逻辑卷，逻辑卷扩容，vg扩容，vg中移除pv，缩容，vg，lv重命名，xfs与ext4快照还原</p>
+</blockquote>
+<h2 id="一-lvm相关概念和机制">一、LVM相关概念和机制：</h2>
+<p>​		LVM（Logical Volume Manager）可以让分区变得弹性，可以随时随地地扩大和缩小分区，前提是该分区是LVM格式的</p>
+<p>​		LVM需要软件包LVM2，一般CentOS发行版都预装了</p>
+<ul>
+<li>PV（Physical Volume）即物理卷</li>
+</ul>
+<p>​		硬盘分区后（还未格式化为文件系统）使用pvcreate可以将分区创建为pv，要求分区的system ID为8e，即为LVM格式的系统标识符</p>
+<ul>
+<li>VG（Volume Group）即卷组</li>
+</ul>
+<p>​		将多个PVz组合起来，使用vgcreate创建成卷组，这样卷组包含了多个PV就比较大了，相当于重新整合了多个分区后得到的磁盘。虽然VG是整合多个PV的，但是创建VG时会将VG所有的空间根据指定PE大小划分为多个PE，在LVM模式下的存储都以PE为单元，类似于文件系统的block。</p>
+<ul>
+<li>PE（Physical Extend）</li>
+</ul>
+<p>​		PE是VG中的存储单元。但实际存储的数据都存储在里面</p>
+<ul>
+<li>LV（Logical Volume）</li>
+</ul>
+<p>​		VG相当于整合过的磁盘，那么LV就相当于分区，只不过该分区是通过VG来划分的。VG中有很多PE单元，可以指定多少个PE划分给一个LV，也可以指定大小（如多少兆）来划分。划分LV后就相当于划分了分区，只需再对LV格式化即可变为普通的文件系统。</p>
+<p>​		通俗地讲，非LVM管理的分区步骤是将硬盘分区，然后将分区格式化为文件系统。而使用LVM，则是在硬盘分区为特定的LVM标识的分区后将其z转变为LVM可管理的PV，其实PV仍然类似于分区，然后再将几个PV整合为类似于磁盘的VG，最后VG划分为LV，此时LV就变成了LVM可以管理的分区，再对其格式化即可成为文件系统。</p>
+<ul>
+<li>LE（Logical Extend）</li>
+</ul>
+<p>​		PE是物理存储单元，而LE则是逻辑存储单元，即lv中的存储单元，和PE的大小是一样的。从vg中划分lv，实际是从vg中划分vg中的pe，只不过划分lv后不再称为pe，而称为le</p>
+<p>​		<strong>LVM之所以能够伸缩容量，其实现方法就是j将LV里空闲的PE移出，或向LV中添加空闲的PE</strong>。</p>
+<h2 id="二-lvm写入机制">二、LVM写入机制</h2>
+<p>​		线性模式：先写完来自同一个PV的PE，再写来自下一个PV的PE</p>
+<p>​		条带模式：一份数据拆成多份，分别写入该LV对应的每个PV中，所以读写性能较好，类似于RAID 0</p>
+<p><strong>默认为线性模式，也推荐此模式，LVM的重点在于弹性容量而不是性能</strong>。</p>
+<h2 id="三-创建逻辑卷">三、创建逻辑卷</h2>
+<p>实验采用两块硬盘进行操作</p>
+<p><strong>3.1、VMware开机状态下插入两块硬盘</strong></p>
+<p><strong>3.2、触发硬盘扫描机制</strong></p>
+<pre><code>[root@c7 ~]# for i in `seq 0 2`;do echo '- - -' &gt; /sys/class/scsi_host/host$i/scan;done
+</code></pre>
+<p><strong>3.3 lsblk查看</strong></p>
+<pre><code>[root@c7 ~]# lsblk
+NAME            MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda               8:0    0  200G  0 disk 
+├─sda1            8:1    0    1G  0 part /boot
+└─sda2            8:2    0  199G  0 part 
+  ├─centos-root 253:0    0   50G  0 lvm  /
+  ├─centos-swap 253:1    0    2G  0 lvm  [SWAP]
+  └─centos-home 253:2    0  147G  0 lvm  /home
+sdb               8:16   0   10G  0 disk 
+sdc               8:32   0   10G  0 disk 
+sr0              11:0    1  918M  0 rom 
+</code></pre>
+<p><strong>3.4、pvcreate创建pv  使用pvs简单查看</strong></p>
+<pre><code>[root@c7 ~]# pvcreate /dev/sd{b,c}
+  Physical volume &quot;/dev/sdb&quot; successfully created.
+  Physical volume &quot;/dev/sdc&quot; successfully created.
+[root@c7 ~]# pvs
+  PV         VG     Fmt  Attr PSize    PFree 
+  /dev/sda2  centos lvm2 a--  &lt;199.00g  4.00m
+  /dev/sdb          lvm2 ---    10.00g 10.00g
+  /dev/sdc          lvm2 ---    10.00g 10.00g
+</code></pre>
+<p><strong>3.5、vgcreate创建vg 使用vgs简单查看，vg是有名字的</strong></p>
+<p>vgcreate可以使用-s指定pe大小，可以姑且认为pe就是block</p>
+<pre><code>[root@c7 ~]# vgcreate -s 16M vg_mysql /dev/sd{b,c}
+  Volume group &quot;vg_mysql&quot; successfully created
+[root@c7 ~]# vgs
+  VG       #PV #LV #SN Attr   VSize    VFree  
+  centos     1   3   0 wz--n- &lt;199.00g   4.00m
+  vg_mysql   2   0   0 wz--n-  &lt;19.97g &lt;19.97g
+</code></pre>
+<p><strong>3.6、lvcreate创建lv</strong></p>
+<p>lvcreate可以使用-L 5G指定lv为5g；或者-l 20指定20个pe，一个pe是16m，20个就是320M</p>
+<pre><code># 创建一个5g的lv
+[root@c7 ~]# lvcreate  -L 5G -n lv_mysqldata vg_mysql
+  Logical volume &quot;lv_mysqldata&quot; created.
+# 使用20个pe创建一个lv
+[root@c7 ~]# lvcreate  -l 20 -n lv_mysqllog vg_mysql
+  Logical volume &quot;lv_mysqllog&quot; created.
+# lvs查看所有lv
+[root@c7 ~]# lvs
+  LV           VG       Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  home         centos   -wi-ao---- 146.99g                                                    
+  root         centos   -wi-ao----  50.00g                                                    
+  swap         centos   -wi-ao----   2.00g                                                    
+  lv_mysqldata vg_mysql -wi-a-----   5.00g                                                    
+  lv_mysqllog  vg_mysql -wi-a----- 320.00m     
+# vgs查看剩余空间
+[root@c7 ~]# vgs
+  VG       #PV #LV #SN Attr   VSize    VFree  
+  centos     1   3   0 wz--n- &lt;199.00g   4.00m
+  vg_mysql   2   2   0 wz--n-  &lt;19.97g &lt;14.66g 
+# lsblk查看
+[root@c7 ~]# lsblk
+NAME                    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda                       8:0    0  200G  0 disk 
+├─sda1                    8:1    0    1G  0 part /boot
+└─sda2                    8:2    0  199G  0 part 
+  ├─centos-root         253:0    0   50G  0 lvm  /
+  ├─centos-swap         253:1    0    2G  0 lvm  [SWAP]
+  └─centos-home         253:2    0  147G  0 lvm  /home
+sdb                       8:16   0   10G  0 disk 
+├─vg_mysql-lv_mysqldata 253:3    0    5G  0 lvm  
+└─vg_mysql-lv_mysqllog  253:4    0  320M  0 lvm  
+sdc                       8:32   0   10G  0 disk 
+</code></pre>
+<p><strong>3.7、格式化lv为文件系统</strong></p>
+<pre><code>[root@c7 ~]# mkfs.ext4 /dev/vg_mysql/lv_mysqllog
+[root@c7 ~]# mkfs.ext4 /dev/vg_mysql/lv_mysqldata 
+</code></pre>
+<p><strong>3.8、挂载</strong></p>
+<pre><code>[root@c7 ~]# mkdir /data/mysql/{data,log} -p
+[root@c7 ~]# lsblk -f | grep mysql
+├─vg_mysql-lv_mysqldata ext4                        8c5f9d7f-9297-466b-9b81-b27b2729db27   
+└─vg_mysql-lv_mysqllog  ext4                        790b2e35-ea53-46cc-a806-9c1265eea58b 
+[root@c7 ~]# cat &gt;&gt; /etc/fstab &lt;&lt;EOF
+UUID=8c5f9d7f-9297-466b-9b81-b27b2729db27 /data/mysql/data/ ext4 defaults 0 0
+UUID=790b2e35-ea53-46cc-a806-9c1265eea58b /data/mysql/log/  ext4 defaults 0 0
+EOF
+[root@c7 ~]# mount -a
+[root@c7 ~]# df -Th | grep mysql
+/dev/mapper/vg_mysql-lv_mysqldata ext4      4.8G   20M  4.6G   1% /data/mysql/data
+/dev/mapper/vg_mysql-lv_mysqllog  ext4      302M  2.1M  280M   1% /data/mysql/log
+</code></pre>
+<h2 id="四-逻辑卷的扩容">四、逻辑卷的扩容：</h2>
+<p><strong>逻辑卷一般格式化为ext4格式，如果格式化为xfs，个别步骤会有一点小区别</strong></p>
+<p>下面扩容lv_mysqldata从5G到6G</p>
+<p><strong>4.1、首先查看下vg还有没有空间</strong></p>
+<pre><code># vgs查看vg有没有空间，还有14.66G
+[root@c7 ~]# vgs
+  VG       #PV #LV #SN Attr   VSize    VFree  
+  centos     1   3   0 wz--n- &lt;199.00g   4.00m
+  vg_mysql   2   2   0 wz--n-  &lt;19.97g &lt;14.66g
+# lvs查看下lv_mysqldata在哪个vg里面
+[root@c7 ~]# lvs
+  LV           VG       Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  home         centos   -wi-ao---- 146.99g                                                    
+  root         centos   -wi-ao----  50.00g                                                    
+  swap         centos   -wi-ao----   2.00g                                                    
+  lv_mysqldata vg_mysql -wi-ao----   5.00g                                                    
+  lv_mysqllog  vg_mysql -wi-ao---- 320.00m     
+</code></pre>
+<p><strong>4.2、lvextend扩容</strong></p>
+<p><strong>-r选项有点意思，-r表示resizefs，扩容完了直接同步文件系统，免去手动执行resize2fs</strong></p>
+<p><strong>xfs文件系统和ext4系统的区别就在同步文件系统：xfs文件系统要使用xfs_growfs命令。</strong></p>
+<pre><code>[root@c7 ~]# lvextend -L +1G -r /dev/vg_mysql/lv_mysqldata 
+  Size of logical volume vg_mysql/lv_mysqldata changed from 5.00 GiB (320 extents) to 6.00 GiB (384 extents).
+  Logical volume vg_mysql/lv_mysqldata successfully resized.
+resize2fs 1.42.9 (28-Dec-2013)
+Filesystem at /dev/mapper/vg_mysql-lv_mysqldata is mounted on /data/mysql/data; on-line resizing required
+old_desc_blocks = 1, new_desc_blocks = 1
+The filesystem on /dev/mapper/vg_mysql-lv_mysqldata is now 1572864 blocks long.
+# 已经变成了6G
+[root@c7 ~]# df -Th | grep mysqldata
+/dev/mapper/vg_mysql-lv_mysqldata ext4      5.8G   20M  5.5G   1% /data/mysql/data
+</code></pre>
+<p><strong>不想使用-r就得手动执行resize2fs</strong></p>
+<pre><code>[root@c7 ~]# lvextend -l +20 /dev/vg_mysql/lv_mysqllog 
+  Size of logical volume vg_mysql/lv_mysqllog changed from 320.00 MiB (20 extents) to 640.00 MiB (40 extents).
+  Logical volume vg_mysql/lv_mysqllog successfully resized.
+# 此时lv大小还没变，因为文件系统还没同步
+[root@c7 ~]# df -Th | grep mysqllog
+/dev/mapper/vg_mysql-lv_mysqllog  ext4      302M  2.1M  280M   1% /data/mysql/log
+# 使用resize2fs
+[root@c7 ~]# resize2fs /dev/vg_mysql/lv_mysqllog 
+resize2fs 1.42.9 (28-Dec-2013)
+Filesystem at /dev/vg_mysql/lv_mysqllog is mounted on /data/mysql/log; on-line resizing required
+old_desc_blocks = 3, new_desc_blocks = 5
+The filesystem on /dev/vg_mysql/lv_mysqllog is now 655360 blocks long.
+# 然后就有了
+[root@c7 ~]# df -Th | grep mysqllog
+/dev/mapper/vg_mysql-lv_mysqllog  ext4      612M  2.3M  577M   1% /data/mysql/log
+</code></pre>
+<p>另外：lvresize也可以实现，和lvextend一样，如下</p>
+<pre><code>[root@c7 ~]# lvresize -l +20 -r /dev/vg_mysql/lv_mysqllog
+[root@c7 ~]# lvresize -L +1G -r /dev/vg_mysql/lv_mysqldata
+</code></pre>
+<h2 id="五-逻辑卷中加入新硬盘vg的扩容">五、逻辑卷中加入新硬盘（vg的扩容）</h2>
+<p><strong>4.1、VMware开机状态下插入新硬盘</strong></p>
+<p><strong>4.2、手动触发磁盘扫描</strong></p>
+<pre><code>[root@c7 ~]# for i in `seq 0 2`;do echo '- - -' &gt; /sys/class/scsi_host/host$i/scan;done
+</code></pre>
+<p><strong>4.3、lsblk查看</strong></p>
+<p>sdd</p>
+<pre><code>[root@c7 ~]# lsblk 
+NAME                    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda                       8:0    0  200G  0 disk 
+├─sda1                    8:1    0    1G  0 part /boot
+└─sda2                    8:2    0  199G  0 part 
+  ├─centos-root         253:0    0   50G  0 lvm  /
+  ├─centos-swap         253:1    0    2G  0 lvm  [SWAP]
+  └─centos-home         253:2    0  147G  0 lvm  /home
+sdb                       8:16   0   10G  0 disk 
+├─vg_mysql-lv_mysqldata 253:3    0    7G  0 lvm  /data/mysql/data
+└─vg_mysql-lv_mysqllog  253:4    0  960M  0 lvm  /data/mysql/log
+sdc                       8:32   0   10G  0 disk 
+sdd                       8:48   0   20G  0 disk
+</code></pre>
+<p><strong>4.4、将sdd创建为pv 并用pvs查看</strong></p>
+<pre><code>[root@c7 ~]# pvcreate /dev/sdd
+  Physical volume &quot;/dev/sdd&quot; successfully created.
+[root@c7 ~]# pvs
+  PV         VG       Fmt  Attr PSize    PFree 
+  /dev/sda2  centos   lvm2 a--  &lt;199.00g  4.00m
+  /dev/sdb   vg_mysql lvm2 a--     9.98g &lt;2.05g
+  /dev/sdc   vg_mysql lvm2 a--     9.98g  9.98g
+  /dev/sdd            lvm2 ---    20.00g 20.00g
+</code></pre>
+<p><strong>4.5、此时可以创建新的vg，也可以将sdd加入已有的vg</strong></p>
+<p>将sdd加入vg_mysql</p>
+<pre><code>[root@c7 ~]# vgextend vg_mysql /dev/sdd
+  Volume group &quot;vg_mysql&quot; successfully extended
+# vgs查看当前vg情况
+[root@c7 ~]# vgs
+  VG       #PV #LV #SN Attr   VSize    VFree  
+  centos     1   3   0 wz--n- &lt;199.00g   4.00m
+  vg_mysql   3   2   0 wz--n-   39.95g &lt;32.02g
+# pvs查看pv使用情况
+[root@c7 ~]# pvs
+  PV         VG       Fmt  Attr PSize    PFree 
+  /dev/sda2  centos   lvm2 a--  &lt;199.00g  4.00m
+  /dev/sdb   vg_mysql lvm2 a--     9.98g &lt;2.05g
+  /dev/sdc   vg_mysql lvm2 a--     9.98g  9.98g
+  /dev/sdd   vg_mysql lvm2 a--    19.98g 19.98g
+</code></pre>
+<h2 id="六-删除pvvg中移除pv等">六、删除PV(vg中移除pv等)</h2>
+<p>从vg中移出某块磁盘</p>
+<p><strong>6.1、pvs查看pv详情</strong></p>
+<p>sdb，sdc，sdd三块硬盘都在vg_mysql上，sdd显示PFree为19.88，没有使用，可以直接移除</p>
+<pre><code>[root@c7 ~]# pvs
+  PV         VG       Fmt  Attr PSize    PFree 
+  /dev/sda2  centos   lvm2 a--  &lt;199.00g  4.00m
+  /dev/sdb   vg_mysql lvm2 a--     9.98g &lt;2.05g
+  /dev/sdc   vg_mysql lvm2 a--     9.98g  9.98g
+  /dev/sdd   vg_mysql lvm2 a--    19.98g 19.98g
+</code></pre>
+<p><strong>6.2、先从vg_mysql中移出sdd</strong></p>
+<pre><code>[root@c7 ~]# vgreduce vg_mysql /dev/sdd
+  Removed &quot;/dev/sdd&quot; from volume group &quot;vg_mysql&quot;
+# vgs看一下，vg_mysql变小了
+[root@c7 ~]# vgs
+  VG       #PV #LV #SN Attr   VSize    VFree 
+  centos     1   3   0 wz--n- &lt;199.00g  4.00m
+  vg_mysql   2   2   0 wz--n-  &lt;19.97g 12.03g
+# pvs看一下，sdd不在vg中了
+[root@c7 ~]# pvs
+  PV         VG       Fmt  Attr PSize    PFree 
+  /dev/sda2  centos   lvm2 a--  &lt;199.00g  4.00m
+  /dev/sdb   vg_mysql lvm2 a--     9.98g &lt;2.05g
+  /dev/sdc   vg_mysql lvm2 a--     9.98g  9.98g
+  /dev/sdd            lvm2 ---    20.00g 20.00g
+</code></pre>
+<p><strong>6.3、移出pv</strong></p>
+<pre><code>[root@c7 ~]# pvremove /dev/sdd
+  Labels on physical volume &quot;/dev/sdd&quot; successfully wiped.
+# pvs看一下，sdd不见了
+[root@c7 ~]# pvs
+  PV         VG       Fmt  Attr PSize    PFree 
+  /dev/sda2  centos   lvm2 a--  &lt;199.00g  4.00m
+  /dev/sdb   vg_mysql lvm2 a--     9.98g &lt;2.05g
+  /dev/sdc   vg_mysql lvm2 a--     9.98g  9.98g
+
+</code></pre>
+<p><strong>6.4、拔出硬盘</strong></p>
+<h2 id="七-缩容逻辑卷">七、缩容逻辑卷</h2>
+<p>一般比较少用，操作前要<strong>备份数据</strong>。</p>
+<p><strong>注意：xfs文件系统不支持缩容</strong></p>
+<p><strong>7.1、备份数据</strong></p>
+<p><strong>7.2、查看lv_mysql-lv_mysqldata当前总大小以及剩余空间</strong></p>
+<pre><code># 目前lv_mysql-lv_mysqldata总大小为7G
+[root@c7 ~]# lvs
+  LV           VG       Attr       LSize   Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert
+  home         centos   -wi-ao---- 146.99g                                                    
+  root         centos   -wi-ao----  50.00g                                                    
+  swap         centos   -wi-ao----   2.00g                                                    
+  lv_mysqldata vg_mysql -wi-a-----   7.00g                                                    
+  lv_mysqllog  vg_mysql -wi-ao---- 960.00m
+# df查看使用了多少 ，使用了1%
+[root@c7 ~]# df -Th | grep mysqldata
+/dev/mapper/vg_mysql-lv_mysqldata ext4      6.8G   23M  6.4G    1% /data/mysql/data
+</code></pre>
+<p><strong>所以打算收缩2G，目标5G</strong></p>
+<p><strong>7.3、先卸载相应的lv</strong></p>
+<pre><code>[root@c7 ~]# df -Th | grep mysql
+/dev/mapper/vg_mysql-lv_mysqldata ext4      6.8G   23M  6.4G    1% /data/mysql/data
+/dev/mapper/vg_mysql-lv_mysqllog  ext4      922M  2.5M  874M    1% /data/mysql/log
+[root@c7 ~]# umount /dev/mapper/vg_mysql-lv_mysqldata
+</code></pre>
+<p><strong>7.4、首先卸载设备并使用resize2fs收缩文件系统的容量为目标大小</strong></p>
+<pre><code>[root@c7 ~]# resize2fs /dev/vg_mysql/lv_mysqldata 5G
+resize2fs 1.42.9 (28-Dec-2013)
+请先运行 'e2fsck -f /dev/vg_mysql/lv_mysqldata'.
+</code></pre>
+<p><strong>按照提示，先运行e2fsck</strong>，主要是为了检查是否修改后的大小会影响数据</p>
+<pre><code>[root@c7 ~]# e2fsck -f /dev/vg_mysql/lv_mysqldata
+e2fsck 1.42.9 (28-Dec-2013)
+第一步: 检查inode,块,和大小
+第二步: 检查目录结构
+第3步: 检查目录连接性
+Pass 4: Checking reference counts
+第5步: 检查簇概要信息
+/dev/vg_mysql/lv_mysqldata: 11/458752 files (0.0% non-contiguous), 67327/1835008 blocks
+</code></pre>
+<p><strong>然后再执行resize2fs</strong></p>
+<pre><code>[root@c7 ~]# resize2fs /dev/vg_mysql/lv_mysqldata 5G
+resize2fs 1.42.9 (28-Dec-2013)
+Resizing the filesystem on /dev/vg_mysql/lv_mysqldata to 1310720 (4k) blocks.
+The filesystem on /dev/vg_mysql/lv_mysqldata is now 1310720 blocks long.
+</code></pre>
+<p><strong>7.5、再收缩lv，可以-L指定收缩容量或者-l指定收缩PE数量</strong></p>
+<pre><code>[root@c7 ~]# resize2fs /dev/vg_mysql/lv_mysqldata 5G
+resize2fs 1.42.9 (28-Dec-2013)
+Resizing the filesystem on /dev/vg_mysql/lv_mysqldata to 1310720 (4k) blocks.
+The filesystem on /dev/vg_mysql/lv_mysqldata is now 1310720 blocks long.
+
+[root@c7 ~]# lvreduce -L -2G /dev/vg_mysql/lv_mysqldata 
+  WARNING: Reducing active logical volume to 5.00 GiB.
+  THIS MAY DESTROY YOUR DATA (filesystem etc.)
+Do you really want to reduce vg_mysql/lv_mysqldata? [y/n]: y   # 确认
+  Size of logical volume vg_mysql/lv_mysqldata changed from 7.00 GiB (448 extents) to 5.00 GiB (320 extents).
+  Logical volume vg_mysql/lv_mysqldata successfully resized.
+</code></pre>
+<p><strong>7.5、此时重新挂载即可</strong></p>
+<pre><code>[root@c7 ~]# mount -a
+[root@c7 ~]# df -Th | grep mysqldata
+/dev/mapper/vg_mysql-lv_mysqldata ext4      4.8G   20M  4.6G    1% /data/mysql/data
+</code></pre>
+<h2 id="八-vg和lv重命名">八、vg和lv重命名</h2>
+<pre><code>lvrename  vg0 mysql mysql2 
+vgrename  vg0 vg1
+</code></pre>
+<h2 id="九-xfs与ext4逻辑卷的快照与还原">九、xfs与ext4逻辑卷的快照与还原</h2>
+<pre><code>touch /data/mysql/f{1,2,3}
+lvcreate  -s -n mysql2_snapshot -L 100m /dev/vg1/mysql2 
+mkdir /mnt/snap
+mount /dev/vg1/mysql2_snapshot /mnt/snap
+mount -o nouuid,ro /dev/vg1/mysql2_snapshot /mnt/snap
+中间修改数据
+还原过程
+umount /mnt/snap/
+umount /data/mysql/
+lvconvert --merge  /dev/vg1/mysql2_snapshot 
+mount -a
+
+实验：ext4 逻辑卷的快照及还原
+lvcreate  -s -n binlog-snapshot -p r -L 100m  /dev/vg1/binlog
+mount  /dev/vg1/mysql2_snapshot /mnt/snap
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190811-raid/">
+                  <h3 class="post-title">
+                     20190811 RAID
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>SHELL脚本--shell数组基础 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="SHELL脚本--shell数组基础
+​		数组和变量的区别：变量在内存中占用的空间是离散的，数组在内粗中开辟一段连续的大内存空间，随后数组中的每个元素都放入数组内存中。数组元素使用index标识。
+​		bash里有两种数组普通数组和关联..." />
+    <meta name="keywords" content="shell,linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">SHELL脚本--shell数组基础</h2>
+            <div class="post-date">2021-04-21</div>
+            
+              <div class="feature-container" style="background-image: url('https://gitee.com/kill0es/blogimage/raw/master/img/20210422185720.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="shell脚本-shell数组基础">SHELL脚本--shell数组基础</h1>
+<p>​		数组和变量的区别：变量在内存中占用的空间是离散的，数组在内粗中开辟一段连续的大内存空间，随后数组中的每个元素都放入数组内存中。数组元素使用index标识。</p>
+<p>​		bash里有两种数组普通数组和关联数组。普通数组只能使用整形数值作为数组索引，关联数组可以使用字符串作为索引。关联数组的另外三种称呼：字典（dict），hash结构和映射（map），是一种key和value一一对应的关系。</p>
+<h3 id="一-普通数组">一、普通数组</h3>
+<p><strong>1.1定义普通数组</strong></p>
+<p><strong>方法一：</strong></p>
+<pre><code>[root@linux1 ~]# age=(18 22 36 28)
+[root@linux1 ~]# echo ${age[3]}
+28
+</code></pre>
+<p><strong>方法二：自定义索引位</strong></p>
+<pre><code>[root@linux1 ~]# age[5]=15
+[root@linux1 ~]# age[6]=76
+</code></pre>
+<p><strong>1.2打印数组所有值</strong></p>
+<pre><code class="language-bsh">[root@linux1 ~]# echo ${age[*]}
+18 22 36 28 15 76
+[root@linux1 ~]# echo ${age[@]}
+18 22 36 28 15 76
+</code></pre>
+<p><strong>1.3查看数组索引号</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# echo ${!age[@]}
+0 1 2 3 5 6
+</code></pre>
+<p><strong>1.4统计数组中元素的个数（只统计值不为空的元素）</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# echo ${#age[@]}
+6
+[root@linux1 ~]# echo ${#age[*]}
+6
+</code></pre>
+<p><strong>1.5统计数组下标为1的变量的长度</strong></p>
+<pre><code class="language-bahs">[root@linux1 ~]# echo ${#age[1]}
+2
+</code></pre>
+<h3 id="二-关联数组">二、关联数组</h3>
+<p><strong>2.1声明关联数组</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# declare -A array_dep
+</code></pre>
+<p><strong>2.2数组赋值</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# array_dep=([name1]=zhaosi [name2]=zhangsan)
+</code></pre>
+<p>分开赋值</p>
+<pre><code class="language-bash">[root@linux1 ~]# array_dep[name3]=wangwu
+[root@linux1 ~]# array_dep[name4]=wangba
+</code></pre>
+<p><strong>2.3查看数组所有值</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# echo ${array_dep[*]}
+wangwu zhangsan zhaosi wangba
+[root@linux1 ~]# echo ${array_dep[@]}
+wangwu zhangsan zhaosi wangba
+</code></pre>
+<p><strong>2.3查看数组索引号</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# echo ${!array_dep[@]}
+name3 name2 name1 name4
+[root@linux1 ~]# echo ${!array_dep[*]}
+name3 name2 name1 name4
+</code></pre>
+<p><strong>2.4统计数组长度</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# echo ${#array_dep[*]}
+4
+[root@linux1 ~]# echo ${#array_dep[@]}
+4
+</code></pre>
+<h3 id="三-数组元素截取-替换">三、数组元素截取、替换</h3>
+<p><strong>和变量的截取和替换是类似的</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# age=(12 15 34 23 56 21)
+[root@linux1 ~]# age0=${age[*]:2:2}		#从数组全部元素中第2个元素向后截取2个元素出来（即34 23）
+[root@linux1 ~]# echo ${age0[*]}
+34 23
+[root@linux1 ~]# age1=${age[*]/15/51}	#将数组中的15替换成51
+[root@linux1 ~]# echo ${age1[*]}
+12 51 34 23 56 21
+</code></pre>
+<p><strong>从左匹配删除和从又匹配删除</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# array=(one two three foue five)
+[root@linux1 ~]# array1=${array[*]#*o}		#o前面的都删了，只留o右边（最短匹配）
+[root@linux1 ~]# array2=${array[*]##*o}		#o前面的都删了，只留o右边（最长匹配）
+[root@linux1 ~]# array3=${array[*]%o}		#o后面的都删了，只留o前面（最短匹配）
+[root@linux1 ~]# array4=${array[*]%o}		#o后面的都删了，只留o前面（最长匹配）
+[root@linux1 ~]# echo ${array1[*]}
+ne three ue five
+[root@linux1 ~]# echo ${array2[*]}
+ne three ue five
+[root@linux1 ~]# echo ${array3[*]}
+one tw three foue five
+[root@linux1 ~]# echo ${array4[*]}
+one tw three foue five
+</code></pre>
+<h3 id="四-for循环遍历数组">四、for循环遍历数组</h3>
+<p><strong>第一种写法：</strong></p>
+<pre><code class="language-bash">for i in ${array[*]};do  
+    echo $i
+done
+</code></pre>
+<p><strong>第二种写法：</strong></p>
+<pre><code class="language-bash">for i in ${!array[*]};do
+    echo ${array[$i]}
+done
+</code></pre>
+<p><strong>第三种写法：c语言风格</strong></p>
+<pre><code class="language-bash">for ((i=0;i&lt;${#array[*]};i++));do    # 以数组变量个数的方式遍历数组
+    echo ${array[$i]}
+done
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/bxxKg4_pZ/" class="tag">
+                    shell
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/testsrv-jiao-ben-sysv-jiao-ben/">
+                  <h3 class="post-title">
+                     testsrv脚本（SysV脚本）
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

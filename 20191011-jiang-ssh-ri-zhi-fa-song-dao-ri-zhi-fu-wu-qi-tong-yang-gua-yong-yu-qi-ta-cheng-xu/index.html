@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191011将ssh日志发送到日志服务器（同样适用于其他程序） | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="将ssh日志发送到日志服务器（同样适用于其他程序）
+之前也使用过rsyslog收集过路由器的日志，路由器支持syslog功能
+CentOS8和CentOS7有点不一样，
+
+
+
+服务器用途
+IP
+
+
+
+
+客户端（node1）
+192.168...." />
+    <meta name="keywords" content="ssh,centos" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191011将ssh日志发送到日志服务器（同样适用于其他程序）</h2>
+            <div class="post-date">2021-04-27</div>
+            
+              <div class="feature-container" style="background-image: url('https://cn.bing.com/th?id=AMMS_e321c8d0c2481d5904c5b1800687dfb9&amp;w=110&amp;h=110&amp;c=7&amp;rs=1&amp;qlt=95&amp;pcl=f9f9f9&amp;o=6&amp;cdv=1&amp;dpr=1.38&amp;pid=16.1')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="将ssh日志发送到日志服务器同样适用于其他程序">将ssh日志发送到日志服务器（同样适用于其他程序）</h1>
+<p><strong>之前也使用过rsyslog收集过路由器的日志，路由器支持syslog功能</strong></p>
+<p><strong>CentOS8和CentOS7有点不一样，</strong></p>
+<table>
+<thead>
+<tr>
+<th>服务器用途</th>
+<th>IP</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>客户端（node1）</td>
+<td>192.168.38.136</td>
+</tr>
+<tr>
+<td>日志服务器（CentOS8）</td>
+<td>192.168.38.142</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>服务端开启rsyslog收集日志功能（CentOS8）</strong></p>
+<pre><code class="language-bash">#使用tcp的514发送
+[root@centos8 ~]# grep imtcp /etc/rsyslog.conf
+# for parameters see http://www.rsyslog.com/doc/imtcp.html
+module(load=&quot;imtcp&quot;) # needs to be done just once
+input(type=&quot;imtcp&quot; port=&quot;514&quot;)
+[root@centos8 ~]# grep ^local6 /etc/rsyslog.conf
+local6.*                                                /var/log/ssh.log
+[root@centos8 ~]# systemctl restart rsyslog
+[root@centos8 ~]# ss -ltn | grep :514
+LISTEN   0         25                  0.0.0.0:514              0.0.0.0:*       
+LISTEN   0         25                     [::]:514                 [::]:*   
+
+
+#如果是CentOS7系统开启下面两行
+$ModLoad imtcp
+$InputTCPServerRun 514
+</code></pre>
+<p><strong>客户端的ssh程序设置日志发送位置（CentOS7）</strong></p>
+<pre><code class="language-bash">#CentOS7和CentOS8下面的注释都有说明怎么改
+[root@node1 ~]# grep ^SyslogFacility /etc/ssh/sshd_config
+SyslogFacility local6
+[root@node1 ~]# grep ^local6 /etc/rsyslog.conf
+local6.*                                                @@192.168.38.136:514
+[root@node1 ~]# systemctl restart sshd rsyslog
+</code></pre>
+<p><strong>tail -f测试日志的发送,客户端登陆成功或失败都会发送消息过来</strong></p>
+<pre><code class="language-bash">[root@centos8 ~]# tail -f /var/log/ssh.log 
+Oct 11 19:09:12 node1 sshd[17727]: Server listening on 0.0.0.0 port 22.
+Oct 11 19:09:12 node1 sshd[17727]: Server listening on :: port 22.
+
+Oct 11 19:09:36 node1 sshd[17753]: Accepted password for root from 192.168.38.1 port 61068 ssh2
+Oct 11 19:11:04 node1 sshd[17774]: Invalid user deamon from 192.168.38.1 port 61087
+Oct 11 19:11:04 node1 sshd[17774]: input_userauth_request: invalid user deamon [preauth]
+Oct 11 19:11:06 node1 sshd[17774]: Failed password for invalid user deamon from 192.168.38.1 port 61087 ssh2
+Oct 11 19:11:13 node1 sshd[17774]: Failed password for invalid user deamon from 192.168.38.1 port 61087 ssh2
+Oct 11 19:11:15 node1 sshd[17774]: error: Received disconnect from 192.168.38.1 port 61087:0:  [preauth]
+Oct 11 19:11:15 node1 sshd[17774]: Disconnected from 192.168.38.1 port 61087 [preauth]
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0Jn19faEr/" class="tag">
+                    ssh
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/WsfqvhG9O/" class="tag">
+                    centos
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191011centos7-yum-bu-shu-lamp-huan-jing-wordpressdiscuzpowerdns/">
+                  <h3 class="post-title">
+                    20191011CentOS7 yum部署lamp环境（wordpress,discuz,powerdns）
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

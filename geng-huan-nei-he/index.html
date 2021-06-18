@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> 更换内核 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="更换内核
+vps系统选择CentOS7，用root用户登录系统，执行下面命令：
+安装
+yum install -y linux-firmware perl tar wget
+下载三个包
+wget https://dl.lamp.sh/ker..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> 更换内核</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content" v-pre>
+              <p>更换内核<br>
+vps系统选择CentOS7，用root用户登录系统，执行下面命令：</p>
+<h1 id="安装">安装</h1>
+<p>yum install -y linux-firmware perl tar wget</p>
+<h1 id="下载三个包">下载三个包</h1>
+<p>wget https://dl.lamp.sh/kernel/el7/kernel-ml-5.10.16-1.el7.elrepo.x86_64.rpm<br>
+wget https://dl.lamp.sh/kernel/el7/kernel-ml-devel-5.10.16-1.el7.elrepo.x86_64.rpm<br>
+wget https://dl.lamp.sh/kernel/el7/kernel-ml-headers-5.10.16-1.el7.elrepo.x86_64.rpm</p>
+<h1 id="安装-2">安装</h1>
+<p>yum localinstall kernel-ml-*</p>
+<h1 id="设置启动顺序">设置启动顺序</h1>
+<p>执行 awk -F' '$1==&quot;menuentry &quot; {print i++ &quot; : &quot; $2}' /boot/grub2/grub.cfg<br>
+查看最新的5.10.16是否排在第一行（第0位）<br>
+如果是则执行 grub2-set-default 0<br>
+再执行 grub2-editenv list<br>
+上面命令执行完毕后，执行reboot命令重启系统<br>
+重启系统后执行 uname -a 查看内核版本，是否正确更换到了5.10.16</p>
+<p>来自 <a href="https://shiping.date/archives/how_to_install_wireguard_on_centos7_and_how_to_use_it_simply.html">https://shiping.date/archives/how_to_install_wireguard_on_centos7_and_how_to_use_it_simply.html</a></p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/tan-chi-she-jing-tai-wang-zhan/">
+                  <h3 class="post-title">
+                    贪吃蛇静态网站
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

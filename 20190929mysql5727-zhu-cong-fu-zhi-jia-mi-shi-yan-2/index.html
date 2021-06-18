@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190929mysql5.7.27主从复制加密实验2 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="mysql5.7.27主从复制加密实验2
+参考：https://blog.csdn.net/weixin_39845407/article/details/81708230
+参考：https://www.cnblogs.com/MYSQLZ..." />
+    <meta name="keywords" content="mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190929mysql5.7.27主从复制加密实验2</h2>
+            <div class="post-date">2021-04-27</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="mysql5727主从复制加密实验2">mysql5.7.27主从复制加密实验2</h1>
+<p>参考：https://blog.csdn.net/weixin_39845407/article/details/81708230</p>
+<p>参考：https://www.cnblogs.com/MYSQLZOUQI/p/7089135.html</p>
+<p>参考：https://dev.mysql.com/doc/refman/5.7/en/encrypted-connections.html</p>
+<p><strong>从网上的教程来看：</strong></p>
+<p>1、mysql5.7.27 服务器端datadir只要有证书的话默认就会开启ssl，不需要my.cnf配置，只有证书不在datadir才需要自己手动配置my.cnf，配好后重启mysqld即可</p>
+<p>2、从网上教程来看，mysql5.7.27客户端不需要再手动安装证书连接服务端，直接连就是ssl加密的</p>
+<p>3、如果服务端开启了ssl加密，客户端不想使用ssl加密连接，只需要连接的时候指定ssl-mode为disable即可</p>
+<p>可以参考：https://dev.mysql.com/doc/refman/5.7/en/encrypted-connections.html</p>
+<h4 id="实验环境">实验环境：</h4>
+<table>
+<thead>
+<tr>
+<th>master</th>
+<th>192.168.38.139</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>slave</td>
+<td>192.168.38.140</td>
+</tr>
+</tbody>
+</table>
+<h4 id="一-快速安装mysql5727">一、快速安装MySQL5.7.27</h4>
+<pre><code class="language-bash">[root@master ~]# cat mysql5.7.27-yum.sh 
+#!/bin/bash
+#**************************************************************
+#Author:                     Linus
+#QQ:                         599503252
+#Date:                       2019-09-25
+#FileName:                   mysql5.7.27-yum.sh
+#URL:                        https://blog.51cto.com/14012942
+#Description:                Initialize the new server
+#Copyright (C):              2019 Copyright ©  站点名称  版权所有
+#************************************************************
+cat &gt; /etc/yum.repos.d/mysql.repo &lt;&lt;'EOF'
+[mysql56]
+name=MySQL
+baseurl=http://mirrors.ustc.edu.cn/mysql-repo/yum/mysql-5.6-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=0
+
+[mysql57]
+name=MySQL
+baseurl=http://mirrors.ustc.edu.cn/mysql-repo/yum/mysql-5.7-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=0
+EOF
+
+yum install mysql-community-server -y
+cp /etc/my.cnf{,.bak}
+
+cat &gt; /etc/my.cnf &lt;&lt;EOF
+[mysqld]
+socket=/var/lib/mysql/mysql.sock
+datadir=/data/mysql
+log-bin
+server-id=1
+expire-logs-days=15
+binlog-format=row
+symbolic-links=0
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+EOF
+
+mkdir /data/mysql -p
+mysqld --initialize --datadir=/data/mysql --user=mysql
+systemctl start mysqld
+mysqladmin -uroot -p$(grep &quot; temporary password&quot; /var/log/mysqld.log | awk '{print $NF}') password 123456
+</code></pre>
+<h4 id="二-生成ssl证书和密钥">二、生成ssl证书和密钥</h4>
+<p>MySQL 5.7及更高版本提供了一个名为<code>mysql_ssl_rsa_setup</code>的实用程序,我们使用root权限生成相关的请求文件和证书对，为了能让<code>mysql</code>有权限去使用，命令中应该使用选项和参数<code>--uid=mysql</code>来指定uid</p>
+<pre><code class="language-bash">[root@master ~]# mysql_ssl_rsa_setup --uid=mysql
+[root@master ~]# ls /data/mysql/*.pem -l
+-rw------- 1 mysql mysql 1679 Sep 29 11:17 /data/mysql/ca-key.pem
+-rw-r--r-- 1 mysql mysql 1107 Sep 29 11:17 /data/mysql/ca.pem
+-rw-r--r-- 1 mysql mysql 1107 Sep 29 11:18 /data/mysql/client-cert.pem
+-rw------- 1 mysql mysql 1679 Sep 29 11:18 /data/mysql/client-key.pem
+-rw------- 1 mysql mysql 1675 Sep 29 11:18 /data/mysql/private_key.pem
+-rw-r--r-- 1 mysql mysql  451 Sep 29 11:18 /data/mysql/public_key.pem
+-rw-r--r-- 1 mysql mysql 1107 Sep 29 11:17 /data/mysql/server-cert.pem
+-rw------- 1 mysql mysql 1675 Sep 29 11:17 /data/mysql/server-key.pem
+</code></pre>
+<h4 id="三-在mysql服务器端开启ssl连接">三、在MySQL服务器端开启ssl连接</h4>
+<p>现在新版本的MySQL将在服务器启动时在MySQL数据目录中查找相应的证书文件。 因此，我们实际上不需要修改MySQL配置来启用SSL，重启即可。</p>
+<pre><code class="language-bash">[root@master ~]# systemctl restart mysqld
+</code></pre>
+<p>连接MySql，MySQL客户端将自动尝试使用SSL进行连接：</p>
+<p>检查SSL相关变量的值：</p>
+<pre><code class="language-bash">[root@master ~]# mysql -uroot -p
+mysql&gt; show variables like '%ssl%';
++---------------+-----------------+
+| Variable_name | Value           |
++---------------+-----------------+
+| have_openssl  | YES             |
+| have_ssl      | YES             |
+| ssl_ca        | ca.pem          |
+| ssl_capath    |                 |
+| ssl_cert      | server-cert.pem |
+| ssl_cipher    |                 |
+| ssl_crl       |                 |
+| ssl_crlpath   |                 |
+| ssl_key       | server-key.pem  |
++---------------+-----------------+
+9 rows in set (0.00 sec)
+</code></pre>
+<h4 id="四-修改配置文件">四、修改配置文件</h4>
+<p><strong>master节点开启binlog即可,require_secure_transport是强制开启SSL</strong></p>
+<pre><code class="language-bash">[root@master ~]# cat /etc/my.cnf
+[mysqld]
+socket=/var/lib/mysql/mysql.sock
+datadir=/data/mysql
+log-bin
+server-id=1
+expire-logs-days=15
+binlog-format=row
+require_secure_transport = ON
+symbolic-links=0
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+[root@master ~]# systemctl restart mysqld
+</code></pre>
+<p><strong>slave节点，如果没特殊需求，配置server-id</strong></p>
+<pre><code class="language-bash">[root@slave ~]# cat /etc/my.cnf
+[mysqld]
+socket=/var/lib/mysql/mysql.sock
+datadir=/data/mysql
+server-id=2
+symbolic-links=0
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+[root@slave ~]# systemctl restart mysqld
+</code></pre>
+<h4 id="五-配置主从">五、配置主从</h4>
+<p><strong>master</strong></p>
+<pre><code class="language-bash">[root@master ~]# mysql -uroot -p
+mysql&gt; CREATE USER 'repl'@'192.168.38.140' IDENTIFIED BY '123456';
+mysql&gt; grant replication slave on *.* to 'repl'@'192.168.38.140';
+mysql&gt; alter user 'repl'@'192.168.38.140' REQUIRE SSL;
+mysql&gt; flush privileges;
+mysql&gt; show master status;
++-------------------+----------+--------------+------------------+-------------------+
+| File              | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++-------------------+----------+--------------+------------------+-------------------+
+| master-bin.000004 |      773 |              |                  |                   |
++-------------------+----------+--------------+------------------+-------------------+
+1 row in set (0.00 sec)
+</code></pre>
+<p><strong>slave</strong></p>
+<p>看官方文档，mysql5.7.27不再需要手动安装证书，那直接试试看</p>
+<pre><code class="language-bash">#测试下，是ssl的
+[root@slave ~]# mysql -urepl -p -h192.168.38.139  -e '\s'
+Enter password: 
+--------------
+mysql  Ver 14.14 Distrib 5.7.27, for Linux (x86_64) using  EditLine wrapper
+
+Connection id:		18
+Current database:	
+Current user:		repl@192.168.38.140
+SSL:			Cipher in use is DHE-RSA-AES256-SHA
+Current pager:		stdout
+Using outfile:		''
+Using delimiter:	;
+Server version:		5.7.27-log MySQL Community Server (GPL)
+Protocol version:	10
+Connection:		192.168.38.139 via TCP/IP
+Server characterset:	latin1
+Db     characterset:	latin1
+Client characterset:	utf8
+Conn.  characterset:	utf8
+TCP port:		3306
+Uptime:			51 min 44 sec
+
+Threads: 2  Questions: 93  Slow queries: 0  Opens: 127  Flush tables: 1  Open tables: 120  Queries per second avg: 0.029
+--------------
+</code></pre>
+<pre><code class="language-bash">mysql&gt; CHANGE MASTER TO
+    -&gt; MASTER_HOST='192.168.38.139',
+    -&gt; MASTER_USER='repl',
+    -&gt; MASTER_PASSWORD='123456',
+    -&gt; MASTER_PORT=3306,
+    -&gt; MASTER_LOG_FILE='master-bin.000012',
+    -&gt; MASTER_LOG_POS=1591,
+    -&gt; MASTER_CONNECT_RETRY=10,
+    -&gt; MASTER_SSL=1;
+Query OK, 0 rows affected, 2 warnings (0.01 sec)
+
+mysql&gt; start slave;
+</code></pre>
+<pre><code class="language-bash">mysql&gt; show slave status\G
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for master to send event
+                  Master_Host: 192.168.38.139
+                  Master_User: repl
+                  Master_Port: 3306
+                Connect_Retry: 10
+              Master_Log_File: master-bin.000012
+          Read_Master_Log_Pos: 1591
+               Relay_Log_File: slave-relay-bin.000002
+                Relay_Log_Pos: 321
+        Relay_Master_Log_File: master-bin.000012
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+              Replicate_Do_DB: 
+          Replicate_Ignore_DB: 
+           Replicate_Do_Table: 
+       Replicate_Ignore_Table: 
+      Replicate_Wild_Do_Table: 
+  Replicate_Wild_Ignore_Table: 
+                   Last_Errno: 0
+                   Last_Error: 
+                 Skip_Counter: 0
+          Exec_Master_Log_Pos: 1591
+              Relay_Log_Space: 528
+              Until_Condition: None
+               Until_Log_File: 
+                Until_Log_Pos: 0
+           Master_SSL_Allowed: Yes
+           Master_SSL_CA_File: 
+           Master_SSL_CA_Path: 
+              Master_SSL_Cert: 
+            Master_SSL_Cipher: 
+               Master_SSL_Key: 
+        Seconds_Behind_Master: 0
+Master_SSL_Verify_Server_Cert: No
+                Last_IO_Errno: 0
+                Last_IO_Error: 
+               Last_SQL_Errno: 0
+               Last_SQL_Error: 
+  Replicate_Ignore_Server_Ids: 
+             Master_Server_Id: 1
+                  Master_UUID: 7d254c88-e267-11e9-86b7-000c29d5d143
+             Master_Info_File: /data/mysql/master.info
+                    SQL_Delay: 0
+          SQL_Remaining_Delay: NULL
+      Slave_SQL_Running_State: Slave has read all relay log; waiting for more updates
+           Master_Retry_Count: 86400
+                  Master_Bind: 
+      Last_IO_Error_Timestamp: 
+     Last_SQL_Error_Timestamp: 
+               Master_SSL_Crl: 
+           Master_SSL_Crlpath: 
+           Retrieved_Gtid_Set: 
+            Executed_Gtid_Set: 
+                Auto_Position: 0
+         Replicate_Rewrite_DB: 
+                 Channel_Name: 
+           Master_TLS_Version: 
+1 row in set (0.00 sec)
+</code></pre>
+<h4 id="六-测试">六、测试</h4>
+<pre><code class="language-bash">mysql&gt; create database dbb;
+Query OK, 1 row affected (0.00 sec)
+mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| dbb                |
+| mysql              |
+| performance_schema |
+| ssl                |
+| sys                |
++--------------------+
+6 rows in set (0.00 sec)
+</code></pre>
+<h4 id="导入了一些数据库文件从抓包来看">导入了一些数据库文件，从抓包来看</h4>
+<p>都是TCP包，且内容乱七八糟</p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20190929152405.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190926-kuai-su-yum-an-zhuang-mysql57/">
+                  <h3 class="post-title">
+                    20190926快速yum安装mysql5.7
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

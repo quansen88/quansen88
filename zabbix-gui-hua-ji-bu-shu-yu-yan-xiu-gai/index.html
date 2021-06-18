@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>zabbix规划及部署，语言修改 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="（二）zabbix规划及部署，语言修改
+一、部署环境：
+
+
+
+主机名
+用途
+IP
+配置
+系统
+
+
+
+
+zabbix
+zabbix server+web
+192.168.38.159
+4C1G
+ubuntu18.04
+
+
+mysql1
+数据库..." />
+    <meta name="keywords" content="zabbix" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">zabbix规划及部署，语言修改</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="二zabbix规划及部署语言修改">（二）zabbix规划及部署，语言修改</h2>
+<h3 id="一-部署环境">一、部署环境：</h3>
+<table>
+<thead>
+<tr>
+<th>主机名</th>
+<th>用途</th>
+<th>IP</th>
+<th>配置</th>
+<th>系统</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>zabbix</td>
+<td>zabbix server+web</td>
+<td>192.168.38.159</td>
+<td>4C1G</td>
+<td>ubuntu18.04</td>
+</tr>
+<tr>
+<td>mysql1</td>
+<td>数据库</td>
+<td>192.168.38.160</td>
+<td>4C512MB</td>
+<td>ubuntu18.04</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h3 id="二-系统优化">二、系统优化</h3>
+<p>内核各种调优，基础软件安装，略</p>
+<p>参考：https://xyz.uscwifi.xyz/post/VmFRRSpr1/<a href="https://xyz.uscwifi.xyz/post/VmFRRSpr1/"></a></p>
+<h3 id="三-安装zabbix">三、安装zabbix</h3>
+<p>参考：<a href="https://www.zabbix.com/cn/download">https://www.zabbix.com/cn/download</a></p>
+<p>每个版本怎么装很详细。</p>
+<h4 id="31-安装zabbix源">3.1 安装zabbix源</h4>
+<pre><code class="language-bash">[root@zabbix ~]# wget https://repo.zabbix.com/zabbix/4.0/ubuntu/pool/main/z/zabbix-release/zabbix-release_4.0-3+bionic_all.deb
+[root@zabbix ~]# dpkg -i zabbix-release_4.0-3+bionic_all.deb
+[root@zabbix ~]# apt update
+</code></pre>
+<h4 id="32-安装zabbix-serverweb前端agent">3.2 安装Zabbix server，Web前端，agent</h4>
+<pre><code class="language-bash">[root@zabbix ~]# apt -y install zabbix-server-mysql zabbix-frontend-php zabbix-agent
+</code></pre>
+<h4 id="33-安装部署数据库">3.3 安装部署数据库</h4>
+<p><strong>安装数据库，配置数据库目录</strong></p>
+<pre><code class="language-bash">[root@mysql ~]# apt install mysql-server -y
+[root@mysql ~]# mkdir /data/mysql -p
+[root@mysql ~]# chown mysql.mysql /data/mysql/
+[root@mysql ~]# egrep -v '^$|^#'  /etc/mysql/mysql.conf.d/mysqld.cnf 
+[mysqld_safe]
+socket		= /var/run/mysqld/mysqld.sock
+nice		= 0
+[mysqld]
+user		= mysql
+pid-file	= /var/run/mysqld/mysqld.pid
+socket		= /var/run/mysqld/mysqld.sock
+port		= 3306
+basedir		= /usr
+datadir		= /data/mysql
+tmpdir		= /tmp
+lc-messages-dir	= /usr/share/mysql
+skip-external-locking
+bind-address		= 192.168.38.160
+key_buffer_size		= 16M
+max_allowed_packet	= 16M
+thread_stack		= 192K
+thread_cache_size       = 8
+myisam-recover-options  = BACKUP
+query_cache_limit	= 1M
+query_cache_size        = 16M
+log_error = /var/log/mysql/error.log
+expire_logs_days	= 10
+max_binlog_size   = 100M
+explicit_defaults_for_timestamp=true
+[root@mysql ~]# sed -ri '/\/var\/lib\/mysql\//   s@var/lib@data@' /etc/apparmor.d/usr.sbin.mysqld
+[root@mysql ~]# systemctl restart apparmor
+[root@mysql ~]# mkdir /data/mysql -p
+[root@mysql ~]# chown mysql.mysql /data/mysql
+[root@mysql ~]# cp /var/lib/mysql/* -a /data/mysql/
+[root@mysql ~]# systemctl restart mysql
+</code></pre>
+<p><strong>创建数据库</strong></p>
+<pre><code class="language-bash">[root@mysql ~]# mysql
+mysql&gt; create database zabbix character set utf8 collate utf8_bin;
+mysql&gt; grant all privileges on zabbix.* to zabbix@192.168.38.159 identified by '00KRSnGSgVJTQA==';
+mysql&gt; quit
+</code></pre>
+<p><strong>导入初始架构和数据，系统将提示您输入新创建的密码。</strong></p>
+<pre><code class="language-bash">[root@zabbix ~]# zcat /usr/share/doc/zabbix-server-mysql*/create.sql.gz | mysql -uzabbix -h192.168.38.160 -p zabbix
+</code></pre>
+<h3 id="四-配置zabbix配置文件">四、配置zabbix配置文件</h3>
+<pre><code class="language-bash">[root@zabbix ~]# grep ^[a-Z] /etc/zabbix/zabbix_server.conf
+LogFile=/var/log/zabbix/zabbix_server.log
+LogFileSize=0
+PidFile=/var/run/zabbix/zabbix_server.pid
+SocketDir=/var/run/zabbix
+DBHost=192.168.38.160
+DBName=zabbix
+DBName=zabbix
+DBUser=zabbix
+DBPassword=00KRSnGSgVJTQA==
+SNMPTrapperFile=/var/log/snmptrap/snmptrap.log
+Timeout=4
+AlertScriptsPath=/usr/lib/zabbix/alertscripts
+ExternalScripts=/usr/lib/zabbix/externalscripts
+FpingLocation=/usr/bin/fping
+Fping6Location=/usr/bin/fping6
+LogSlowQueries=3000
+[root@zabbix ~]# systemctl restart zabbix-server &amp;&amp; systemctl enable zabbix-server
+</code></pre>
+<h3 id="五-配置zabbix前端">五、配置zabbix前端</h3>
+<pre><code class="language-bash">[root@zabbix ~]# cp -a /usr/share/zabbix/ /var/www/
+</code></pre>
+<h3 id="七-安装配置php72">七、安装配置php7.2</h3>
+<p>php应当调优，进程数等</p>
+<pre><code class="language-bash">[root@zabbix ~]# add-apt-repository ppa:ondrej/php
+[root@zabbix ~]# apt update
+#php7.2废弃了mcrypt，也就是没有php7.2-mcrypt，参考：https://my.oschina.net/wangyongtao/blog/1810993，如果特殊需要还是先别用php7.2，老的项目有可能用到mcrypt
+[root@zabbix ~]# apt install  php7.2-fpm php7.2-curl php7.2-cli php7.2-common php7.2-mbstring php7.2-gd php7.2-intl php7.2-xml php7.2-mysql  php7.2-zip php7.2-dev php7.2-bcmath php7.2-ldap -y
+[root@zabbix nginx]# systemctl start php7.2-fpm &amp;&amp; systemctl enable php7.2-fpm
+</code></pre>
+<h3 id="六-配置nginx卸载apache">六、配置nginx，卸载apache</h3>
+<p>zabbix的web界面应当加密一下</p>
+<pre><code class="language-bash">[root@zabbix ~]# apt remove apache2 -y
+[root@zabbix ~]# sudo apt install curl gnupg2 ca-certificates lsb-release -y
+#官方太慢  echo &quot;deb http://nginx.org/packages/ubuntu `lsb_release -cs` nginx&quot;     | sudo tee /etc/apt/sources.list.d/nginx.list
+[root@zabbix ~]# echo &quot;deb http://mirrors.ustc.edu.cn/nginx/ubuntu/ `lsb_release -cs` nginx&quot;     | sudo tee /etc/apt/sources.list.d/nginx.list
+[root@zabbix ~]# curl -fsSL https://nginx.org/keys/nginx_signing.key | sudo apt-key add -
+[root@zabbix ~]# sudo apt update
+[root@zabbix ~]# sudo apt install nginx -y
+</code></pre>
+<pre><code class="language-nginx">[root@zabbix nginx]# grep -Ev '^[ ]*#|^$' nginx.conf
+user  www-data;
+worker_processes  auto;
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+events {
+    worker_connections  4096;
+}
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+    log_format  main  '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+                      '$status $body_bytes_sent &quot;$http_referer&quot; '
+                      '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+    access_log  /var/log/nginx/access.log  main;
+    sendfile        on;
+    keepalive_timeout  65;
+    server_tokens off;
+    gzip  on;
+    include /etc/nginx/conf.d/*.conf;
+}
+</code></pre>
+<pre><code class="language-bash">[root@zabbix nginx]# cat /etc/nginx/conf.d/default.conf 
+server {
+    listen       81;
+    server_name  _;
+    root   /var/www/zabbix;
+    index  index.php;
+
+    #charset koi8-r;
+    access_log  /var/log/nginx/zabbix_access.log  main;
+    error_log /var/log/nginx/zabbix_error.log;
+
+    location / {
+        root   /var/www/zabbix;
+        index  index.php;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass   unix:/var/run/php/php7.2-fpm.sock;
+        fastcgi_index  index.php;
+	fastcgi_buffer_size 128k;
+	fastcgi_buffers 64 256k;
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+        include        fastcgi_params;
+    }
+}
+[root@zabbix nginx]# chown www-data.www-data /var/www/zabbix -R
+</code></pre>
+<p>zabbix的web界面应当加密一下</p>
+<pre><code class="language-bash">[root@zabbix nginx]# htpasswd -c ./auth_conf david
+New password: 
+Re-type new password: 
+Adding password for user david
+[root@zabbix nginx]# vim /etc/nginx/conf.d/default.conf 
+[root@zabbix nginx]# nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[root@zabbix nginx]# systemctl start nginx &amp;&amp; systemctl enable nginx
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220144343.png" alt="" loading="lazy"></figure>
+<h3 id="七-安装zabbix">七、安装zabbix</h3>
+<p>http://192.168.38.159:81/setup.php</p>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220144502.png" alt="" loading="lazy"></figure>
+<p><strong>按照提示修改php参数：</strong></p>
+<figure data-type="image" tabindex="3"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220144538.png" alt="" loading="lazy"></figure>
+<pre><code class="language-bash">[root@zabbix zabbix]# vim /etc/php/7.2/fpm/pool.d/www.conf
+post_max_size = 16M  
+max_execution_time = 300
+max_input_time = 300    
+date.timezone = Asia/Shanghai
+[root@zabbix zabbix]# systemctl reload php7.2-fpm
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220145916.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220150101.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220150133.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220150155.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220150731.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220150841.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="10"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220151002.png" alt="" loading="lazy"></figure>
+<h3 id="八-zabbix修改语言为中文">八、zabbix修改语言为中文</h3>
+<h4 id="81-要先安装中文语言包">8.1 要先安装中文语言包</h4>
+<p>参考：https://blog.csdn.net/qq_33317586/article/details/83869005</p>
+<p>不然没法选：</p>
+<figure data-type="image" tabindex="11"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220151225.png" alt="" loading="lazy"></figure>
+<pre><code class="language-bash">#安装简体中文
+[root@zabbix conf]# apt install language-pack-zh-hans -y
+
+#添加环境变量
+[root@zabbix conf]# cat /etc/environment
+PATH=&quot;/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games&quot;
+LANG=&quot;zh_CN.UTF-8&quot;
+
+#重新配置或者重启也行
+dpkg-reconfigure locales
+</code></pre>
+<figure data-type="image" tabindex="12"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220152000.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220152048.png" alt="" loading="lazy"></figure>
+<h4 id="82-重启zabbixnginxphp">8.2 重启zabbix，nginx，php</h4>
+<pre><code class="language-bash">[root@zabbix conf]# systemctl restart nginx zabbix-server php7.2-fpm
+</code></pre>
+<h4 id="83-然后就有了">8.3 然后就有了</h4>
+<p>没有就重启把</p>
+<figure data-type="image" tabindex="14"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220152437.png" alt="" loading="lazy"></figure>
+<h4 id="84-从windows拷一个字体到服务器">8.4 从windows拷一个字体到服务器</h4>
+<p>微软雅黑，楷体，都行，拷一个</p>
+<p>C:\Windows\Fonts\阿里巴巴普惠体   -&gt;/var/www/zabbix/assets/fonts</p>
+<p>如下图所示，改个名字就行</p>
+<figure data-type="image" tabindex="15"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220153153.png" alt="" loading="lazy"></figure>
+<p><strong>然后显示就正常了</strong></p>
+<figure data-type="image" tabindex="16"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191220153644.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/z1AO6a8fT/" class="tag">
+                    zabbix
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/vim-bian-ji-qi-yu-zheng-ze-biao-da-shi-shi-yan-shou-ce/">
+                  <h3 class="post-title">
+                    Vim编辑器与正则表达式实验手册
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

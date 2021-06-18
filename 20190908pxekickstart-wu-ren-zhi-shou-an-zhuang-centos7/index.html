@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190908PXE+kickstart无人值守安装centos7 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="PXE+kickstart无人值守安装centos7
+1.1 PXE说明
+所谓的PXE是Preboot Execution Environment的缩写，字面上的意思是开机前的执行环境。
+要达成PXE必须要有两个环节：
+(1)一个是客户端的..." />
+    <meta name="keywords" content="PEX,kickstart,centos" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190908PXE+kickstart无人值守安装centos7</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://assets.ubuntu.com/v1/89451f56-centos.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="pxekickstart无人值守安装centos7">PXE+kickstart无人值守安装centos7</h1>
+<h1 id="11-pxe说明">1.1 PXE说明</h1>
+<p>所谓的PXE是Preboot Execution Environment的缩写，字面上的意思是开机前的执行环境。</p>
+<p>要达成PXE必须要有两个环节：</p>
+<p>(1)一个是客户端的网卡必须要支持PXE用户端功能，并且开机时选择从网卡启动，这样系统才会以网卡进入PXE客户端的程序；</p>
+<p>(2)一个是PXE服务器必须要提供至少含有DHCP以及TFTP的服务！</p>
+<p>且其中：</p>
+<p>​    · DHCP服务必须要能够提供客户端的网络参数，还要告知客户端TFTP所在的位置；</p>
+<p>​    · TFTP则提供客户端的boot loader及kernel file下载路径。</p>
+<p>还要加上NFS/FTP/HTTP(选择一样即可)等提供安装文件(安装镜像的解压文件)，才算是比较完整的PXE服务器。一般TFTP和DHCP服务都由同一台服务器提供，且大多数时候还提供NFS/FTP/HTTP服务，所以PXE服务器一般是提供3合一的服务。</p>
+<h1 id="12-pxe流程">1.2 PXE流程</h1>
+<p>如下图：图片来源于网络，虽不易理解，但细节描述的很好。</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/733013-20170811005619855-1661502854.png" alt="img" loading="lazy"></figure>
+<p>(1).<strong>Client向PXE Server上的DHCP发送IP地址请求消息</strong>，DHCP检测Client是否合法（主要是检测Client的网卡MAC地址），如果合法则返回Client的IP地址，同时将pxe环境下的Boot loader文件pxelinux.0的位置信息传送给Client。</p>
+<p>(2).<strong>Client向PXE Server上的TFTP请求pxelinux.0</strong>，TFTP接收到消息之后再向Client发送pxelinux.0大小信息，试探Client是否满意，当TFTP收到Client发回的同意大小信息之后，正式向Client发送pxelinux.0。</p>
+<p>(3).<strong>Client执行接收到的pxelinux.0文件</strong>。</p>
+<p>(4).<strong>Client向TFTP请求pxelinux.cfg文件</strong>(其实它是目录，里面放置的是是启动菜单，即grub的配置文件)，TFTP将配置文件发回Client，继而Client根据配置文件执行后续操作。</p>
+<p>(5).<strong>Client向TFTP发送Linux内核请求信息</strong>，TFTP接收到消息之后将内核文件发送给Client。</p>
+<p>(6).<strong>Client向TFTP发送根文件请求信息</strong>，TFTP接收到消息之后返回Linux根文件系统。</p>
+<p>(7).<strong>Client加载Linux内核</strong>（启动参数已经在4中的配置文件中设置好了）。</p>
+<p>(8).<strong>Client通过nfs/ftp/http下载系统安装文件进行安装。如果在4中的配置文件指定了kickstart路径，则会根据此文件自动应答安装系统。</strong></p>
+<h1 id="13-部署环境说明">1.3 部署环境说明</h1>
+<p>如下图，192.168.38.137是PXE服务器，提供dhcp+tftp+http服务。其他该网段内的主机为待安装系统的主机群。</p>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567921710048.png" alt="1567921710048" loading="lazy"></figure>
+<h1 id="14-部署dhcp服务">1.4 部署DHCP服务</h1>
+<p>首先安装dhcp服务端程序。</p>
+<pre><code>yum -y install dhcp
+</code></pre>
+<p>DHCP主要是提供客户端网络参数与TFTP的位置，以及boot loader的文件名。同时，我们仅针对内网来告知TFTP的相关位置，所以可以编辑/etc/dhcp/dhcpd.conf在subnet的区块内加入两个参数即可。其中PXE上专门为PXE客户端下载的boot loader文件名称为pxelinux.0。</p>
+<pre><code>[root@server ~]# cat /etc/dhcp/dhcpd.conf
+ddns-update-style none;
+default-lease-time 259200;
+max-lease-time 518400;    
+option routers 192.168.38.2;
+option domain-name-servers 192.168.38.2;
+subnet 192.168.38.0 netmask 255.255.255.0 {
+        range 192.168.38.200 192.168.38.220;
+        option subnet-mask 255.255.255.0;
+        next-server 192.168.38.137;            	# 就是TFTP的位置
+        filename &quot;pxelinux.0&quot;;               	# 告知得从TFTP根目录下载的boot loader文件名
+}
+</code></pre>
+<p>重启dhcp</p>
+<pre><code>systemctl restart dhcpd
+</code></pre>
+<h1 id="15-部署tftp">1.5 部署TFTP</h1>
+<p>从流程图中可以看出，boot loader文件pxelinux.0以及内核相关的配置文件(目录pxelinux.cfg下)主要都是由TFTP来提供的！</p>
+<p>TFTP的安装很简单，直接使用yum即可。不过要告诉客户端TFTP的根目录在哪里，这样客户端才能找到相关文件。另外要注意，TFTP是由xinetd这个super daemon所管理的，因此设定好TFTP之后，要启动的是xinetd。</p>
+<pre><code>yum install tftp-server
+</code></pre>
+<p>默认TFTP服务的根目录是/var/lib/tftpboot/，默认就这个吧，然后disable改为no即可</p>
+<pre><code>sed -ri '/disable/s/yes/no/' /etc/xinetd.d/tftp
+cat /etc/xinetd.d/tftp
+
+service tftp
+{
+	    socket_type		= dgram
+	    protocol		= udp
+	    wait			= yes
+	    user			= root
+	    server			= /usr/sbin/in.tftpd
+	    server_args		= -s /var/lib/tftpboot
+	    disable			= no
+	    per_source		= 11
+	    cps		 		= 100 2
+	    flags			= IPv4
+}
+</code></pre>
+<p>启动TFTP并观察之：</p>
+<pre><code>systemctl start tftp
+
+ss -ltnup | grep tftp
+udp    UNCONN     0      0        :::69                   :::*                   users:((&quot;in.tftpd&quot;,pid=8425,fd=0),(&quot;systemd&quot;,pid=1,fd=28))
+</code></pre>
+<p>接下来的文件必须要放置于/var/lib/tftpboot/目录下。</p>
+<h1 id="16-提供pxe的bootloader和相关配置文件">1.6 提供pxe的bootloader和相关配置文件</h1>
+<p>如果要使用PXE的开机引导的话，需要使用CentOS提供的syslinux包，从中copy两个文件到tftp的根目录/var/lib/tftpboot/下即可。整个过程如下：</p>
+<pre><code>yum -y install syslinux
+cp -a /usr/share/syslinux/{menu.c32,vesamenu.c32,pxelinux.0} /var/lib/tftpboot/
+mkdir /var/lib/tftpboot/pxelinux.cfg
+ls -l /var/lib/tftpboot/
+-rw-r--r--. 1 root root  55140 Oct 31  2018 menu.c32		# 提供图形化菜单功能
+-rw-r--r--. 1 root root  26759 Oct 31  2018 pxelinux.0		# bootloader文件
+drwxr-xr-x. 2 root root      6 Sep  8 14:02 pxelinux.cfg	# 开机的菜单设定在这里
+-rw-r--r--. 1 root root 153104 Oct 31  2018 vesamenu.c32	# 也是提供图形化菜单功能，但界面和menu.c32不同
+</code></pre>
+<p>pxelinux.cfg是个目录，可以放置默认的开机选项，也可以针对不同的客户端主机提供不同的开机选项。一般来说，可以在pxelinux.cfg目录内建立一个名为default的文件来提供默认选项。</p>
+<p>如果没有menu.c32或vesamenu.c32时，菜单会以纯文字模式一行一行显示。如果使用menu.c32或vesamenu.c32，就会有类似反白效果出现，此时可以使用上下键来选择选项，而不需要看着屏幕去输入数字键来选择开机选项。经过测试，使用vesamenu.c32比menu.c32更加好看些。</p>
+<p>这部分设定完毕后，就是内核相关的设定了。</p>
+<h1 id="17-从安装镜像中获取linux内核文件">1.7 从安装镜像中获取Linux内核文件</h1>
+<p>要安装Linux系统，必须提供Linux内核文件和initrd文件，这里以64位版本的CentOS 7.2为例。</p>
+<p>这里计划将内核相关文件放在/tftpboot/CentOS7.2/目录下。既然要从安装镜像中获取内核相关文件，首先得要挂载镜像。</p>
+<pre><code>mount /dev/cdrom /mnt
+mkdir /var/lib/tftpboot/CentOS7.6
+cp /mnt/isolinux/{initrd.img,vmlinuz} /var/lib/tftpboot/CentOS7.6/
+cp /mnt/isolinux/isolinux.cfg /var/lib/tftpboot/pxelinux.cfg/default
+</code></pre>
+<p>其实仅需要vmlinuz和initrd.img两个文件即可，不过这里还将isolinux.cfg这个文件拷贝出来了，这个文件里提供了开机选项，可以以它作为修改开机选项和菜单的模板，这样修改起来比较容易，也更便捷！</p>
+<h1 id="18-设置开机菜单并提供系统安装文件">1.8 设置开机菜单并提供系统安装文件</h1>
+<p>以下是CentOS 7.6中syslinux包中提供的isolinux.cfg中提供的默认内容。</p>
+<pre><code class="language-bash">[root@server ~]# cat /mnt/isolinux/isolinux.cfg 
+default vesamenu.c32	# 这是必须项，或者使用menu.c32
+timeout 600				# 超时等待时间，60秒内不操作将自动选择默认的菜单来加载
+
+display boot.msg		# 这是为选项提供一些说明的文件
+
+# Clear the screen when exiting the menu, instead of leaving the menu displayed.
+# For vesamenu, this means the graphical background is still displayed without
+# the menu itself for as long as the screen remains in graphics mode.
+menu clear
+menu background splash.png	# 背景图片
+menu title CentOS 7			# 大标题
+menu vshift 8
+menu rows 18
+menu margin 8
+#menu hidden
+menu helpmsgrow 15
+menu tabmsgrow 13
+
+# Border Area
+menu color border * #00000000 #00000000 none
+
+# Selected item
+menu color sel 0 #ffffffff #00000000 none
+
+# Title bar
+menu color title 0 #ff7ba3d0 #00000000 none
+
+# Press [Tab] message
+menu color tabmsg 0 #ff3a6496 #00000000 none
+
+# Unselected menu item
+menu color unsel 0 #84b8ffff #00000000 none
+
+# Selected hotkey
+menu color hotsel 0 #84b8ffff #00000000 none
+
+# Unselected hotkey
+menu color hotkey 0 #ffffffff #00000000 none
+
+# Help text
+menu color help 0 #ffffffff #00000000 none
+
+# A scrollbar of some type? Not sure.
+menu color scrollbar 0 #ffffffff #ff355594 none
+
+# Timeout msg
+menu color timeout 0 #ffffffff #00000000 none
+menu color timeout_msg 0 #ffffffff #00000000 none
+
+# Command prompt text
+menu color cmdmark 0 #84b8ffff #00000000 none
+menu color cmdline 0 #ffffffff #00000000 none
+
+# Do not display the actual menu unless the user presses a key. All that is displayed is a timeout message.
+
+menu tabmsg Press Tab for full configuration options on menu items.
+
+menu separator # insert an empty line
+menu separator # insert an empty line
+
+label linux
+  menu label ^Install CentOS 7	# 菜单文字
+  kernel vmlinuz		# 内核文件路径，注意相对路径是从tftp的根路径/tftpboot开始的，所以要改为&quot;./CentOS7.2/vmlinuz&quot;
+  append initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64 quiet
+						# 内核启动选项，其中包括initrd的路径，同样要改为&quot;./CentOS7.6/initrd.img&quot;
+                        # stage2文件的搜索路径，搜索的文件一般是&quot;.treeinfo&quot;，找不到该文件则找
+label check
+  menu label Test this ^media &amp; install CentOS 7
+  menu default			# menu default表示开机时光标一开始默认停留在此label上
+  kernel vmlinuz
+  append initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64 rd.live.check quiet
+
+menu separator # insert an empty line
+
+# utilities submenu		# 子菜单项的设置方法
+menu begin ^Troubleshooting
+  menu title Troubleshooting
+
+label vesa
+  menu indent count 5
+  menu label Install CentOS 7 in ^basic graphics mode
+  text help
+	Try this option out if you're having trouble installing
+	CentOS 7.
+  endtext
+  kernel vmlinuz
+  append initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64 xdriver=vesa nomodeset quiet
+
+label rescue
+  menu indent count 5
+  menu label ^Rescue a CentOS system
+  text help
+	If the system will not boot, this lets you access files
+	and edit config files to try to get it booting again.
+  endtext
+  kernel vmlinuz
+  append initrd=initrd.img inst.stage2=hd:LABEL=CentOS\x207\x20x86_64 rescue quiet
+
+label memtest
+  menu label Run a ^memory test
+  text help
+	If your system is having issues, a problem with your
+	system's memory may be the cause. Use this utility to
+	see if the memory is working correctly.
+  endtext
+  kernel memtest
+
+menu separator # insert an empty line
+
+label local
+  menu label Boot from ^local drive
+  localboot 0xffff
+
+menu separator # insert an empty line
+menu separator # insert an empty line
+
+label returntomain
+  menu label Return to ^main menu
+  menu exit
+
+menu end
+</code></pre>
+<p><strong>所以，将其稍作修改，使其适合做pxe的菜单配置文件。</strong></p>
+<pre><code>[root@server ~]# cat /var/lib/tftpboot/pxelinux.cfg/default
+default vesamenu.c32
+timeout 600
+
+display boot.msg
+
+menu clear
+menu background splash.png
+menu title CentOS 7
+menu vshift 8
+menu rows 18
+menu margin 8
+#menu hidden
+menu helpmsgrow 15
+menu tabmsgrow 13
+
+menu color border * #00000000 #00000000 none
+menu color sel 0 #ffffffff #00000000 none
+menu color title 0 #ff7ba3d0 #00000000 none
+menu color tabmsg 0 #ff3a6496 #00000000 none
+menu color unsel 0 #84b8ffff #00000000 none
+menu color hotsel 0 #84b8ffff #00000000 none
+menu color hotkey 0 #ffffffff #00000000 none
+menu color help 0 #ffffffff #00000000 none
+menu color scrollbar 0 #ffffffff #ff355594 none
+menu color timeout 0 #ffffffff #00000000 none
+menu color timeout_msg 0 #ffffffff #00000000 none
+menu color cmdmark 0 #84b8ffff #00000000 none
+menu color cmdline 0 #ffffffff #00000000 none
+
+label linux
+  menu label ^Install CentOS 7 through pxe
+  menu default
+  kernel ./CentOS7.6/vmlinuz
+  append initrd=./CentOS7.6/initrd.img inst.stage2=https://mirrors.huaweicloud.com/centos/7.6.1810/os/x86_64/ quiet net.ifnames=0 biosdevname=0
+</code></pre>
+<p>其中&quot;net.ifnames=0 biosdevname=0&quot;这两个内核启动参数是为了让网卡名称为ethN，而不是默认的eno16777728这样的随机名称。</p>
+<p><strong>注意示例中stage2的路径是使用了网络源，最好本地搭建http，我偷懒了，当然ftp也可以</strong></p>
+<p><strong>http的话直接把镜像挂载到相应目录即可</strong></p>
+<pre><code class="language-bash">yum install httpd -y
+systemctl start httpd
+mkdir /var/www/html/CentOS7.6
+mount /dev/cdrom  /var/www/html/CentOS7.6/
+
+</code></pre>
+<h1 id="19-开机测试">1.9 开机测试</h1>
+<p>新开一个虚拟机，进入bios界面设置从网卡启动。将首先搜索DHCP服务器，找到DHCP后搜索bootloader文件，启动菜单设置文件等，然后进入启动菜单等待选择要启动的项。如下：</p>
+<figure data-type="image" tabindex="3"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567924124749.png" alt="1567924124749" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567923989405.png" alt="1567923989405" loading="lazy"></figure>
+<p>因为只设置了一个启动项，所以菜单中只有一项。启动它，将加载一系列文件，直到出现安装操作界面。</p>
+<figure data-type="image" tabindex="5"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567924167750.png" alt="1567924167750" loading="lazy"></figure>
+<p>然后就可以直接操作安装系统了。但这样毕竟是手动操作，无法实现批量系统安装，所以要提供一个自动应答文件，每一次的手动操作步骤都由自动应答文件中给定的项来应答，这样就能实现自动安装操作系统，也就能实现批量系统安装。</p>
+<h1 id="110-通过pxekickstart实现无人值守批量安装操作系统">1.10 通过pxe+kickstart实现无人值守批量安装操作系统</h1>
+<p>所谓的无人值守，就是自动应答，当安装过程中需要人机交互提供某些选项的答案时（如如何分区），自动应答文件可以根据对应项自动提供答案。但是，无人值守并不完全是无人值守，至少设置bios从网卡启动是必须人为设置的，且安装完系统后设置不从网卡启动也是需要人为设置的。除此之外，其他的基本上都可以实现无人值守安装。</p>
+<p>要配置无人值守的系统安装环境，需要提供安装过程中需要的各种答案，这些答案在kickstart的配置文件中设置，一般正常安装完Linux系统在root用户的家目录下有一个anaconda-ks.cfg</p>
+<p>**参考：**https://blog.csdn.net/yanghua1012/article/details/80426659</p>
+<p>**参考：**http://ju.outofmemory.cn/entry/194801</p>
+<p>**也可以使用图形化工具：**system-config-kickstart</p>
+<p>以下是修改后该文件中的内容，将用来做kickstart应答文件。并设置由ftp服务来提供该文件，所以将kickstart文件保存到ftp的pub目录中。</p>
+<pre><code class="language-bash">mkdir /var/www/html/ks_file
+cp ~/anaconda-ks.cfg /var/www/html/ks_file/ks7_mini.cfg
+chmod +r /var/www/html/ks_file/ -R		# 必须要保证ks.cfg是全局可读的
+
+[root@server ~]# cat /var/www/html/ks_file/ks7_mini.cfg 
+install
+keyboard 'us'
+rootpw  --iscrypted $6$TwMc7kHxAYSdICBU$yUVPcTo.SWi6FpWrZsx3.X.yjbrvqvgMxu0Jvqims55ZU6hQKPaR5DeQISwhcMBkmyVK/UJ1SFnpmu9E3S/Wu0
+url --url=&quot;https://mirrors.huaweicloud.com/centos/7.6.1810/os/x86_64/&quot;
+# url --url=&quot;http://192.168.38.137/CentOS7.6/&quot;
+lang en_US
+auth  --useshadow  --passalgo=sha512
+text
+firstboot --disable
+selinux --disabled
+firewall --disabled
+network  --bootproto=dhcp --device=eth0
+reboot
+timezone Asia/Shanghai
+user --name=qqq --password=$6$Vfzluz2el5OucNGd$oXvo557fWOVXnJVbaUBRUG25UDudEK9y0FaTHoVhyoWJju4EeiSsirf74dxQqphl10Yuc12MoiGsfqC0vJzVl/ --iscrypted --gecos=&quot;qqq&quot;
+bootloader --append=&quot;net.ifnames=0&quot; --location=mbr
+zerombr
+clearpart --all --initlabel
+part / --fstype=&quot;xfs&quot; --size=10000
+part /boot --fstype=&quot;xfs&quot; --size=1000
+part swap --fstype=&quot;swap&quot; --size=1024
+
+%post
+sed '/^server/d' /etc/chrony.conf -i
+sed '1a server ntp.aliyun.com iburst' /etc/chrony.conf -i
+sed '1a server 0.cn.pool.ntp.org iburst' /etc/chrony.conf -i
+sed '1a server ntp1.aliyun.com iburst' /etc/chrony.conf -i
+systemctl enable chronyd
+echo '*/30 * * * * /usr/sbin/ntpdate ntp.aliyun.com &amp;&gt;/dev/null' &gt;&gt; /var/spool/cron/root
+sed '/^GSSAPIAuthentication/d' /etc/ssh/sshd_config -i
+sed '/^UseDNS/d' /etc/ssh/sshd_config -i
+echo &quot;GSSAPIAuthentication no&quot; &gt;&gt; /etc/ssh/sshd_config
+echo &quot;UseDNS no&quot; &gt;&gt; /etc/ssh/sshd_config
+ln -sf  /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+mkdir /root/.ssh
+cd /root/.ssh
+cat &gt; authorized_keys &lt;&lt;EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEArAgRomkl40uKp+Dz13prEbBf31cJGqVMqSir/zaxMyTZyTjd3BJc5qokWi6mBBsJ0TPEbciFAbnroy1BX/qsfSLWLAdzipp+3wsubx6gSkedT5s1G+xAOUUFoUiQMuwYwIjbAo8c+HKfDPHpzRVZ1d2vp0MbZjw6m87KftKUQvs=
+EOF
+chmod 700 /root/.ssh
+chmod 600 /root/.ssh/authorized_keys
+rm -f /etc/yum.repos.d/*
+cat &gt;&gt;/etc/yum.repos.d/my.repo&lt;&lt;eof
+[base]
+name=sohu
+baseurl=http://mirrors.sohu.com/centos/7/os/x86_64/
+gpgcheck=0
+enable=1
+[epel]
+name=epel
+baseurl=http://mirrors.aliyun.com/epel/7Server/x86_64/
+enable=1
+gpgcheck=0
+eof
+%end
+%packages
+chrony
+tree
+vim-enhanced
+%end
+</code></pre>
+<p>设置后，修改/var/lib/tftpboot/pxelinux.cfg/default 文件，在其中的内核启动参数上加上一项kickstart文件的寻找路径。</p>
+<pre><code>vim /var/lib/tftpboot/pxelinux.cfg/default 
+
+label linux
+  menu label ^Install CentOS 7 through pxe
+  menu default
+  kernel ./CentOS7.6/vmlinuz
+  append initrd=./CentOS7.6/initrd.img  ks=http://192.168.38.137/ks_file/ks7_mini.cfg quiet net.ifnames=0 biosdevname=0 
+
+#  append initrd=./CentOS7.6/initrd.img inst.stage2=http://192.168.38.137/CentOS7.6/ quiet net.ifnames=0 biosdevname=0
+
+</code></pre>
+<p>**回归正题，**现在已经设置好/var/lib/tftpboot/pxelinux.cfg/default 和/var/www/html/ks_file/ks7_mini.cfg，所以可以进行无人值守安装Linux了。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/W-FuUausf/" class="tag">
+                    PEX
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/CUxY-Xe6Og/" class="tag">
+                    kickstart
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/WsfqvhG9O/" class="tag">
+                    centos
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190908cobber-web/">
+                  <h3 class="post-title">
+                    20190908cobber web
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

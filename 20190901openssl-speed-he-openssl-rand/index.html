@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190901openssl speed和openssl rand | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="openssl speed和openssl rand
+openssl speed
+测试加密算法的性能。
+支持的算法有：
+openssl speed [md2] [mdc2] [md5] [hmac] [sha1] [rmd160] [ide..." />
+    <meta name="keywords" content="openssl,证书,linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190901openssl speed和openssl rand</h2>
+            <div class="post-date">2021-04-23</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="openssl-speed和openssl-rand">openssl speed和openssl rand</h1>
+<h3 id="openssl-speed">openssl speed</h3>
+<p>测试加密算法的性能。</p>
+<p>支持的算法有：</p>
+<pre><code class="language-bash">openssl speed [md2] [mdc2] [md5] [hmac] [sha1] [rmd160] [idea-cbc] [rc2-cbc] [rc5-cbc] [bf-cbc] [des-cbc] [des-ede3] [rc4] [rsa512] [rsa1024] [rsa2048] [rsa4096] [dsa512] [dsa1024] [dsa2048] [idea] [rc2] [des] [rsa] [blowfish]
+</code></pre>
+<p>不过为什么没有base64算法呢？</p>
+<p>测试速度好几秒一个指标，很慢。如果不指定参数将测试所有支持的算法，所以会花很久时间，我的虚拟机上花了十多分钟才测试完所有的算法性能。</p>
+<p>例如测试下，dsa512、rsa512和rsa2048加密速度如何。</p>
+<pre><code class="language-bash">root@qqq:~# openssl speed dsa512 rsa512 rsa2048
+Doing 512 bits private rsa's for 10s: 156944 512 bits private RSA's in 9.99s
+Doing 512 bits public rsa's for 10s: 2560442 512 bits public RSA's in 9.96s
+Doing 2048 bits private rsa's for 10s: 11763 2048 bits private RSA's in 9.98s
+Doing 2048 bits public rsa's for 10s: 431436 2048 bits public RSA's in 9.98s
+Doing 512 bits sign dsa's for 10s: 113893 512 bits DSA signs in 9.98s
+Doing 512 bits verify dsa's for 10s: 217504 512 bits DSA verify in 9.99s
+OpenSSL 1.1.1  11 Sep 2018
+built on: Thu Jun 20 17:36:28 2019 UTC
+options:bn(64,64) rc4(16x,int) des(int) aes(partial) blowfish(ptr) 
+compiler: gcc -fPIC -pthread -m64 -Wa,--noexecstack -Wall -Wa,--noexecstack -g -O2 -fdebug-prefix-map=/build/openssl-cn9tZy/openssl-1.1.1=. -fstack-protector-strong -Wformat -Werror=format-security -DOPENSSL_USE_NODELETE -DL_ENDIAN -DOPENSSL_PIC -DOPENSSL_CPUID_OBJ -DOPENSSL_IA32_SSE2 -DOPENSSL_BN_ASM_MONT -DOPENSSL_BN_ASM_MONT5 -DOPENSSL_BN_ASM_GF2m -DSHA1_ASM -DSHA256_ASM -DSHA512_ASM -DKECCAK1600_ASM -DRC4_ASM -DMD5_ASM -DAES_ASM -DVPAES_ASM -DBSAES_ASM -DGHASH_ASM -DECP_NISTZ256_ASM -DX25519_ASM -DPADLOCK_ASM -DPOLY1305_ASM -DNDEBUG -Wdate-time -D_FORTIFY_SOURCE=2
+                  sign    verify    sign/s verify/s
+rsa  512 bits 0.000064s 0.000004s  15710.1 257072.5
+rsa 2048 bits 0.000848s 0.000023s   1178.7  43230.1
+                  sign    verify    sign/s verify/s
+dsa  512 bits 0.000088s 0.000046s  11412.1  21772.2
+</code></pre>
+<p>在10秒时间内，rsa512的私钥处理156944单位，而rsa2048仅处理11763单位，慢了13倍。</p>
+<p>再看签名性能，dsa算法只支持签名不支持加密，而rsa支持加密也支持签名。从上面的结果中可以看到rsa512的签名速度为每秒15710.1，而dsa512的速度为11412.1，速度相差不大。</p>
+<h3 id="openssl-rand">openssl rand</h3>
+<p><strong>生成随机数</strong></p>
+<pre><code class="language-bash">openssl rand [-out file] [-rand file(s)] [-base64] [-hex] num
+
+选项说明：
+
+-out：指定随机数输出文件，否则输出到标准输出。
+
+-rand file：指定随机数种子文件。种子文件中的字符越随机，openssl rand生成随机数的速度越快，随机度越高。
+
+-base64：指定生成的随机数的编码格式为base64。
+
+-hex：指定生成的随机数的编码格式为hex。
+
+num：指定随机数的长度。
+</code></pre>
+<pre><code class="language-bash">root@qqq:~# openssl rand -base64 30;openssl rand -hex 30;openssl rand 30
+dyzak1cDZq9xjsHE/lfmL9jIxNQDW2mAn34uZZOZ
+83fab60669ed25081fbb3c8a6dcac12fa566c74ad5139e1d49cdf2afb200
+e¾1=뿂dª®
+           Ϭb莝vՐ²root@qqq:~# 
+</code></pre>
+<p>可以看到，不指定-base64或-hex时生成的随机数是乱码随机数（其实是2进制），且没有\n符号。</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/cx2hRHr8nL/" class="tag">
+                    证书
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/openssl-rsautl-he-openssl-pkeyutlwen-jian-de-fei-dui-cheng-jia-mi/">
+                  <h3 class="post-title">
+                    openssl rsautl和openssl pkeyutl(文件的非对称加密)
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

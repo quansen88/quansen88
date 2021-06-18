@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190906 cobbler无人值守批量安装Linux系统 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="cobbler无人值守批量安装Linux系统
+1.1 pxe安装系统
+pxe的大致过程如下图。
+
+​		其中pxelinux.0为bootloader。pxelinux.cfg目录下的文件(一般使用默认的default文件)定义了安装操作系..." />
+    <meta name="keywords" content="cobbler,linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190906 cobbler无人值守批量安装Linux系统</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://assets.ubuntu.com/v1/89451f56-centos.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="cobbler无人值守批量安装linux系统">cobbler无人值守批量安装Linux系统</h1>
+<h1 id="11-pxe安装系统">1.1 pxe安装系统</h1>
+<p>pxe的大致过程如下图。</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/733013-20170811191008054-1179900786.png" alt="img" loading="lazy"></figure>
+<p>​		其中pxelinux.0为bootloader。pxelinux.cfg目录下的文件(一般使用默认的default文件)定义了安装操作系统前的菜单项，如kernel和Initrd的路径，kickstart的路径等。</p>
+<p>​		首先客户端请求pxe服务器上的dhcp，dhcp上指定了next-server和filename，它们分别是tftpd的地址和pxelinux.0的路径；然后客户端请求tftpd获取pxelinux.0，执行pxelinux.0后将引导进入安装界面，随后获取pxelinux.cfg目录下的文件并读取其中的配置，从中获取kernel和initrd的路径所在，如果有定义kickstart项则还会去获取kickstart文件并读取配置；再然后客户端请求获取kernel和initrd文件，以展开内核并进入到根文件系统；最后客户端获取完成系统安装所需的其他文件，这些文件可以是在pxe的本地，也可以是互联网上等能获取到的地方。</p>
+<h1 id="12-cobbler基本介绍">1.2 cobbler基本介绍</h1>
+<p>​		百度百科：Cobbler 可以用来快速建立 Linux 网络安装环境，它已将 Linux 网络安装的技术门槛，从大专以上文化水平，成功降低到初中以下，<strong>连补鞋匠都能学会</strong>。</p>
+<p>​		cobbler可以看作是一个更多功能的pxe，它实现系统安装和pxe也差不多，需要的文件和过程大致都一样。</p>
+<p>​		cobbler能自动管理dns/tftp/dhcp/rsync这四个服务(但似乎对tftp的管理有点bug，需要手动启动tftp)，且cobbler依赖于httpd(pxe支持http/nfs/ftp)。</p>
+<p>​		基本的系统安装，cobbler只需生成一个distro和一个profile即可。</p>
+<p>​		distro相当于一个镜像，它提供安装系统过程中所需的一切文件，如vmlinuz,initrd以及rpm包等。</p>
+<p>​		profile的作用是为了自动修改pxelinux.cfg/default文件，每生成或修改一次profile，都会在default文件中修改或追加对应的label。</p>
+<p>​		除了distro/profile之外，cobbler还管理system/images/repositories等，但是用的很少。</p>
+<h1 id="13-安装和配置cobbler">1.3 安装和配置cobbler</h1>
+<p><strong>本实验环境网络为NAT，当然这不重要，桥接仅主机都行</strong></p>
+<p><strong>关闭NAT的dhcp功能：让dhcp服务器给新机器分配IP</strong></p>
+<h2 id="130-机器初始化">1.3.0 机器初始化</h2>
+<p>https://blog.51cto.com/14012942/2427695</p>
+<h2 id="131-安装cobbler">1.3.1 安装cobbler</h2>
+<p>cobbler在epel源中提供。由于还依赖于httpd、dhcp，所以httpd和dhcp也应该装上。</p>
+<pre><code>yum -y install cobbler cobbler-web pykickstart debmirror httpd dhcp
+</code></pre>
+<p>​		其中cobbler-web是提供web管理界面的，pykicstart是检查kicstart文件语法错误的，debmirror是维护debian源的工具，此处用不上但有依赖关系，所以装上。</p>
+<p>​		<strong>安装后，在/etc/cobbler生成以下文件。</strong></p>
+<pre><code>[root@cobbler ~]# cd /etc/cobbler/
+
+[root@cobbler cobbler]# ls
+auth.conf         genders.template        named.template  secondary.template  zone.template
+cheetah_macros    import_rsync_whitelist  power           settings            zone_templates
+cobbler_bash      iso                     pxe             tftpd.template
+completions       ldap                    reporting       users.conf
+dhcp.template     modules.conf            rsync.exclude   users.digest
+dnsmasq.template  mongodb.conf            rsync.template  version
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="%E5%9B%BE%E7%89%87/1567772794736.png" alt="1567772794736" loading="lazy"></figure>
+<p><strong>先启动httpd，再启动cobblerd。</strong></p>
+<pre><code>[root@cobbler cobbler]# systemctl start httpd.service &amp;&amp; systemctl enable httpd.service
+[root@cobbler cobbler]# systemctl start cobblerd.service &amp;&amp; systemctl enable cobblerd.service
+[root@cobbler cobbler]# netstat -tnlp
+Active Internet connections (only servers)
+Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+tcp        0      0 0.0.0.0:111             0.0.0.0:*               LISTEN      1/systemd           
+tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      3656/sshd           
+tcp        0      0 127.0.0.1:25            0.0.0.0:*               LISTEN      3784/master         
+tcp        0      0 127.0.0.1:25151         0.0.0.0:*               LISTEN      4217/python2        
+tcp6       0      0 :::111                  :::*                    LISTEN      1/systemd           
+tcp6       0      0 :::80                   :::*                    LISTEN      4138/httpd          
+tcp6       0      0 :::22                   :::*                    LISTEN      3656/sshd           
+tcp6       0      0 ::1:25                  :::*                    LISTEN      3784/master         
+tcp6       0      0 :::443                  :::*                    LISTEN      4138/httpd    
+</code></pre>
+<p>​		<strong>启动之后，首先执行cobbler check检查配置是否正确。根据提示修改相关的配置项。</strong></p>
+<pre><code>[root@cobbler ~]# cobbler check
+The following are potential configuration items that you may want to fix:
+
+1 : The 'server' field in /etc/cobbler/settings must be set to something other than localhost, or kickstarting features will not work.  This should be a resolvable hostname or IP for the boot server as reachable by all machines that will use it.
+2 : For PXE to be functional, the 'next_server' field in /etc/cobbler/settings must be set to something other than 127.0.0.1, and should match the IP of the boot server on the PXE network.
+3 : change 'disable' to 'no' in /etc/xinetd.d/tftp
+4 : Some network boot-loaders are missing from /var/lib/cobbler/loaders, you may run 'cobbler get-loaders' to download them, or, if you only want to handle x86/x86_64 netbooting, you may ensure that you have installed a *recent* version of the syslinux package installed and can ignore this message entirely.  Files in this directory, should you want to support all architectures, should include pxelinux.0, menu.c32, elilo.efi, and yaboot. The 'cobbler get-loaders' command is the easiest way to resolve these requirements.
+5 : enable and start rsyncd.service with systemctl
+6 : comment out 'dists' on /etc/debmirror.conf for proper debian support
+7 : comment out 'arches' on /etc/debmirror.conf for proper debian support
+8 : The default password used by the sample templates for newly installed machines (default_password_crypted in /etc/cobbler/settings) is still set to 'cobbler' and should be changed, try: &quot;openssl passwd -1 -salt 'random-phrase-here' 'your-password-here'&quot; to generate new one
+9 : fencing tools were not found, and are required to use the (optional) power management features. install cman or fence-agents to use them
+
+Restart cobblerd and then run 'cobbler sync' to apply changes.
+</code></pre>
+<p>​		<strong>第一和第二个问题：</strong></p>
+<pre><code>[root@cobbler ~]# sed -r '/^next_server/s/^.*$/next_server: 192.168.38.140/'  /etc/cobbler/settings -i
+[root@cobbler ~]# sed -ri '/^server/s/^.*$/server: 192.168.38.140/' /etc/cobbler/settings
+</code></pre>
+<p>​		<strong>第三个问题：/etc/xinetd.d/tftp，改下</strong></p>
+<pre><code class="language-absh">[root@cobbler ~]# sed -ri '/disable/s/yes/no/' /etc/xinetd.d/tftp
+[root@cobbler ~]# systemctl restart tftp
+</code></pre>
+<p>​		<strong>第四个问题：获取pxelinux.0和menu.c32文件(对于centos来说只需这两个文件)，可以像pxe一样从syslinux包中手动复制到/var/lib/cobbler/loaders目录下，也可以执行cobbler get-loaders自动下载，但要求联网。</strong></p>
+<pre><code>[root@cobbler ~]# cobbler get-loaders
+</code></pre>
+<p>​		<strong>第五个问题：有可能该问题不是如此的，而是说要将rsyncd.service使用给start且enable，只需systemctl enable rsyncd，systemctl start rsyncd(网上抄的，重启rsync服务就对了)。</strong></p>
+<p><s>[root@xuexi cobbler]# vim /etc/xinetd.d/rsync</s><br>
+<s>disable=no</s><br>
+<s>[root@xuexi cobbler]# service xinetd start</s></p>
+<pre><code>[root@cobbler ~]# systemctl start rsyncd &amp;&amp; systemctl enable rsyncd
+</code></pre>
+<p>​		<strong>第6、7个问题，注释掉/etc/debmirror.conf中相关项即可。</strong></p>
+<pre><code class="language-bash">[root@cobbler ~]# sed -ri '/^@arches/s/^/#/' /etc/debmirror.conf
+[root@cobbler ~]# sed -ri '/^@dists/s/^/#/' /etc/debmirror.conf
+</code></pre>
+<p>​		<strong>第8个问题：</strong></p>
+<pre><code>[root@cobbler ~]# openssl passwd -1 -salt `openssl rand -hex 8` '123456'
+$1$0f145a6c$jYnj8pwZrHh5VcA4f52jD.
+[root@cobbler ~]# vim /etc/cobbler/settings
+default_password_crypted: &quot;$1$0f145a6c$jYnj8pwZrHh5VcA4f52jD.&quot;
+</code></pre>
+<p>​		<strong>第九个问题和电源管理有关，不用管了。直接重启cobbler，然后cobbler sync。</strong></p>
+<pre><code>[root@cobbler ~]# cobbler check
+The following are potential configuration items that you may want to fix:
+
+1 : fencing tools were not found, and are required to use the (optional) power management features. install cman or fence-agents to use them
+
+Restart cobblerd and then run 'cobbler sync' to apply changes.
+[root@cobbler ~]# cobbler sync
+</code></pre>
+<pre><code>	**cobbler sync命令**用于将tftpboot目录和/var/www/cobbler保持最新，当/var/lib/cobbler或者kickstart文件发生了变化，应该执行一次cobbler sync或者直接重启cobbler服务。
+</code></pre>
+<h2 id="132-配置dhcp和tftp">1.3.2 配置dhcp和tftp</h2>
+<p>​		<strong>如果在/etc/cobbler/setting中设置了manage_dhcp:1，表示由cobbler管理dhcp(默认为0即人为手动管理)</strong>，则cobbler管理的dhcp的配置模板/etc/cobbler/dhcp.template会覆盖/etc/dhcp/dhcpd.conf中配置，所以应该修改dhcp.template。</p>
+<p><strong>此处采用默认的不由cobbler管理dhcp</strong>。</p>
+<pre><code>[root@cobbler ~]# cat &gt; /etc/dhcp/dhcpd.conf &lt;&lt;EOF
+ddns-update-style none;
+default-lease-time 259200;
+max-lease-time 518400;
+subnet 192.168.38.0 netmask 255.255.255.0 {
+        range 192.168.38.10 192.168.38.100;
+        option subnet-mask 255.255.255.0;
+        option routers 192.168.38.2;
+        option domain-name-servers 180.76.76.76;
+        next-server 192.168.38.140;
+        filename &quot;pxelinux.0&quot;;
+}
+EOF
+[root@cobbler ~]# systemctl restart dhcpd &amp;&amp; systemctl enable dhcpd
+</code></pre>
+<p>​		关于tftp，在/etc/cobbler/settings中默认启用了由cobbler管理tftp，所以此处无需配置它。只要知道它的根目录为/var/lib/tftpboot即可。但是如果后面装系统的时候如果找不到tftp(应该是cobbler管理tftp的bug)，则手动启动tftp即可。</p>
+<h1 id="14-cobbler从本地光盘安装系统">1.4 cobbler从本地光盘安装系统</h1>
+<h2 id="141-生成distro">1.4.1 生成distro</h2>
+<p>​		生成distro的方法有多种，可以从本地镜像导入生成，也可以根据网络上的资源生成。显然，从本地生成的效率是最好的。</p>
+<p>​		<strong>从本地导入的过程实际上是将系统镜像中的文件复制到/var/www/cobbler/目录(默认)下</strong>。</p>
+<pre><code>[root@cobbler ~]# mkdir /mnt -p
+[root@cobbler ~]# mount /dev/cdrom /mnt
+[root@cobbler ~]# cobbler import --name=CentOS7.6 --path=/mnt
+</code></pre>
+<p>等待导入完成，则表示distro生成完成。</p>
+<pre><code>[root@cobbler ~]# ls -l /var/www/cobbler/images/CentOS7.6-x86_64/
+total 57844
+-rw-r--r-- 3 root root 52584760 Nov 26  2018 initrd.img
+-rwxr-xr-x 3 root root  6639904 Nov  9  2018 vmlinuz
+[root@cobbler ~]# ls /var/www/cobbler/ks_mirror/CentOS7.6/		# 此目录完全来源于镜像
+CentOS_BuildTag  EULA  images    LiveOS    repodata              RPM-GPG-KEY-CentOS-Testing-7
+EFI              GPL   isolinux  Packages  RPM-GPG-KEY-CentOS-7  TRANS.TBL
+</code></pre>
+<p>确保url路径http://192.168.38.140/cobbler/ks_mirror/CentOS7.6/是有效的。</p>
+<figure data-type="image" tabindex="3"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567776845048.png" alt="1567776845048" loading="lazy"></figure>
+<h2 id="142-提供kickstart文件">1.4.2 提供kickstart文件</h2>
+<p>​		<strong>以下是CentOS7的Kickstart内容。如果要改为适合CentOS6的内容，只需将keyboard项设置为&quot;keyboard us&quot;，并修改下分区方式(如有必要的话)以及%post脚本段的内容即可。</strong></p>
+<p>如何写kickstat：</p>
+<p>1.可以参考家目录的anaconda-ks.cfg</p>
+<p>2.使用图形化工具：system-config-kickstart（需要桌面环境）</p>
+<p>3.参考/var/lib/cobbler/kickstarts/下面的模板</p>
+<p>参考：http://ju.outofmemory.cn/entry/194801</p>
+<p>参考：https://www.cnblogs.com/f-ck-need-u/p/7342022.html</p>
+<p><strong>kickstat中密码生成方法：</strong></p>
+<pre><code class="language-bash">md5：openssl passwd -1 '123456'
+
+sha256:CentOS6可以用grub-crypt --sha-256
+
+sha512：CentOS6中可以grub-crypt --sha-512
+
+也可以直接拷贝shadow中的密码：
+[root@localhost ~]# awk -F: '/^root/ {print $2}' /etc/shadow
+$6$TwMc7kHxAYSdICBU$yUVPcTo.SWi6FpWrZsx3.X.yjbrvqvgMxu0Jvqims55ZU6hQKPaR5DeQISwhcMBkmyVK/UJ1SFnpmu9E3S/Wu0
+</code></pre>
+<p><strong>ksvalidator 命令可以验证ks文件语法有没有问题</strong></p>
+<p>ksvalidator /var/lib/cobbler/kickstarts/CentOS7.6.ks</p>
+<pre><code>[root@cobbler mnt]# cat  /var/lib/cobbler/kickstarts/CentOS7.6.ks
+#version=DEVEL
+# System authorization information
+auth --enableshadow --passalgo=sha512
+# Install OS instead of upgrade
+install
+# Use network installation
+url --url=$tree
+# Use text mode install
+text
+# Firewall configuration
+firewall --disabled
+firstboot --disable
+# ignoredisk --only-use=sda   # 此项是CentOS7默认的项，但cobbler编译ks文件时不支持此语法，所以必须将此项注释掉
+# Keyboard layouts
+# old format: keyboard us
+# new format:
+keyboard --vckeymap=us --xlayouts='us'
+# System language
+lang en_US.UTF-8
+
+# Network information
+network  --onboot=yes --bootproto=dhcp --device=eth0 --noipv6
+network  --hostname=node1.xuexi.com
+# Reboot after installation
+reboot
+# Root password
+rootpw --iscrypted $6$TwMc7kHxAYSdICBU$yUVPcTo.SWi6FpWrZsx3.X.yjbrvqvgMxu0Jvqims55ZU6hQKPaR5DeQISwhcMBkmyVK/UJ1SFnpmu9E3S/Wu0
+# SELinux configuration
+selinux --disabled
+# Do not configure the X Window System
+skipx
+# System timezone
+timezone Asia/Shanghai
+# System bootloader configuration
+#bootloader --append=&quot;quiet crashkernel=auto&quot; --location=mbr --boot-drive=sda
+bootloader --append=&quot;net.ifnames=0&quot; --location=mbr
+# Clear the Master Boot Record
+zerombr
+# Partition clearing information
+clearpart --all --initlabel
+# Disk partitioning information
+part /boot --asprimary --fstype=&quot;xfs&quot; --size=250
+part swap --fstype=&quot;swap&quot; --size=2000
+part / --asprimary --fstype=&quot;xfs&quot; --grow --size=5000
+
+# 如果是要LVM分区，则考虑以下分区
+# part /boot --fstype ext4 --size=100
+# part swap --fstype=swap --size=2048
+# part pv26 --size=100 --grow
+# volgroup VG00 --pesize=32768 pv26
+# logvol / --fstype ext4 --name=LVroot --vgname=VG00 --size=29984
+# logvol /data --fstype ext4 --name=LVdata --vgname=VG00 --size=100 --grow
+
+%post
+rm -f /etc/yum.repos.d/*
+cat &gt;&gt;/etc/yum.repos.d/my.repo&lt;&lt;eof
+[base]
+name=sohu
+baseurl=http://mirrors.sohu.com/centos/7/os/x86_64/
+gpgcheck=0
+enable=1
+[epel]
+name=epel
+baseurl=http://mirrors.aliyun.com/epel/7Server/x86_64/
+enable=1
+gpgcheck=0
+eof
+sed -i &quot;s/rhgb //&quot; /boot/grub2/grub.cfg
+sed -i &quot;/UUID/d&quot; /etc/sysconfig/network-scripts/ifcfg-eth0
+echo &quot;DNS1=114.114.114.114&quot; &gt;&gt; /etc/sysconfig/network-scripts/ifcfg-eth0
+echo &quot;UseDNS no&quot; &gt;&gt; /etc/ssh/sshd_config
+sed -i &quot;s/GSSAPIAuthentication yes/GSSAPIAuthentication no/&quot; /etc/ssh/ssh_config
+sed -i &quot;s/^SELINUX=.*$/SELINUX=disabled/&quot; /etc/sysconfig/selinux
+systemctl disable firewalld
+%end
+
+%packages
+@base
+@core
+@development
+@platform-devel
+kexec-tools
+lftp
+tree
+lrzsz
+
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+
+%end
+</code></pre>
+<p>上面的url也可以写成url --url=&quot;http://192.168.38.140/cobbler/ks_mirror/CentOS7.6/&quot;。</p>
+<h2 id="143-提供profile">1.4.3 提供profile</h2>
+<p>在导入镜像生成distro的过程中，会自动生成一个profile。</p>
+<pre><code>[root@cobbler ~]# cobbler profile list
+   CentOS7.6-x86_64
+</code></pre>
+<p>该profile默认使用的kickstart是/var/lib/cobbler/kickstarts/sample_end.ks，所以需要修改此项。</p>
+<pre><code>[root@cobbler mnt]# cobbler profile report CentOS7.6-x86_64
+Name                           : CentOS7.6-x86_64
+TFTP Boot Files                : {}
+Comment                        : 
+DHCP Tag                       : default
+Distribution                   : CentOS7.6-x86_64
+Enable gPXE?                   : 0
+Enable PXE Menu?               : 1
+Fetchable Files                : {}
+Kernel Options                 : {}
+Kernel Options (Post Install)  : {}
+Kickstart                      : /var/lib/cobbler/kickstarts/sample_end.ks
+Kickstart Metadata             : {}
+Management Classes             : []
+Management Parameters          : &lt;&lt;inherit&gt;&gt;
+Name Servers                   : []
+Name Servers Search Path       : []
+Owners                         : ['admin']
+Parent Profile                 : 
+Internal proxy                 : 
+Red Hat Management Key         : &lt;&lt;inherit&gt;&gt;
+Red Hat Management Server      : &lt;&lt;inherit&gt;&gt;
+Repos                          : []
+Server Override                : &lt;&lt;inherit&gt;&gt;
+Template Files                 : {}
+Virt Auto Boot                 : 1
+Virt Bridge                    : xenbr0
+Virt CPUs                      : 1
+Virt Disk Driver Type          : raw
+Virt File Size(GB)             : 5
+Virt Path                      : 
+Virt RAM (MB)                  : 512
+Virt Type                      : kvm
+[root@cobbler mnt]# cobbler profile edit --name=CentOS7.6-x86_64 --kickstart=/var/lib/cobbler/kickstarts/CentOS7.6.ks
+[root@cobbler mnt]# cobbler profile report CentOS7.6-x86_64 | grep kickstart -i
+Kickstart                      : /var/lib/cobbler/kickstarts/CentOS7.6.ks
+Kickstart Metadata             : {}
+</code></pre>
+<p><strong>对于centos7系列，则加上内核启动参数net.ifnames和biosdevname使得网卡名使用ethN系列而不使用enoXXXXXXX这样的随机名称。这个写在ks的文件中开机执行脚本那一段，修改/etc/default/grub也可以的</strong></p>
+<pre><code>[root@cobbler mnt]# cobbler profile edit --name=CentOS7.6-x86_64 --kickstart=/var/lib/cobbler/kickstarts/CentOS7.6.ks --kopts=&quot;net.ifnames=0 biosdevname=0&quot;
+[root@cobbler mnt]# cobbler profile report CentOS7.6-x86_64 | grep -Ei 'kernel|kickstart'
+Kernel Options                 : {'biosdevname': '0', 'net.ifnames': '0'}
+Kernel Options (Post Install)  : {}
+Kickstart                      : /var/lib/cobbler/kickstarts/CentOS7.6.ks
+Kickstart Metadata             : {}
+</code></pre>
+<p>当然，不使用自生成的profile，自己添加一个profile也可以，同时还可以设置profile选项，如&quot;--kickstart&quot;项。如下：其中&quot;--distro&quot;指定该profile是添加到哪个distro下的。</p>
+<pre><code>[root@cobbler mnt]# cobbler profile remove --name=CentOS7.6-x86_64
+[root@cobbler mnt]# cobbler profile add --name=CentOS7.6-x86_64 --distro=CentOS7.6-x86_64 --kickstart=/var/lib/cobbler/kickstarts/CentOS7.6.ks
+[root@cobbler mnt]# cobbler profile list
+   CentOS7.6-x86_64
+</code></pre>
+<p>实际上，每添加一个profile都是在向/var/lib/tftpboot/pxelinux.cfg/default中添加一个label。</p>
+<pre><code>[root@cobbler mnt]#  cat /var/lib/tftpboot/pxelinux.cfg/default   
+DEFAULT menu
+PROMPT 0
+MENU TITLE Cobbler | http://cobbler.github.io/
+TIMEOUT 200
+TOTALTIMEOUT 6000
+ONTIMEOUT local
+
+LABEL local
+        MENU LABEL (local)
+        MENU DEFAULT
+        LOCALBOOT -1
+
+LABEL CentOS7.6-x86_64
+        kernel /images/CentOS7.6-x86_64/vmlinuz
+        MENU LABEL CentOS7.6-x86_64
+        append initrd=/images/CentOS7.6-x86_64/initrd.img ksdevice=bootif lang=  text net.ifnames=0 biosdevname=0 kssendmac  ks=http://192.168.38.140/cblr/svc/op/ks/profile/CentOS7.6-x86_64
+        ipappend 2
+
+
+
+MENU end
+</code></pre>
+<p>也就是说，其实可以不用生成profile，自己手动编辑label也可以。</p>
+<p>默认使用的菜单背景图片是menu.c32，此处我改为vesamenu.c32，该背景图片是从syslinux包中提取的，背景图片而已，看个人喜好了。另外默认菜单等待时间是2秒，在自动安装的环境中，可以将其设置的短些。并且进入菜单默认停留在local，即从本地启动系统，但是此时系统还没装，所以要实现自动化，建议修改此项。</p>
+<p>以下是修改后的项。</p>
+<pre><code>DEFAULT vemamenu
+DEFAULT menu
+PROMPT 0
+MENU TITLE Cobbler | http://cobbler.github.io/
+TIMEOUT 20
+TOTALTIMEOUT 6000
+ONTIMEOUT CentOS7.2-x86_64
+
+LABEL local
+        MENU LABEL (local)
+        LOCALBOOT -1
+
+LABEL CentOS7.2-x86_64
+        kernel /images/CentOS7.2-x86_64/vmlinuz
+        MENU DEFAULT
+        MENU LABEL CentOS7.2-x86_64
+        append initrd=/images/CentOS7.2-x86_64/initrd.img ksdevice=bootif lang=  text net.ifnames=0 biosdevname=0 kssendmac  ks=http://172.16.10.10/cblr/svc/op/ks/profile/CentOS7.2-x86_64
+        ipappend 2
+
+LABEL CentOS7.2.1-x86_64
+        kernel /images/CentOS7.2-x86_64/vmlinuz
+        MENU LABEL CentOS7.2.1-x86_64
+        append initrd=/images/CentOS7.2-x86_64/initrd.img ksdevice=bootif lang=  kssendmac text  ks=http://172.16.10.10/cblr/svc/op/ks/profile/CentOS7.2.1-x86_64
+        ipappend 2
+
+MENU end
+</code></pre>
+<p>在开始安装之前，要确保该ks路径是有效的且kickstart内容是正确的。有时候提供的Kickstart内容错误了，在制作成profile的时候不会报错，但实际上浏览器访问该ks路径的内容提示错误。例如，访问CentOS7.2.1-x86_64这个LABEL的kickstart文件，将其ks文件url地址http://172.16.10.10/cblr/svc/op/ks/profile/CentOS7.2.1-x86_64输入浏览器中。如果得到如下结果，则表示出错了，很大的可能是cobbler不支持kickstart中的某指令，这个需要慢慢检查。</p>
+<pre><code># This kickstart had errors that prevented it from being rendered correctly.
+# The cobbler.log should have information relating to this failure.
+</code></pre>
+<p><strong>查看下错误日志</strong></p>
+<pre><code class="language-bash">[root@cobbler ~]# cobbler sync
+[root@cobbler ~]# tail /var/log/cobbler/cobbler.log  -f
+Sat Sep  7 08:59:25 2019 - INFO | REMOTE generate_kickstart; user(?)
+Sat Sep  7 08:59:25 2019 - INFO | generate_kickstart
+Sat Sep  7 08:59:25 2019 - INFO | Exception occured: &lt;type 'exceptions.UnicodeDecodeError'&gt;
+Sat Sep  7 08:59:25 2019 - INFO | Exception value: 'ascii' codec can't decode byte 0xe6 in position 322: ordinal not in range(128)
+Sat Sep  7 08:59:25 2019 - INFO | Exception Info:
+  File &quot;/usr/lib/python2.7/site-packages/cobbler/remote.py&quot;, line 1052, in generate_kickstart
+    return self.api.generate_kickstart(profile,system)
+   File &quot;/usr/lib/python2.7/site-packages/cobbler/api.py&quot;, line 680, in generate_kickstart
+    return self.kickgen.generate_kickstart_for_profile(profile)
+   File &quot;/usr/lib/python2.7/site-packages/cobbler/kickgen.py&quot;, line 295, in generate_kickstart_for_profile
+    return self.generate_kickstart(profile=g)
+   File &quot;/usr/lib/python2.7/site-packages/cobbler/kickgen.py&quot;, line 277, in generate_kickstart
+    data = self.templar.render(raw_data, meta, None, obj)
+   File &quot;/usr/lib/python2.7/site-packages/cobbler/templar.py&quot;, line 116, in render
+    data_out = self.render_cheetah(raw_data, search_table, subject)
+   File &quot;/usr/lib/python2.7/site-packages/cobbler/templar.py&quot;, line 201, in render_cheetah
+    t = Template(source=raw_data, searchList=[search_table], compilerSettings={'useStackFrame':False})
+   File &quot;DynamicallyCompiledCheetahTemplate.py&quot;, line 58, in __init__
+   File &quot;_etc_cobbler_cheetah_macros.py&quot;, line 58, in __init__
+   File &quot;/usr/lib64/python2.7/site-packages/Cheetah/Template.py&quot;, line 1259, in __init__
+    self._compile(source, file, compilerSettings=compilerSettings)
+   File &quot;/usr/lib64/python2.7/site-packages/Cheetah/Template.py&quot;, line 1553, in _compile
+    keepRefToGeneratedCode=True)
+   File &quot;/usr/lib/python2.7/site-packages/cobbler/template_api.py&quot;, line 127, in compile
+    return Cheetah.Template.Template.compile(*args, **kwargs)
+   File &quot;/usr/lib64/python2.7/site-packages/Cheetah/Template.py&quot;, line 740, in compile
+    settings=(compilerSettings or {}))
+   File &quot;/usr/lib64/python2.7/site-packages/Cheetah/Compiler.py&quot;, line 1575, in __init__
+    source = unicode(source)
+</code></pre>
+<p><strong>解决：参考：https://blog.csdn.net/qq_34284638/article/details/86493535</strong></p>
+<p><strong>发现是ks文件中有些中文的注释，删掉后，重新cobber sync即可</strong></p>
+<p>修改kickstart文件后，需要重新编译profile加载新的kickstart文件。只需使用cobbler profile edit --name=XXXXX --kickstart=YYYYY即可重新编译XXXXX这个profile，或者执行cobbler sync命令。直到浏览器中能获取到kickstart的内容时才算成功。</p>
+<p>或者，使用cobbler profile getks --name=XXXXX命令获取名为XXXXX的profile的ks内容。</p>
+<p>总之，必须要保证能正确获取到ks内容。</p>
+<p><strong>同理，加上CentOS6到cobbler里面：</strong></p>
+<pre><code class="language-bash">[root@cobbler ~]# mkdir /data/iso -p
+[root@cobbler ~]# mkdir /CentOS6.10-mini
+[root@cobbler ~]# cd /data/iso/
+[root@cobbler iso]# wget https://mirrors.huaweicloud.com/centos/6/isos/x86_64/CentOS-6.10-x86_64-minimal.iso
+[root@cobbler iso]# echo '/data/iso/CentOS-6.10-x86_64-minimal.iso  /CentOS6.10-mini iso9660 defaults 0 0' &gt;&gt; /etc/fstab
+[root@cobbler iso]# mount -a
+[root@cobbler ~]# cobbler import --name=CentOS6.10-mini --path=/CentOS6.10-mini
+[root@cobbler iso]# vim /var/lib/cobbler/kickstarts/CentOS6.10-mini.ks 
+[root@cobbler iso]# ksvalidator /var/lib/cobbler/kickstarts/CentOS6.10-mini.ks 
+[root@cobbler iso]# cobbler profile remove --name=CentOS6.10-mini-x86_64
+[root@cobbler iso]# cobbler profile add --name=CentOS6.10-mini-x86_64 --distro=CentOS6.10-mini-x86_64 --kickstart=/var/lib/cobbler/kickstarts/CentOS6.10-mini.ks
+#确认下
+
+</code></pre>
+<h2 id="144-开始安装">1.4.4 开始安装</h2>
+<p>准备一个新的机器开机就会自动进入菜单，2-3秒超时后自动进行安装，安装完成后自动重启，重启时自动从本地启动。</p>
+<p>所以，除了对新机器进行开机，其他的一切完完全全是全自动的。</p>
+<p>建议在真正开始安装前，将dhcpd/rsyncd/tftp/cobbler等给重启一遍，防止中间改过哪些地方忘记重启而导致装机时出错。</p>
+<pre><code class="language-vash">[root@cobbler ~]# systemctl restart dhcpd httpd cobblerd tftp
+[root@cobbler ~]# systemctl enable  dhcpd httpd cobblerd tftp
+</code></pre>
+<h1 id="15-比pxekickstart好的地方">1.5 比pxe+kickstart好的地方</h1>
+<p>仅就cobbler基本功能而言，它跟pxe的能力基本是一样的，只是提供了更多花哨的功能。</p>
+<p>但cobbler能够使用变量，能够通过几个命令自动完成文件复制，修改等繁琐的动作，另外它提供了api接口，常用的是它的图形界面。在这一点上，它还是不错的。</p>
+<h1 id="16-让新机器自动执行脚本">1.6 让新机器自动执行脚本</h1>
+<p>有些时候新机器上要进行很多配置，在kickstart的%post段也可以配置，但是这里能进行的配置是有限的。</p>
+<p>可以在cobbler服务端写好要执行的脚本，然后在新机器上将脚本使用scp复制过去，但是scp复制需要确认和输入密码，所以需要在kickstart的选包部分指定安装expect包，然后使用expect进行非交互scp。</p>
+<p>最后在%post段直接执行此脚本即可。</p>
+<figure data-type="image" tabindex="4"><img src="%E5%9B%BE%E7%89%87/1567818940979.png" alt="1567818940979" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567819245354.png" alt="1567819245354" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567820171075.png" alt="1567820171075" loading="lazy"></figure>
+<h1 id="出问题的地方总结">出问题的地方总结：</h1>
+<blockquote>
+<p>1、要关掉NAT的dhcp</p>
+<p>2、ks文件中别有中文注释</p>
+<p>3、开始安装前重启下httpd，tftp，dhcpd，cobblerd</p>
+<p>4、ks文件中的url别写<code>url --url=$tree</code>，写成http连接：<code>url --url=&quot;http://192.168.38.140/cobbler/ks_mirror/CentOS7.6/&quot;</code></p>
+<p>5、CentOS7机器的内存为1G时安装失败</p>
+<p>6、安装CentOS7 mini安装包步骤都找不到，所以全部放到post里，安装后yum装包</p>
+<p>7、ks文件中的rootpw可以通过shadow文件来获取</p>
+<p>8、如果无特殊情况，一定要将/var/lib/tftpboot/pxelinux.cfg/default 默认启动项设置为local</p>
+<p>9、CentOS6也出现了上图的问题：you have specified that the group base should be installed，解决方法：参考：https://www.fangc.xyz/detail/pxean-zhuang-you-have-specifie/ ,但是，这个报了个小错误</p>
+<pre><code class="language-bash">[root@cobbler iso]# vim  /var/lib/cobbler/kickstarts/CentOS6.10-mini.ks
+%packages --nobase
+%end
+
+[root@cobbler iso]# ksvalidator /var/lib/cobbler/kickstarts/CentOS6.10-mini.ks 
+Ignoring deprecated option on line 30:  The --nobase option has been deprecated and no longer has any effect.  It may be removed from future releases, which will result in a fatal error from kickstart.  Please modify your kickstart file to remove this option.
+</code></pre>
+</blockquote>
+<p><strong>最后测试下ubuntu</strong></p>
+<pre><code class="language-bash">[root@cobbler ~]# cd /data/iso/
+[root@cobbler iso]# wget https://mirrors.huaweicloud.com/ubuntu-releases/bionic/ubuntu-18.04.3-live-server-amd64.iso
+[root@cobbler iso]# mkdir /ubuntu18.04-mini
+[root@cobbler iso]# echo '/data/iso/ubuntu-18.04.3-live-server-amd64.iso  /ubuntu18.04-mini iso9660 defaults 0 0' &gt;&gt; /etc/fstab 
+[root@cobbler iso]# mount -a
+[root@cobbler iso]# cobbler import --name=ubuntu18.04-mini --path=/ubuntu18.04-mini
+#失败告终，暂未解决，生成distro就报错了
+cobber官方文档：https://cobbler.github.io/manuals/2.8.0/
+
+</code></pre>
+<hr>
+<h1 id="附件">附件</h1>
+<h2 id="centos76ks">CentOS7.6.ks</h2>
+<pre><code class="language-bash">[root@cobbler ~]# cat /var/lib/cobbler/kickstarts/CentOS7.6.ks
+#version=DEVEL
+# System authorization information
+auth --enableshadow --passalgo=sha512
+# Install OS instead of upgrade
+install
+# Use network installation
+url --url=&quot;http://192.168.38.140/cobbler/ks_mirror/CentOS7.6/&quot;
+# Use text mode install
+text
+# Firewall configuration
+firewall --disabled
+firstboot --disable
+# ignoredisk --only-use=sda   
+# Keyboard layouts
+# old format: keyboard us
+# new format:
+keyboard --vckeymap=us --xlayouts='us'
+# System language
+lang en_US.UTF-8
+
+# Network information
+network  --onboot=yes --bootproto=dhcp --device=eth0 --noipv6
+network  --hostname=node1.xuexi.com
+# Reboot after installation
+reboot
+# Root password
+rootpw --iscrypted $6$TwMc7kHxAYSdICBU$yUVPcTo.SWi6FpWrZsx3.X.yjbrvqvgMxu0Jvqims55ZU6hQKPaR5DeQISwhcMBkmyVK/UJ1SFnpmu9E3S/Wu0
+# SELinux configuration
+selinux --disabled
+# Do not configure the X Window System
+skipx
+# System timezone
+timezone Asia/Shanghai
+# System bootloader configuration
+#bootloader --append=&quot;quiet crashkernel=auto&quot; --location=mbr --boot-drive=sda
+bootloader --append=&quot;net.ifnames=0&quot; --location=mbr
+# Clear the Master Boot Record
+zerombr
+# Partition clearing information
+clearpart --all --initlabel
+# Disk partitioning information
+part /boot --asprimary --fstype=&quot;xfs&quot; --size=250
+part swap --fstype=&quot;swap&quot; --size=2000
+part / --asprimary --fstype=&quot;xfs&quot; --grow --size=5000
+
+# part /boot --fstype ext4 --size=100
+# part swap --fstype=swap --size=2048
+# part pv26 --size=100 --grow
+# volgroup VG00 --pesize=32768 pv26
+# logvol / --fstype ext4 --name=LVroot --vgname=VG00 --size=29984
+# logvol /data --fstype ext4 --name=LVdata --vgname=VG00 --size=100 --grow
+
+%post
+mkdir /etc/yum.repos.d/backup
+cd /etc/yum.repos.d/
+mv *.repo backup/
+cat &gt;&gt;/etc/yum.repos.d/my.repo&lt;&lt;eof
+[base]
+name=sohu
+baseurl=http://mirrors.aliyun.com/centos/7/os/x86_64/
+gpgcheck=0
+enable=1
+[epel]
+name=epel
+baseurl=http://mirrors.aliyun.com/epel/7Server/x86_64/
+enable=1
+gpgcheck=0
+eof
+sed  -ri '/GRUB_CMDLINE_LINUX/ s/^(.*quiet)&quot;$/\1 net.ifnames=0&quot;/'  /etc/default/grub
+sed -i &quot;/UUID/d&quot; /etc/sysconfig/network-scripts/ifcfg-ens33
+sed -i &quot;/DEVICE/d&quot; /etc/sysconfig/network-scripts/ifcfg-ens33
+echo &quot;DNS1=114.114.114.114&quot; &gt;&gt; /etc/sysconfig/network-scripts/ifcfg-ens33
+echo &quot;UseDNS no&quot; &gt;&gt; /etc/ssh/sshd_config
+sed -i &quot;s/GSSAPIAuthentication yes/GSSAPIAuthentication no/&quot; /etc/ssh/ssh_config
+sed -i &quot;s/^SELINUX=.*$/SELINUX=disabled/&quot; /etc/sysconfig/selinux
+systemctl disable firewalld
+yum install lftp lrzsz vim tree  -y
+%end
+
+%packages
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+
+%end
+</code></pre>
+<p>kickstart模版： https://www.lanzous.com/i6293oj   密码:20mx</p>
+<h2 id="centos610-miniks">CentOS6.10-mini.ks</h2>
+<pre><code class="language-bash">[root@cobbler iso]# cat /var/lib/cobbler/kickstarts/CentOS6.10-mini.ks
+# Kickstart file automatically generated by anaconda.
+
+#version=DEVEL
+install
+text
+reboot
+url --url=&quot;http://192.168.38.140/cobbler/ks_mirror/CentOS6.10-mini/&quot;
+lang en_US.UTF-8
+keyboard us
+network --onboot yes --device eth0 --bootproto dhcp --noipv6
+rootpw  --iscrypted $6$TwMc7kHxAYSdICBU$yUVPcTo.SWi6FpWrZsx3.X.yjbrvqvgMxu0Jvqims55ZU6hQKPaR5DeQISwhcMBkmyVK/UJ1SFnpmu9E3S/Wu0
+firewall --disabled
+authconfig --enableshadow --passalgo=sha512
+selinux --disabled
+timezone Asia/Shanghai
+bootloader --location=mbr --driveorder=sda --append=&quot;crashkernel=auto rhgb quiet&quot;
+# The following is the partition information you requested
+# Note that any partitions you deleted are not expressed
+# here so unless you clear all partitions first, this is
+# not guaranteed to work
+clearpart --all
+zerombr
+
+part /boot --fstype=ext4 --size=1024
+part / --fstype=ext4 --size=100000
+part /data --fstype=ext4 --size=50000
+part swap --size=2048
+
+
+%packages --nobase
+%end
+
+%post
+mkdir /etc/yum.repos.d/backup
+cd /etc/yum.repos.d/
+mv *.repo backup/
+cat &gt;/etc/yum.repos.d/my.repo &lt;&lt;EOF
+[base]
+name=base
+baseurl=http://mirrors.aliyun.com/centos/6/os/x86_64/
+gpgcheck=0
+enable=1
+[epel]
+name=epel
+baseurl=http://mirrors.aliyun.com/epel/6/x86_64/
+enable=1
+gpgcheck=0
+EOF
+yum install -y vim wget curl lrzsz
+%end
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/o8SqaIHDM/" class="tag">
+                    cobbler
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/jia-mi-gpg-jia-mi-ssh-san-chong-zhuan-fa-opensslpam/">
+                  <h3 class="post-title">
+                     加密，gpg加密，ssh三种转发，openssl，pam
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

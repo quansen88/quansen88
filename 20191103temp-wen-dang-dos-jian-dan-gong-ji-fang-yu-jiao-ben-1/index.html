@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191103temp文档DOS简单攻击防御脚本1 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="DOS简单攻击防御脚本1
+解决DOS攻击⽣产案例：根据web⽇志或⽹络连接数，监控当某个ip并发连接 数或者短时间内pv达到100，即调⽤防⽕墙命令封掉对应的ip，监控频率每隔5分 钟；防⽕墙命令为iptables -A INPUT -s ..." />
+    <meta name="keywords" content="temp,dos,shell" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191103temp文档DOS简单攻击防御脚本1</h2>
+            <div class="post-date">2021-05-02</div>
+            
+              <div class="feature-container" style="background-image: url('https://i.makeagif.com/media/10-28-2019/QL4BQb.gif')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="dos简单攻击防御脚本1">DOS简单攻击防御脚本1</h1>
+<p><strong>解决DOS攻击⽣产案例：根据web⽇志或⽹络连接数，监控当某个ip并发连接 数或者短时间内pv达到100，即调⽤防⽕墙命令封掉对应的ip，监控频率每隔5分 钟；防⽕墙命令为iptables -A INPUT -s IP -j REJECT？</strong></p>
+<pre><code class="language-bash">
+</code></pre>
+<p><strong>CentOS7 pki目录一键生成证书</strong></p>
+<pre><code class="language-bash">touch /etc/pki/CA/index.txt
+echo &quot;01&quot; &gt; /etc/pki/CA/serial
+openssl genrsa -out /etc/pki/CA/private/cakey.pem		
+openssl req -new -key /etc/pki/CA/private/cakey.pem -out rootCA.csr
+openssl ca -selfsign -in rootCA.csr
+cp /etc/pki/CA/newcerts/01.pem /etc/pki/CA/cacert.pem
+
+
+(umask;077 openssl genrsa -out wangkey.pem)
+openssl req -new -key wangkey.pem -out wangwangwang.csr
+scp wangwangwang.csr root@192.168.38.146:/root/
+openssl ca -in wangwangwang.csr 
+
+</code></pre>
+<pre><code class="language-bash">#!/bin/bash
+#**************************************************************
+#Author:                     28
+#QQ:                      
+#Date:                       2019-08-01
+#FileName:                   reset.sh
+#URL:                      
+#Description:                The test script
+#Copyright (C):              2019 Copyright ©  站点名称  版权所有
+#************************************************************
+#set -e
+RED=&quot;\033[0;31m&quot;
+GREEN=&quot;\033[0;32m&quot;
+NO_COLOR=&quot;\033[0m&quot;
+
+# 修改别名
+modify_alias() {
+cat &gt;&gt; ~/.bashrc &lt;&lt;EOF
+alias cdnet='cd /etc/sysconfig/network-scripts/'
+alias editnet='vim /etc/sysconfig/network-scripts/ifcfg-ens33'
+alias rm='rm -i'
+alias scandisk=&quot;echo ' - - - ' &gt; /sys/class/scsi_host/host0/scan;echo ' - - - ' &gt; /sys/class/scsi_host/host1/scan;echo ' - - - ' &gt; /sys/class/scsi_host/host2/scan&quot;
+EOF
+}
+
+# 修改命令提示符
+modify_PS1() {
+    echo 'PS1=&quot;\[\e[1;34m\][\u@\h \W]\\$\[\e[0m\] &quot;' &gt;&gt; /etc/profile.d/env.sh
+}
+
+# 安装基本软件
+install_software() {
+    yum install   gcc gcc-c++ glibc glibc-devel pcre pcre-devel openssl  openssl-devel systemd-devel zlib-devel  vim lrzsz tree screen  lsof tcpdump wget  ntpdate net-tools iotop bc  zip unzip nfs-utils -y
+}
+
+# 替换yum源
+replace_yum() {
+    #wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+    curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-7.repo
+    sed -i -e '/mirrors.cloud.aliyuncs.com/d' -e '/mirrors.aliyuncs.com/d' /etc/yum.repos.d/CentOS-Base.repo
+    #wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+    curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+    yum makecache
+}
+
+# vim
+# vimrc复制过来
+modify_vimrc() {
+cat &gt; ~/.vimrc &lt;&lt;EOF
+set ignorecase
+set cursorline
+set autoindent
+set ai
+autocmd BufNewFile *.sh exec &quot;:call SetTitle()&quot;
+
+func SetTitle()
+        if expand(&quot;%:e&quot;) == 'sh'
+        call setline(1,&quot;#!/bin/bash&quot;)
+        call setline(2,&quot;#**************************************************************&quot;)
+        call setline(3,&quot;#Author:                     Linus&quot;)
+        call setline(4,&quot;#QQ:                       &quot;)
+        call setline(5,&quot;#Date:                       &quot;.strftime(&quot;%Y-%m-%d&quot;))
+        call setline(6,&quot;#FileName:                   &quot;.expand(&quot;%&quot;))
+        call setline(7,&quot;#URL:                       &quot;)
+        call setline(8,&quot;#Description:                Initialize the new server&quot;)         
+        call setline(9,&quot;#Copyright (C):              &quot;.strftime(&quot;%Y&quot;).&quot; Copyright ©  站点名称  版权所有&quot;)
+        call setline(10,&quot;#************************************************************&quot;)
+        call setline(11,&quot;&quot;)
+        endif
+endfunc
+autocmd BufNewFile * normal G
+EOF
+}
+
+# 关闭selinux和firewalld
+iptables_selinux_stop() {
+    sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+    setenforce 0
+
+    systemctl stop firewalld
+    systemctl disable firewalld
+}
+
+# 判断是不是root
+judge_root() {
+    [ $(id -u) != &quot;0&quot; ] &amp;&amp; { echo -e &quot;${RED}Error:${NO_COLOR} You must be root to run this script.&quot;; exit 1; }   
+}
+
+# 判断是不是CentOS7
+Check_release() {
+    if [ -f /etc/redhat-release ];then
+        release=&quot;centos&quot;
+        version=`sed -r 's/.* ([0-9]+)\..*/\1/' /etc/redhat-release`
+    if [ &quot;$version&quot; = &quot;7&quot; ];then
+        echo &quot;Current release: CentOS7.&quot;
+    else {
+        echo -e &quot;[${RED}Error${NO_COLOR}] This script can only be running on CentOS7.&quot;
+        exit 1
+    }
+    fi
+    else {
+        echo -e &quot;[${RED}Error${NO_COLOR}] This script can only be running on CentOS7.&quot;
+    exit 1
+    }
+    fi
+}
+
+########################时区调整########################
+timezone_adjust(){
+    ln -sf  /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+}
+
+#修改网卡为eth0
+modify_eth_card() {
+   ip a | grep -q eth0
+   if [ &quot;$?&quot; -eq 1 ];then
+       sed -ri '/^GRUB_CMDLINE/s/(.*)&quot;/\1 net.ifnames=0&quot;/' /etc/default/grub
+       grub2-mkconfig -o /boot/grub2/grub.cfg
+   fi
+}
+
+#自动补全
+bash_completion() {
+    yum install bash-completion -y
+    source /usr/share/bash-completion/bash_completion
+}
+
+#时间同步
+time_sync(){
+    yum install chrony -y
+    sed '/^server/s/^/#/' /etc/chrony.conf -i
+    sed '1a server ntp.aliyun.com iburst' /etc/chrony.conf -i
+    sed '1a server 0.cn.pool.ntp.org iburst' /etc/chrony.conf -i
+    sed '1a server ntp1.aliyun.com iburst' /etc/chrony.conf -i
+    systemctl restart chronyd
+    systemctl enable chronyd
+    # echo '*/30 * * * * /usr/sbin/ntpdate ntp.aliyun.com &amp;&gt;/dev/null' &gt;&gt; /var/spool/cron/root
+}
+
+#ssh调优
+ssh_adjust(){
+    cp /etc/ssh/sshd_config{,_bak}
+    sed '/^GSSAPIAuthentication/d' /etc/ssh/sshd_config -i
+    sed '/^UseDNS/d' /etc/ssh/sshd_config -i
+    echo &quot;GSSAPIAuthentication no&quot; &gt;&gt; /etc/ssh/sshd_config
+    echo &quot;UseDNS no&quot; &gt;&gt; /etc/ssh/sshd_config
+    systemctl restart sshd
+}
+
+#最大文件打开数
+limits_tune(){
+    echo '
+*   soft nofile 128000
+*   hard nofile 256000
+
+root soft nofile 128000
+root hard nofile 256000
+' &gt;&gt; /etc/security/limits.conf
+}
+
+
+main() {
+    judge_root
+    Check_release
+    replace_yum
+    install_software
+    iptables_selinux_stop
+    modify_alias
+    modify_vimrc
+    timezone_adjust
+    time_sync
+    limits_tune
+    ssh_adjust 
+    modify_PS1
+    modify_eth_card
+    bash_completion
+}
+
+main
+</code></pre>
+<pre><code class="language-bash">IPADDR=$(ip addr | grep inet | egrep -v '(127.0.0.1|inet6|docker)' | awk '{print $2}' | tr -d &quot;addr:&quot; | head -n 1 | cut -d / -f1)
+# 机器初始化
+curl -sL https://gitee.com/uscwifi/scripts/raw/master/reset4.0-test.sh | bash -
+
+# 安装软件
+yum -y install cobbler cobbler-web pykickstart debmirror httpd dhcp
+systemctl enable cobblerd httpd dhcp tftp
+systemctl start httpd cobblerd
+
+# 配置cobbler
+sed -ri '/^next_server/s/^.*$/next_server: 192.168.38.140/' /etc/cobbler/settings
+sed -ri '/^server/s/^.*$/server: 192.168.38.140/' /etc/cobbler/settings
+PASSWORD=`openssl passwd -1 '12346'`
+sed -i   &quot;101c   default_password_crypted: \&quot;$PASSWORD\&quot;&quot;    /etc/cobbler/settings
+sed -ri '/^@arches/s/^/#/' /etc/debmirror.conf
+sed -ri '/^@dists/s/^/#/' /etc/debmirror.conf
+systemctl restart cobblerd
+
+#配置tftp
+sed -ri '/disable/s/yes/no/' /etc/xinetd.d/tftp
+systemctl restart tftp
+
+#启动rsync
+systemctl start rsyncd &amp;&amp; systemctl enable rsyncd
+
+#拉取bootloader
+cobbler get-loaders
+
+#配置dhcpd
+cat &gt; /etc/dhcp/dhcpd.conf &lt;&lt;EOF
+ddns-update-style none;
+default-lease-time 259200;
+max-lease-time 518400;
+subnet 192.168.38.0 netmask 255.255.255.0 {
+        range 192.168.38.10 192.168.38.100;
+        option subnet-mask 255.255.255.0;
+        option routers 192.168.38.2;
+        option domain-name-servers 180.76.76.76;
+        next-server 192.168.38.140;
+        filename &quot;pxelinux.0&quot;;
+}
+EOF
+systemctl restart dhcpd &amp;&amp; systemctl enable dhcpd
+
+
+#生成distro
+mkdir /mnt/CentOS7.6-mini -p
+mkdir /data/iso -p
+cd /data/iso
+wget https://mirrors.huaweicloud.com/centos/7/isos/x86_64/CentOS-7-x86_64-Minimal-1810.iso
+echo '/data/iso/CentOS-7-x86_64-Minimal-1810.iso  /mnt/CentOS7.6-mini iso9660 defaults 0 0' &gt;&gt; /etc/fstab
+mount -a
+cobbler import --name=CentOS7.6-mini --path=/mnt/CentOS7.6-mini
+
+#提供ks文件
+cd  /var/lib/cobbler/kickstarts
+wget https://gitee.com/uscwifi/scripts/raw/master/kickstart_file/CentOS7.6-mini.ks
+sed -i &quot;s/192.168.38.140/$IPADDR/&quot; /var/lib/cobbler/kickstarts/CentOS7.6-mini.ks
+sed -i &quot;s/CentOS7.6/CentOS7.6-mini/&quot; /var/lib/cobbler/kickstarts/CentOS7.6-mini.ks:
+cobbler profile remove --name=CentOS7.6-mini-x86_64
+cobbler profile add --name=CentOS7.6-mini --distro=CentOS7.6-mini-x86_64 --kickstart=/var/lib/cobbler/kickstarts/CentOS7.6-mini.ks
+
+
+
+</code></pre>
+<pre><code class="language-bash">#!/bin/bash
+
+mkdir /mycdrom/CentOS7.6-mini/ -p
+mount /dev/cdrom /mnt
+cp -a /mnt/* /mycdrom/CentOS7.6-mini/
+cp /mnt/{.treeinfo,.discinfo} .
+cd  /mycdrom/CentOS7.6-mini/
+find -name TRANS.TBL -delete
+cp /mnt/repodata/*x86_64*.xml /mycdrom/CentOS7.6-mini/repodata/
+createrepo -g /mycdrom/CentOS7.6-mini/repodata/83b61f9495b5f728989499479e928e09851199a8846ea37ce008a3eb79ad84a0-c7-minimal-x86_64-comps.xml /mycdrom/CentOS7.6-mini/
+mkdir kickstart
+cd  /mycdrom/CentOS7.6-mini/kickstart
+
+cat &gt; ks_CentOS7_mini.cfg &lt;&lt;EOF
+install
+keyboard 'us'
+rootpw --iscrypted $1$RCSqcPtD$v9HF8RPk2V0KkTOYhr5Wm1
+#url --url=&quot;http://mirrors.huaweicloud.com/centos/7/os/x86_64/&quot;
+cdrom
+lang en_US
+auth  --useshadow  --passalgo=sha512
+text
+firstboot --disable
+selinux --disabled
+firewall --disabled
+network  --bootproto=dhcp --device=eth0
+reboot
+timezone Asia/Shanghai
+bootloader --append=&quot;net.ifnames=0&quot; --location=mbr
+zerombr
+clearpart --all --initlabel
+part /boot --fstype=&quot;xfs&quot; --size=512
+part swap --fstype=&quot;swap&quot; --size=2048
+part / --fstype=&quot;xfs&quot; --size=102400
+%post
+sed '/^GSSAPIAuthentication/d' /etc/ssh/sshd_config -i
+sed '/^UseDNS/d' /etc/ssh/sshd_config -i
+echo &quot;GSSAPIAuthentication no&quot; &gt;&gt; /etc/ssh/sshd_config
+echo &quot;UseDNS no&quot; &gt;&gt; /etc/ssh/sshd_config
+ln -sf  /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+mkdir /root/.ssh
+cd /root/.ssh
+cat &gt; authorized_keys &lt;&lt;EOF
+ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEArAgRomkl40uKp+Dz13prEbBf31cJGqVMqSir/zaxMyTZyTjd3BJc5qokWi6mBBsJ0TPEbciFAbnroy1BX/qsfSLWLAdzipp+3wsubx6gSkedT5s1G+xAOUUFoUiQMuwYwIjbAo8c+HKfDPHpzRVZ1d2vp0MbZjw6m87KftKUQvs=
+EOF
+chmod 700 /root/.ssh
+chmod 600 /root/.ssh/authorized_keys
+rm -f /etc/yum.repos.d/*
+cat &gt;&gt;/etc/yum.repos.d/my.repo&lt;&lt;eof
+[base]
+name=ali
+baseurl=http://mirrors.sohu.com/centos/7/os/x86_64/
+gpgcheck=0
+enable=1
+[epel]
+name=epel
+baseurl=http://mirrors.aliyun.com/epel/7Server/x86_64/
+enable=1
+gpgcheck=0
+eof
+%end
+%packages
+%end
+EOF
+#vim /mycdrom/CentOS7.6-mini/isolinux/isolinux.cfg
+cat &gt; /mycdrom/CentOS7.6-mini/isolinux/isolinux.cfg &lt;&lt;EOF
+default vesamenu.c32
+timeout 600
+display boot.msg
+menu clear
+menu background splash.png
+menu title CentOS 7
+menu vshift 8
+menu rows 18
+menu margin 8
+menu helpmsgrow 15
+menu tabmsgrow 13
+menu color border * #00000000 #00000000 none
+menu color sel 0 #ffffffff #00000000 none
+menu color title 0 #ff7ba3d0 #00000000 none
+menu color tabmsg 0 #ff3a6496 #00000000 none
+menu color unsel 0 #84b8ffff #00000000 none
+menu color hotsel 0 #84b8ffff #00000000 none
+menu color hotkey 0 #ffffffff #00000000 none
+menu color help 0 #ffffffff #00000000 none
+menu color scrollbar 0 #ffffffff #ff355594 none
+menu color timeout 0 #ffffffff #00000000 none
+menu color timeout_msg 0 #ffffffff #00000000 none
+menu color cmdmark 0 #84b8ffff #00000000 none
+menu color cmdline 0 #ffffffff #00000000 none
+
+label linux
+  menu label ^Install CentOS 7
+  kernel vmlinuz
+  append initrd=initrd.img ks=cdrom:/kickstart/ks_CentOS7_mini.cfg
+
+label local
+  menu label Boot from ^local drive
+  menu default
+  localboot 0xffff
+EOF
+cd
+mkisofs -R -J -T -v --no-emul-boot --boot-load-size 4 --boot-info-table -V &quot;CentOS 7.6 autoinstall&quot; -b isolinux/isolinux.bin -c isolinux/boot.cat -o /root/centos7.6_autoinstall.iso /mycdrom/CentOS7.6-mini/
+</code></pre>
+<h4 id="font-colorred博主求分享博客主题cryyumfont"><font color=red>博主，求分享博客主题😢😋</font></h4>
+<pre><code class="language-bash">[root@localhost CA]# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                  NAMES
+b8bfe9a8d201        wordpress           &quot;docker-entrypoint.s…&quot;   About an hour ago   Up About an hour    0.0.0.0:8080-&gt;80/tcp   wordpress
+ccd7d32b575f        mysql               &quot;docker-entrypoint.s…&quot;   About an hour ago   Up About an hour    3306/tcp, 33060/tcp    mysql
+36c9628a0948        alpine              &quot;sh&quot;                     5 hours ago         Up 5 hours                                 recursing_noether
+2239fab48381        mynginx:v1          &quot;bash&quot;                   5 hours ago         Up 5 hours          0.0.0.0:81-&gt;80/tcp     hungry_lehmann
+[root@localhost CA]# docker commit -m&quot;wordpress test&quot; wordpress mywordpress:v1
+sha256:5ef1a26ec64ff738846e135314a4729daf51e866c6f038c8bacf9002306643c1
+</code></pre>
+<pre><code class="language-bash">mysql改默认字符集
+[root@localhost ~]# vim /etc/my.cnf.d/server.cnf
+[mysqld]
+character_set_server=utf8mb4  
+systemctl restart mysql
+</code></pre>
+<blockquote>
+<p>练习：<br>
+前提：授权tom@172.16.%.%对hidb数据库上students表有所有访问权限；而后通过tom用户完成以下操作；<br>
+1、将birthdate字段改为age；<br>
+2、向students中插入100行数据；<br>
+用户名为stu1-stu100；性别随机为M或F；年龄为18-100之间的随机数；<br>
+3、以性别为分组，显示每组的平均年龄；<br>
+4、显示年龄大于40的用户</p>
+</blockquote>
+<pre><code class="language-bash">MariaDB [(none)]&gt; CREATE DATABASE IF NOT EXISTS hidb ;
+Query OK, 0 rows affected, 1 warning (0.000 sec)
+MariaDB [(none)]&gt; USE hidb
+MariaDB [hidb]&gt; CREATE TABLE IF NOT EXISTS students (
+    -&gt; id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    -&gt; name VARCHAR(30) NOT NULL
+    -&gt; );
+MariaDB [hidb]&gt; ALTER TABLE students ADD gender ENUM('M','F');
+MariaDB [hidb]&gt; ALTER TABLE students ADD birthdate VARCHAR(30);
+MariaDB [hidb]&gt; GRANT ALL ON hidb.students TO 'tom'@'172.16.%.%' IDENTIFIED BY '12345';
+Query OK, 0 rows affected (0.005 sec)
+
+#第一题
+MariaDB [hidb]&gt; ALTER TABLE students CHANGE birthdate age INT;
+#第二题
+MariaDB [hidb]&gt; INSERT INTO students VALUES(1,'zhang','F',18),(2,'ma','M',20),(3,'wang','M',30),(4,'quan','F',15);
+#第三题
+MariaDB [hidb]&gt; SELECT AVG(age) AS 平均年龄,gender AS 性别 FROM students GROUP BY gender;
++--------------+--------+
+| 平均年龄     | 性别   |
++--------------+--------+
+|      25.0000 | M      |
+|      16.5000 | F      |
++--------------+--------+
+2 rows in set (0.001 sec)
+#第四题
+MariaDB [hidb]&gt; SELECT * FROM students WHERE AGE&gt;20;
++----+------+--------+------+
+| id | name | gender | age  |
++----+------+--------+------+
+|  3 | wang | M      |   30 |
++----+------+--------+------+
+1 row in set (0.001 sec)
+</code></pre>
+<blockquote>
+<p>练习：<br>
+1、创建数据库hidb，默认字符集为'utf8'；<br>
+2、创建表students，拥有以下字段：<br>
+stuid，整数，自动增长；<br>
+name<br>
+gender<br>
+birthdate<br>
+class<br>
+3、将students的class字段修改为classid；<br>
+4、为name字段添加索引；</p>
+</blockquote>
+<pre><code class="language-bash">#第一题：
+MariaDB [(none)]&gt; CREATE DATABASE IF NOT EXISTS hidb2 CHARACTER SET utf8;
+Query OK, 1 row affected (0.001 sec)
+#第二题：
+MariaDB [hidb2]&gt; CREATE TABLE students (
+    -&gt; stuid INT AUTO_INCREMENT PRIMARY KEY,
+    -&gt; name CHAR(30),
+    -&gt; gender ENUM('M','F'),
+    -&gt; birthday INT,
+    -&gt; class INT
+    -&gt; );
+Query OK, 0 rows affected (0.016 sec)
+#第三题
+MariaDB [hidb2]&gt; ALTER TABLE students CHANGE class classid INT;
+Query OK, 0 rows affected (0.006 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+#第四题
+MariaDB [hidb2]&gt; ALTER TABLE students ADD INDEX(name);
+Query OK, 0 rows affected (0.012 sec)
+Records: 0  Duplicates: 0  Warnings: 0
+
+</code></pre>
+<pre><code class="language-bash">[root@web ~]# mysql -utom -hlocalhost -p12345 -e 'INSERT INTO hidb.students(name,gender,age) VALUES (&quot;tom&quot;,&quot;F&quot;,18);'
+MariaDB [hidb2]&gt; select * from hidb.students where name='tom';
++----+------+--------+------+
+| id | name | gender | age  |
++----+------+--------+------+
+|  5 | tom  | F      |   18 |
++----+------+--------+------+
+1 row in set (0.003 sec)
+</code></pre>
+<pre><code class="language-bash">[root@web ~]# gender=('M' 'F')
+[root@web ~]# index=$[$RANDOM%2]
+[root@web ~]# echo ${gender[$index]}
+F
+[root@web ~]# index=$[$RANDOM%2]
+[root@web ~]# echo ${gender[$index]}
+M
+</code></pre>
+<pre><code>
+</code></pre>
+<p>mysql面试题：https://www.cnblogs.com/aishangJava/p/11306919.html</p>
+<pre><code class="language-bash">StandardOutput(){
+    echo -e &quot;\033[1;32m$1\033[0m&quot;
+}
+ErrorOutput(){
+    echo -e &quot;\033[1;31m$1\033[0m&quot;
+}
+
+read -e -p &quot;请输入你的域名：&quot; DOMAIN
+
+mkdir ${DOMAIN} &amp;&amp; cd ${DOMAIN}
+
+(umask 077;openssl genrsa  -out ca.key 2048) 
+openssl req -new -key ca.key -out ca.csr -subj &quot;/C=CN/ST=Shanghai/L=Shanghai/O=Internet/OU=devops/CN=ca.${DOMAIN}&quot;
+openssl x509 -req -days 3650 -in ca.csr -signkey ca.key -out ca.crt
+(umask 077;openssl genrsa  -out ${DOMAIN}.key 2048) 
+openssl req -new -key ${DOMAIN}.key -out  ${DOMAIN}.csr -subj &quot;/C=CN/ST=Shanghai/L=Shanghai/O=Internet/OU=devops/CN=${DOMAIN}&quot;
+openssl x509 -req -days 3650 -in ${DOMAIN}.csr -CA ca.crt -CAkey ca.key  -CAcreateserial -out ${DOMAIN}.crt
+
+StandardOutput &quot;密钥文件路径: ${DOMAIN}/${DOMAIN}.key&quot;
+StandardOutput &quot;证书文件路径: ${DOMAIN}/${DOMAIN}.crt&quot;
+
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="https://i.makeagif.com/media/10-09-2019/TNsow0.gif" alt="TNsow0" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://i.makeagif.com/media/10-28-2019/QL4BQb.gif" alt="nginx" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://i.loli.net/2019/10/11/U4yfnigJduLCV1P.png" alt="1564206353632.png" loading="lazy"></figure>
+<p>s</p>
+<pre><code class="language-nginx">[root@837d2837b54c nginx]# cat nginx.conf 
+load_module &quot;modules/ngx_stream_geoip_module.so&quot;;
+load_module &quot;modules/ngx_http_geoip_module.so&quot;;
+user  nginx;
+worker_processes  1;
+
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+
+
+events {
+    worker_connections  1024;
+}
+
+
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+
+    log_format  main  '$http_user_agent' '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+                      '$status $body_bytes_sent &quot;$http_referer&quot; '
+                      '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+
+    access_log  /var/log/nginx/access.log  main;
+
+    sendfile        on;
+    #tcp_nopush     on;
+
+    keepalive_timeout  65;
+
+    gzip  on;
+    geoip_country /etc/nginx/GeoIP.dat;
+    geoip_city /etc/nginx/GeoIPCity.dat;
+
+    include /etc/nginx/conf.d/*.conf;
+}
+</code></pre>
+<p><strong>模块通过yum安装的：yum install nginx-module-geoip；数据库文件：https://www.lanzous.com/i71mekj 密码:i2ik，放在/etc/nginx目录下面</strong></p>
+<p><strong>子配置：</strong></p>
+<pre><code class="language-nginx">[root@837d2837b54c nginx]# cat conf.d/default.conf 
+server {
+    listen       80;
+    server_name  blogs.uscwifi.cn;
+    location / {
+        if ($geoip_country_code != CN) {
+            return 403;
+        }
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+    }
+
+   location /myip {
+        default_type text/plain;
+        return 200 &quot;$remote_addr $geoip_country_name $geoip_country_code $geoip_city&quot;;
+   }
+    error_page   500 502 503 504 404  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+}
+</code></pre>
+<p>dsa</p>
+<pre><code class="language-dockerfile">#
+# firefox Dockerfile
+#
+# https://github.com/jlesage/docker-firefox
+#
+
+# Pull base image.
+FROM jlesage/baseimage-gui:alpine-3.9-v3.5.2
+
+# Docker image version is provided via build arg.
+ARG DOCKER_IMAGE_VERSION=unknown
+
+# Define software versions.
+ARG FIREFOX_VERSION=68.0.2-r0
+ARG JSONLZ4_VERSION=c4305b8
+ARG LZ4_VERSION=1.8.1.2
+#ARG PROFILE_CLEANER_VERSION=2.36
+
+# Define software download URLs.
+ARG JSONLZ4_URL=https://github.com/avih/dejsonlz4/archive/${JSONLZ4_VERSION}.tar.gz
+ARG LZ4_URL=https://github.com/lz4/lz4/archive/v${LZ4_VERSION}.tar.gz
+#ARG PROFILE_CLEANER_URL=https://github.com/graysky2/profile-cleaner/raw/v${PROFILE_CLEANER_VERSION}/common/profile-cleaner.in
+
+# Define working directory.
+WORKDIR /tmp
+
+# Install Firefox.
+RUN \
+    add-pkg --repository http://dl-cdn.alpinelinux.org/alpine/edge/main \
+            --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing \
+            --upgrade firefox=${FIREFOX_VERSION}
+
+# Install extra packages.
+RUN \
+    add-pkg \
+        desktop-file-utils \
+        adwaita-icon-theme \
+        ttf-dejavu \
+        ffmpeg-libs \
+        # The following package is used to send key presses to the X process.
+        xdotool
+
+# Set default settings.
+RUN \
+    CFG_FILE=&quot;$(ls /usr/lib/firefox/browser/defaults/preferences/firefox-branding.js)&quot; &amp;&amp; \
+    echo '' &gt;&gt; &quot;$CFG_FILE&quot; &amp;&amp; \
+    echo '// Default download directory.' &gt;&gt; &quot;$CFG_FILE&quot; &amp;&amp; \
+    echo 'pref(&quot;browser.download.dir&quot;, &quot;/config/downloads&quot;);' &gt;&gt; &quot;$CFG_FILE&quot; &amp;&amp; \
+    echo 'pref(&quot;browser.download.folderList&quot;, 2);' &gt;&gt; &quot;$CFG_FILE&quot;
+
+# Install JSONLZ4 tools.
+RUN \
+    add-pkg --virtual build-dependencies \
+        curl \
+        build-base \
+        &amp;&amp; \
+    mkdir jsonlz4 &amp;&amp; \
+    mkdir lz4 &amp;&amp; \
+    curl -# -L {$JSONLZ4_URL} | tar xz --strip 1 -C jsonlz4 &amp;&amp; \
+    curl -# -L {$LZ4_URL} | tar xz --strip 1 -C lz4 &amp;&amp; \
+    mv jsonlz4/src/ref_compress/*.c jsonlz4/src/ &amp;&amp; \
+    cp lz4/lib/lz4.* jsonlz4/src/ &amp;&amp; \
+    cd jsonlz4 &amp;&amp; \
+    gcc -Wall -o dejsonlz4 src/dejsonlz4.c src/lz4.c &amp;&amp; \
+    gcc -Wall -o jsonlz4 src/jsonlz4.c src/lz4.c &amp;&amp; \
+    strip dejsonlz4 jsonlz4 &amp;&amp; \
+    cp -v dejsonlz4 /usr/bin/ &amp;&amp; \
+    cp -v jsonlz4 /usr/bin/ &amp;&amp; \
+    cd .. &amp;&amp; \
+    # Cleanup.
+    del-pkg build-dependencies &amp;&amp; \
+    rm -rf /tmp/* /tmp/.[!.]*
+
+# Install profile-cleaner.
+#RUN \
+#    add-pkg --virtual build-dependencies curl &amp;&amp; \
+#    curl -# -L -o /usr/bin/profile-cleaner {$PROFILE_CLEANER_URL} &amp;&amp; \
+#    sed-patch 's/@VERSION@/'${PROFILE_CLEANER_VERSION}'/' /usr/bin/profile-cleaner &amp;&amp; \
+#    chmod +x /usr/bin/profile-cleaner &amp;&amp; \
+#    add-pkg \
+#        bash \
+#        file \
+#        coreutils \
+#        bc \
+#        parallel \
+#        sqlite \
+#        &amp;&amp; \
+#    # Cleanup.
+#    del-pkg build-dependencies &amp;&amp; \
+#    rm -rf /tmp/* /tmp/.[!.]*
+
+# Enable log monitoring.
+RUN \
+    add-pkg yad &amp;&amp; \
+    sed-patch 's|LOG_FILES=|LOG_FILES=/config/log/firefox/error.log|' /etc/logmonitor/logmonitor.conf &amp;&amp; \
+    sed-patch 's|STATUS_FILES=|STATUS_FILES=/tmp/.firefox_shm_check|' /etc/logmonitor/logmonitor.conf
+
+# Adjust the openbox config.
+RUN \
+    # Maximize only the main window.
+    sed-patch 's/&lt;application type=&quot;normal&quot;&gt;/&lt;application type=&quot;normal&quot; title=&quot;Mozilla Firefox&quot;&gt;/' \
+        /etc/xdg/openbox/rc.xml &amp;&amp; \
+    # Make sure the main window is always in the background.
+    sed-patch '/&lt;application type=&quot;normal&quot; title=&quot;Mozilla Firefox&quot;&gt;/a \    &lt;layer&gt;below&lt;/layer&gt;' \
+        /etc/xdg/openbox/rc.xml
+
+# Generate and install favicons.
+RUN \
+    APP_ICON_URL=https://github.com/jlesage/docker-templates/raw/master/jlesage/images/firefox-icon.png &amp;&amp; \
+    install_app_icon.sh &quot;$APP_ICON_URL&quot;
+
+# Add files.
+COPY rootfs/ /
+
+# Set environment variables.
+ENV APP_NAME=&quot;Firefox&quot;
+
+# Define mountable directories.
+VOLUME [&quot;/config&quot;]
+
+# Metadata.
+LABEL \
+      org.label-schema.name=&quot;firefox&quot; \
+      org.label-schema.description=&quot;Docker container for Firefox&quot; \
+      org.label-schema.version=&quot;$DOCKER_IMAGE_VERSION&quot; \
+      org.label-schema.vcs-url=&quot;https://github.com/jlesage/docker-firefox&quot; \
+      org.label-schema.schema-version=&quot;1.0&quot;
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0WSP6LE4R/" class="tag">
+                    temp
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/rCaXwWFr7H/" class="tag">
+                    dos
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/bxxKg4_pZ/" class="tag">
+                    shell
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191101rewrite/">
+                  <h3 class="post-title">
+                    20191101rewrite
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

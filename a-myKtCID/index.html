@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> 将之前的网站数据导出来（wordpress） | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="将之前的网站数据导出来（wordpress）
+那是我两年前搞得网站了，那时候linux就只会皮毛，lnmp用的阿里云服务器模版，wordpress搭建教程用的阿里云1024种玩法种的教程，自从服务器到期之后就给它建了快照不管了，今天有空回复..." />
+    <meta name="keywords" content="worldpress" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> 将之前的网站数据导出来（wordpress）</h2>
+            <div class="post-date">2021-05-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://s.w.org/style/images/wporg-logo.svg?3')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="将之前的网站数据导出来wordpress">将之前的网站数据导出来（wordpress）</h1>
+<p><strong>那是我两年前搞得网站了，那时候linux就只会皮毛，lnmp用的阿里云服务器模版，wordpress搭建教程用的阿里云1024种玩法种的教程，自从服务器到期之后就给它建了快照不管了，今天有空回复下</strong></p>
+<h3 id="一-系统">一、系统</h3>
+<p><strong>ubuntu16.04</strong></p>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# lsb_release -a
+LSB Version:	core-9.20160110ubuntu0.2-amd64:core-9.20160110ubuntu0.2-noarch:security-9.20160110ubuntu0.2-amd64:security-9.20160110ubuntu0.2-noarch
+Distributor ID:	Ubuntu
+Description:	Ubuntu 16.04.6 LTS
+Release:	16.04
+Codename:	xenial
+</code></pre>
+<h3 id="二-环境">二、环境</h3>
+<p><strong>lamp</strong></p>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# history | egrep 'httpd|apache'
+   47  2017-11-29 17:43:01 root service httpd restart
+   48  2017-11-29 17:43:10 root service httpd status
+......
+  480  2019-02-25 01:45:23 root vim vim /usr/local/apache71/conf/vhost/www.uscwifi.cn.conf
+  481  2019-02-25 01:45:46 root vim vim /usr/local/apache71/conf/httpd.conf
+......
+</code></pre>
+<p><strong>httpd2.4版本的</strong></p>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# apachectl -v
+Server version: Apache/2.4.26 (Unix)
+Server built:   Jul  9 2017 09:05:59
+root@iZwz97ytqh359x7cu44m70Z:~# htt
+httpd      httxt2dbm  
+root@iZwz97ytqh359x7cu44m70Z:~# httpd -v
+Server version: Apache/2.4.26 (Unix)
+Server built:   Jul  9 2017 09:05:59
+</code></pre>
+<p><strong>mysql5.6</strong></p>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# mysql -V
+mysql  Ver 14.14 Distrib 5.6.36, for linux-glibc2.5 (x86_64) using  EditLine wrapper
+</code></pre>
+<p><strong>php貌似后面还被我升级到7了</strong></p>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# php -v
+PHP 7.1.7 (cli) (built: Jul  9 2017 09:17:18) ( NTS )
+Copyright (c) 1997-2017 The PHP Group
+Zend Engine v3.1.0, Copyright (c) 1998-2017 Zend Technologies
+    with Zend OPcache v7.1.7, Copyright (c) 1999-2017, by Zend Technologies
+</code></pre>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# history | grep php
+    3  2017-07-09 11:23:23 root ./change_php_version.sh 
+</code></pre>
+<h3 id="三-httpd的配置文件哪里去了">三、httpd的配置文件哪里去了</h3>
+<p><strong>看样子就是</strong>/usr/local/apache71/conf/vhost/www.qs88.cn.conf了</p>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# find / -name httpd.conf
+/usr/local/apache53/conf/original/httpd.conf
+/usr/local/apache53/conf/httpd.conf
+/usr/local/apache55/conf/original/httpd.conf
+/usr/local/apache55/conf/httpd.conf
+/usr/local/apache56/conf/original/httpd.conf
+/usr/local/apache56/conf/httpd.conf
+/usr/local/apache70/conf/original/httpd.conf
+/usr/local/apache70/conf/httpd.conf
+/usr/local/apache71/conf/original/httpd.conf
+/usr/local/apache71/conf/httpd.conf
+/usr/local/apache54/conf/original/httpd.conf
+/usr/local/apache54/conf/httpd.conf
+</code></pre>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# grep -r uscwifi /usr/local/apache*
+/usr/local/apache/conf/vhost/www.uscwifi.cn.conf:  ServerName www.uscwifi.cn
+/usr/local/apache71/conf/vhost/www.uscwifi.cn.conf:  ServerName www.uscwifi.cn
+......
+</code></pre>
+<h3 id="四-磁盘占用">四、磁盘占用</h3>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# df . -h
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/vda1        40G   11G   27G  29% /
+root@iZwz97ytqh359x7cu44m70Z:~# du -h / --max-depth=1 2&gt;/dev/null | sort -h
+0	/dev
+0	/proc
+0	/sys
+4.0K	/lib64
+4.0K	/mnt
+4.0K	/opt
+4.0K	/srv
+12K	/media
+16K	/lost+found
+76K	/home
+92K	/tmp
+2.7M	/run
+5.2M	/etc
+7.5M	/sbin
+13M	/bin
+144M	/boot
+305M	/root
+874M	/var
+919M	/lib
+3.9G	/data
+4.3G	/usr
+11G	/
+</code></pre>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# du -h /data/ --max-depth=1 2&gt;/dev/null | sort -h
+184K	/data/wwwlogs
+1.1G	/data/mysql
+2.9G	/data/wwwroot
+3.9G	/data/
+root@iZwz97ytqh359x7cu44m70Z:~# du -h /data/wwwroot/ --max-depth=1 2&gt;/dev/null | sort -h
+4.0K	/data/wwwroot/.well-known
+143M	/data/wwwroot/default
+2.7G	/data/wwwroot/defaultold
+2.9G	/data/wwwroot/
+</code></pre>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# ls /data/mysql/ -lh
+total 1.1G
+-rw-rw---- 1 mysql mysql   56 Jul  9  2017 auto.cnf
+-rw-rw---- 1 mysql mysql  76M Nov 11 14:21 ibdata1
+-rw-rw---- 1 mysql mysql  32M Nov 11 14:21 ib_logfile0
+-rw-rw---- 1 mysql mysql  32M Nov 11 14:21 ib_logfile1
+-rw-rw---- 1 mysql mysql  32M Apr  4  2019 ib_logfile2
+drwx------ 2 mysql mysql 4.0K Jul  9  2017 mysql
+-rw-rw---- 1 mysql mysql 900M Nov 11 13:55 mysql-bin.000010
+-rw-rw---- 1 mysql mysql 592K Nov 11 14:21 mysql-bin.000011
+-rw-rw---- 1 mysql mysql   38 Nov 11 13:55 mysql-bin.index
+-rw-rw---- 1 mysql mysql  56K Nov 11 13:55 mysql-error.log
+-rw-rw---- 1 mysql mysql    5 Nov 11 13:55 mysql.pid
+-rw-rw---- 1 mysql mysql 2.9K Nov 11 13:55 mysql-slow.log
+drwx------ 2 mysql mysql 4.0K Nov 29  2017 pan
+drwx------ 2 mysql mysql 4.0K Jul  9  2017 performance_schema
+drwx------ 2 mysql mysql 4.0K Dec 15  2018 wp
+</code></pre>
+<h3 id="五-mysql配置">五、mysql配置</h3>
+<p>使用的是oneinstack自动生成的</p>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# find / -name my.cnf
+/etc/my.cnf
+</code></pre>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# cat /etc/my.cnf
+[client]
+port = 3306
+socket = /tmp/mysql.sock
+default-character-set = utf8mb4
+
+[mysql]
+prompt=&quot;MySQL [\d]&gt; &quot;
+no-auto-rehash
+
+[mysqld]
+port = 3306
+socket = /tmp/mysql.sock
+
+basedir = /usr/local/mysql
+datadir = /data/mysql
+pid-file = /data/mysql/mysql.pid
+user = mysql
+bind-address = 0.0.0.0
+server-id = 1
+
+init-connect = 'SET NAMES utf8mb4'
+character-set-server = utf8mb4
+
+skip-name-resolve
+#skip-networking
+back_log = 300
+
+max_connections = 330
+max_connect_errors = 6000
+open_files_limit = 65535
+table_open_cache = 128
+max_allowed_packet = 500M
+binlog_cache_size = 1M
+max_heap_table_size = 8M
+tmp_table_size = 16M
+
+read_buffer_size = 2M
+read_rnd_buffer_size = 8M
+sort_buffer_size = 8M
+join_buffer_size = 8M
+key_buffer_size = 4M
+
+thread_cache_size = 8
+
+query_cache_type = 1
+query_cache_size = 8M
+query_cache_limit = 2M
+
+ft_min_word_len = 4
+
+log_bin = mysql-bin
+binlog_format = mixed
+expire_logs_days = 7
+
+log_error = /data/mysql/mysql-error.log
+slow_query_log = 1
+long_query_time = 1
+slow_query_log_file = /data/mysql/mysql-slow.log
+
+performance_schema = 0
+explicit_defaults_for_timestamp
+
+#lower_case_table_names = 1
+
+skip-external-locking
+
+default_storage_engine = InnoDB
+innodb_file_per_table = 1
+innodb_open_files = 500
+innodb_buffer_pool_size = 64M
+innodb_write_io_threads = 4
+innodb_read_io_threads = 4
+innodb_thread_concurrency = 0
+innodb_purge_threads = 1
+innodb_flush_log_at_trx_commit = 2
+innodb_log_buffer_size = 2M
+innodb_log_file_size = 32M
+innodb_log_files_in_group = 3
+innodb_max_dirty_pages_pct = 90
+innodb_lock_wait_timeout = 120
+
+bulk_insert_buffer_size = 8M
+myisam_sort_buffer_size = 8M
+myisam_max_sort_file_size = 10G
+myisam_repair_threads = 1
+
+interactive_timeout = 28800
+wait_timeout = 28800
+
+[mysqldump]
+quick
+max_allowed_packet = 500M
+
+[myisamchk]
+key_buffer_size = 8M
+sort_buffer_size = 8M
+read_buffer = 4M
+write_buffer = 4M
+</code></pre>
+<h3 id="六-httpd配置文件">六、httpd配置文件</h3>
+<p><strong>/usr/local/apache/conf/vhost/www.qs88.cn.conf</strong></p>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# cat /usr/local/apache/conf/vhost/www.uscwifi.cn.conf
+&lt;VirtualHost *:80&gt;
+  ServerAdmin admin@example.com
+  DocumentRoot &quot;/data/wwwroot/default&quot;
+  ServerName www.uscwifi.cn
+  
+  ErrorLog &quot;/data/wwwlogs/www.uscwifi.cn_error_apache.log&quot;
+  CustomLog &quot;/data/wwwlogs/www.uscwifi.cn_apache.log&quot; common
+&lt;Directory &quot;/data/wwwroot/default&quot;&gt;
+  SetOutputFilter DEFLATE
+  Options FollowSymLinks ExecCGI
+  Require all granted
+  AllowOverride All
+  Order allow,deny
+  Allow from all
+  DirectoryIndex index.html index.php
+&lt;/Directory&gt;
+&lt;/VirtualHost&gt;
+</code></pre>
+<p><strong>/usr/local/apache71/conf/vhost/www.qs88.cn.conf</strong></p>
+<pre><code class="language-bash">&lt;VirtualHost *:80&gt;
+  ServerAdmin admin@example.com
+  DocumentRoot &quot;/data/wwwroot/default&quot;
+  ServerName www.uscwifi.cn
+
+  ErrorLog &quot;/data/wwwlogs/www.uscwifi.cn_error_apache.log&quot;
+  CustomLog &quot;/data/wwwlogs/www.uscwifi.cn_apache.log&quot; common
+&lt;Directory &quot;/data/wwwroot/default&quot;&gt;
+  SetOutputFilter DEFLATE
+  Options FollowSymLinks ExecCGI
+  Require all granted
+  AllowOverride All
+  Order allow,deny
+  Allow from all
+  DirectoryIndex index.html index.php
+&lt;/Directory&gt;
+&lt;/VirtualHost&gt;
+&lt;VirtualHost *:443&gt;
+  ServerAdmin admin@example.com
+  DocumentRoot &quot;/data/wwwroot/default&quot;
+  ServerName www.uscwifi.cn
+
+  SSLEngine on
+  SSLCertificateFile &quot;/etc/letsencrypt/live/www.uscwifi.cn/fullchain.pem&quot;
+  SSLCertificateKeyFile &quot;/etc/letsencrypt/live/www.uscwifi.cn/privkey.pem&quot;
+  ErrorLog &quot;/data/wwwlogs/www.uscwifi.cn_error_apache.log&quot;
+  CustomLog &quot;/data/wwwlogs/www.uscwifi.cn_apache.log&quot; common
+&lt;Directory &quot;/data/wwwroot&quot;&gt;
+</code></pre>
+<h3 id="七-恢复数据">七、恢复数据</h3>
+<p><strong>切断网站的连接，按量付费还是比较贵的</strong></p>
+<pre><code class="language-bash">root@iZwz97ytqh359x7cu44m70Z:~# iptables -I INPUT -p tcp --dport 80 -j DROP
+</code></pre>
+<p><strong><s>拷贝数据到另一个机器上，避免产生公网流量</s></strong></p>
+<p><font color=red>数据要拷贝到本地必须要走公网，这个流量无法避免。。。</font></p>
+<p><strong>主要备份两个东西：/data/wwwroot/default和mysql数据，mysql的密码在wordpress的配置文件中</strong></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/bV0rUnGRr/" class="tag">
+                    worldpress
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/keepalivedyi-zhi-shi-dian/">
+                  <h3 class="post-title">
+                     keepalived(一)知识点
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

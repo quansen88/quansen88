@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>vsphere6.7（EXSI）服务器版的vmware | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="花一天时间试玩vsphere6.7（EXSI）服务器版的vmware
+要注册账号（2019年11月14注册）：
+登陆网址：https://my.vmware.com/cn/group/vmware/home
+账号：haha@grr.la
+密..." />
+    <meta name="keywords" content="vsphere,vmware" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">vsphere6.7（EXSI）服务器版的vmware</h2>
+            <div class="post-date">2021-05-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.vmware.com/content/dam/digitalmarketing/vmware/en/images/gallery/thumbnails/tn-video-thumbnail-3.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="花一天时间试玩vsphere67exsi服务器版的vmware">花一天时间试玩vsphere6.7（EXSI）服务器版的vmware</h1>
+<p>要注册账号（2019年11月14注册）：</p>
+<pre><code class="language-bash">登陆网址：https://my.vmware.com/cn/group/vmware/home
+账号：haha@grr.la
+密码：0nV+SJ8fZbdE8g==
+</code></pre>
+<p><strong>看了下。不管是标准版，企业版，测试版的6.7下载的软件包都是同一个，区别应该在于激活密钥</strong></p>
+<p><strong>主要有两个镜像：EXXI镜像，VCenter镜像</strong></p>
+<p>EXSI和VMware有点像，不过可以直接装在裸机上，Vcenter需要装在windows server上，管理EXSI平台</p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191115124221.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191115124334.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191115204044.png" alt="" loading="lazy"></figure>
+<blockquote>
+<p>**链接：**https://pan.baidu.com/s/1x8K4dnMdhg7uz11Hyi7v2A<br>
+**提取码：**tqaw</p>
+<p>VMware vSphere 6 Enterprise Plus<br>
+0A65P-00HD0-3Z5M1-M097M-22P7H</p>
+<p>**参考文档：**https://pan.baidu.com/s/18Cq9marptM-Rbym9l7RvtQ</p>
+<p>**这个是新的文档：**https://www.lanzous.com/i7ewj1i</p>
+<p>**上面如果失效：**https://blog.csdn.net/techgroup/article/details/100053477</p>
+</blockquote>
+<h3 id="一-安装exsi参考httpsblogcsdnnetweixin_42758707articledetails100525596">一、安装EXSI参考：https://blog.csdn.net/weixin_42758707/article/details/100525596</h3>
+<p><strong>需要注意的地方：不需要DHCP服务器，路由器分配IP就行，ip最好设置为固定IP，可以开启ssh</strong></p>
+<p><strong>填写密钥的地方：</strong></p>
+<figure data-type="image" tabindex="4"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191115130842.png" alt="" loading="lazy"></figure>
+<p>开启ssh后可以使用ssh登陆</p>
+<h3 id="二-创建虚拟机根vmware一样要先上传镜像再创建可以创建linuxmacoswindows">二、创建虚拟机根vmware一样，要先上传镜像再创建，可以创建Linux，MacOS，windows</h3>
+<p>也可以从ovf导入</p>
+<figure data-type="image" tabindex="5"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191115133117.png" alt="" loading="lazy"></figure>
+<h3 id="三-其他功能">三、其他功能</h3>
+<p><strong>支持虚拟机资源监控，克隆虚拟机，建立快照，导出为模版等功能</strong></p>
+<figure data-type="image" tabindex="6"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191115133354.png" alt="" loading="lazy"></figure>
+<p><strong>支持用VMware连ESXI平台(CTRL+L),连接之后可以创建或删除虚拟机，还可以对虚拟机开关机</strong></p>
+<figure data-type="image" tabindex="7"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191115133751.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191115133913.png" alt="" loading="lazy"></figure>
+<h3 id="四-vmware-vsphere-client60看样子官方不再长期支持了">四、VMware vSphere Client6.0（看样子官方不再长期支持了）</h3>
+<p>https://yq.aliyun.com/articles/636965</p>
+<p>https://wsgzao.github.io/post/vmware-vsphere-client/</p>
+<h3 id="五-解决ssh无法密码登陆的问题提示密钥登陆">五、解决ssh无法密码登陆的问题(提示密钥登陆)</h3>
+<p>CTRL+ALT+F1进入命令行，修改/etc/ssh/sshd_config 重启services.sh</p>
+<pre><code class="language-bash">[root@localhost:~] vi /etc/ssh/sshd_config 
+[root@localhost:~] grep PasswordAuth /etc/ssh/sshd_config
+PasswordAuthentication yes
+[root@localhost:~] services.sh restart
+</code></pre>
+<h3 id="六-安装vcenter">六、安装vcenter</h3>
+<p>安装到windows server2016中，应该还有其他办法</p>
+<p>**安装文档：**https://www.lanzous.com/i7eh24j</p>
+<p><strong>安装很简单，整个安装过程比较慢，可能要半个小时甚至更长</strong></p>
+<figure data-type="image" tabindex="9"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191115210349.png" alt="" loading="lazy"></figure>
+<p><strong>牛逼，8G，不搞了</strong></p>
+<figure data-type="image" tabindex="10"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191115210551.png" alt="" loading="lazy"></figure>
+<p><strong>换了个电脑，继续实验</strong></p>
+<figure data-type="image" tabindex="11"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116195334.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="12"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116200530.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116200744.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="14"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116200836.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="15"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116200915.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="16"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116200941.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="17"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116201006.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="18"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116201036.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="19"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116201115.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="20"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116202920.png" alt="" loading="lazy"></figure>
+<h3 id="七-vcenter管理esxi">七、vcenter管理ESXI</h3>
+<p>vcenter地址：vcenter.jd.com(172.18.3.252)</p>
+<p>exsi1地址：172.18.3.151</p>
+<p>exsi2地址：172.18.3.255</p>
+<p><strong>步骤：先创建数据中心，然后数据中心中添加主机（exsi节点）</strong></p>
+<blockquote>
+<p><strong>管理参考：https://www.cnblogs.com/djlsunshine/p/11372482.html</strong></p>
+</blockquote>
+<figure data-type="image" tabindex="21"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116204010.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="22"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116204121.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="23"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116210204.png" alt="" loading="lazy"></figure>
+<p><strong>新建数据中心：</strong></p>
+<figure data-type="image" tabindex="24"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116210530.png" alt="" loading="lazy"></figure>
+<p><strong>添加主机（添加exsi节点）</strong></p>
+<figure data-type="image" tabindex="25"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116210644.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="26"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116210816.png" alt="" loading="lazy"></figure>
+<p><strong>设置是否启用锁定模式，如果启用了锁定模式，管理员就不能够使用vSphere客户端直接登录到ESXI主机，只能通过vCenter Server对主机进行管理。在这里不启用锁定模式</strong></p>
+<figure data-type="image" tabindex="27"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116210907.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="28"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116210934.png" alt="" loading="lazy"></figure>
+<blockquote>
+<p>**激活参考：**https://www.lanzous.com/i7eikla</p>
+<p><strong>激活码复制粘贴全部导入了。一个机器一个激活码：https://blog.csdn.net/lizhiyuan_eagle/article/details/79989216</strong></p>
+</blockquote>
+<p><strong>然后就可以看到exsi中的虚拟机：</strong></p>
+<figure data-type="image" tabindex="29"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116211218.png" alt="" loading="lazy"></figure>
+<p><strong>遇到的小问题，我克隆的第一个exsi变成第二个exsi，被识别数来了，只能再装一台：</strong></p>
+<figure data-type="image" tabindex="30"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116211607.png" alt="" loading="lazy"></figure>
+<p><strong>vcenter同样支持管理虚拟机，连接虚拟机</strong></p>
+<figure data-type="image" tabindex="31"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116212614.png" alt="" loading="lazy"></figure>
+<h3 id="八-迁移exsi1的虚拟机到exsi2">八、迁移exsi1的虚拟机到exsi2</h3>
+<p>冷迁移，直接迁</p>
+<figure data-type="image" tabindex="32"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116212745.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="33"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116212823.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="34"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/1573910961630.png" alt="" loading="lazy"></figure>
+<p><strong>取消挂载cdrom再迁移</strong></p>
+<p><strong>热迁移，要添加虚拟交换机在每个exsi网络上</strong></p>
+<p>主机—配置—虚拟交换机—添加网络：</p>
+<figure data-type="image" tabindex="35"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116222627.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="36"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116222716.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="37"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116222747.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="38"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116222831.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="39"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116222946.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="40"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191116223002.png" alt="" loading="lazy"></figure>
+<p>exsi2一样，添加个虚拟交换机，ip不能一样</p>
+<figure data-type="image" tabindex="41"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191117142706.png" alt="" loading="lazy"></figure>
+<p><strong>然后就可以迁移了</strong></p>
+<figure data-type="image" tabindex="42"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191117142929.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="43"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191117142957.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="44"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191117143117.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="45"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191117143146.png" alt="" loading="lazy"></figure>
+<p><strong>整个迁移过程网络没有丢包，ssh也没有中断</strong></p>
+<figure data-type="image" tabindex="46"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191117143325.png" alt="" loading="lazy"></figure>
+<h3 id="九-vcenter正确激活姿势">九、vcenter正确激活姿势</h3>
+<blockquote>
+<p><strong>激活码：HY6X2-8ZK8M-M8EU9-X31NK-3ARL6</strong></p>
+</blockquote>
+<p><strong>先添加新的许可证</strong></p>
+<figure data-type="image" tabindex="47"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191117154418.png" alt="" loading="lazy"></figure>
+<p><strong>然后资产中分配许可证</strong></p>
+<figure data-type="image" tabindex="48"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191117154518.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/8nq__1Ng-/" class="tag">
+                    vsphere
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/Kz-4QylAJ8/" class="tag">
+                    vmware
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/4UbjY6War/">
+                  <h3 class="post-title">
+                     windows server2016  kms激活
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

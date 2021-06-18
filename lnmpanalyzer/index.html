@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>lnmp+analyzer | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="[root@ansible5 ~]# cat /etc/yum.repos.d/mysql57.repo 
+[mysql57]
+name=mysql57 tsinghua
+baseurl=https://mirror.tuna.tsingh..." />
+    <meta name="keywords" content="lnmp,analyzer" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">lnmp+analyzer</h2>
+            <div class="post-date">2021-05-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <pre><code class="language-bash">[root@ansible5 ~]# cat /etc/yum.repos.d/mysql57.repo 
+[mysql57]
+name=mysql57 tsinghua
+baseurl=https://mirror.tuna.tsinghua.edu.cn/mysql/yum/mysql57-community-el7/
+enabled=1
+gpgcheck=0
+[root@ansible5 ~]# yum install mysql-community-server -y
+</code></pre>
+<pre><code class="language-bash">[root@ansible5 ~]#  cat &gt; /etc/my.cnf &lt;&lt;EOF
+[mysqld]
+socket=/var/lib/mysql/mysql.sock
+datadir=/data/mysql
+log-bin
+server-id=1
+expire-logs-days=15
+binlog-format=row
+symbolic-links=0
+skip-name-resolve
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+EOF
+[root@ansible5 ~]# mkdir /data/mysql -p
+[root@ansible5 ~]# DB_PASSWORD=`cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 24`
+[root@ansible5 ~]# mysqld --initialize --datadir=/data/mysql --user=mysql
+[root@ansible5 ~]# systemctl start mysqld &amp;&amp; systemctl enable mysqld
+[root@ansible5 ~]# mysqladmin -uroot -p$(grep &quot; temporary password&quot; /var/log/mysqld.log | awk '{print $NF}') password ${DB_PASSWORD}
+[root@ansible5 ~]# echo  -e &quot;\033[31m${DB_PASSWORD}\033[0m&quot;
+DepD7EqKNsrVVgKLEORZlWOy
+</code></pre>
+<pre><code class="language-bash">[root@ansible5 ~]# yum install mysql rsyslog-mysql -y
+[root@ansible5 ~]# mysql -uroot -p&quot;${DB_PASSWORD}&quot; &lt; /usr/share/doc/rsyslog-8.24.0/mysql-createDB.sql
+mysql: [Warning] Using a password on the command line interface can be insecure.
+[root@ansible5 ~]# mysql -uroot -p&quot;${DB_PASSWORD}&quot; -e 'show databases;'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| Syslog             |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+</code></pre>
+<pre><code class="language-bash">[root@ansible5 ~]# mysql -uroot -p&quot;${DB_PASSWORD}&quot; -e 'CREATE USER syslog@&quot;localhost&quot; IDENTIFIED BY &quot;1234567890&quot;;'
+[root@ansible5 ~]# mysql -uroot -p&quot;${DB_PASSWORD}&quot; -e 'GRANT ALL PRIVILEGES ON Syslog.* to syslog@&quot;localhost&quot;;'
+</code></pre>
+<pre><code class="language-bash">[root@ansible5 ~]# vim /etc/rsyslog.conf
+...
+#syslog mysql module,下面这行表示加载ommysql模块
+$ModLoad ommysql
+...
+#下面这行表示将一些设备的日志发送到数据库中，数据库IP:数据库名:连接数据库用户:密码
+*.info;mail.none;authpriv.none;cron.none                :ommysql:localhost,Syslog,syslog,1234567890
+[root@ansible5 ~]# systemctl restart rsyslog.service
+</code></pre>
+<pre><code class="language-bash">[root@ansible5 ~]# mysql -uroot -p&quot;${DB_PASSWORD}&quot; -e 'select count(*) from Syslog.SystemEvents;'
+mysql: [Warning] Using a password on the command line interface can be insecure.
++----------+
+| count(*) |
++----------+
+|        6 |
++----------+
+</code></pre>
+<pre><code class="language-bash">[root@ansible5 ~]# curl -o /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+[root@ansible5 ~]# yum install https://mirrors.huaweicloud.com/remi/enterprise/remi-release-7.rpm -y
+[root@ansible5 ~]# yum install php73-php php73-php-mysqlnd php73-php-fpm php73-php-xml php73-php-bcmath php73-php-mbstring php73-php-xmlrpc php73-php-soap php73-php-common  php73-php-devel php73-php-gd php73-php-pecl-mcrypt php73-php-pecl-memcache php73-php-pecl-memcached  php73-php-opcache -y
+[root@ansible5 ~]# vim /etc/opt/remi/php73/php-fpm.d/www.conf
+user = nginx
+group = nginx
+listen = /var/run/php-fpm.sock
+listen.owner = nginx
+listen.group = nginx
+listen.mode = 0660
+</code></pre>
+<pre><code class="language-bash">[root@ansible5 ~]# cat &gt; /etc/yum.repos.d/nginx.repo &lt;&lt;'EOF'
+[nginx]
+name=nginx
+baseurl=http://nginx.org/packages/centos/$releasever/$basearch/
+enabled=1
+gpgkey=https://nginx.org/keys/nginx_signing.key
+module_hotfixes=true
+EOF
+[root@ansible5 ~]# yum install nginx -y
+</code></pre>
+<pre><code class="language-bash">[root@ansible5 ~]# grep -Ev &quot;^$|^( )*#&quot; /etc/nginx/nginx.conf 
+user  nginx;
+worker_processes  auto;
+error_log  /var/log/nginx/error.log warn;
+pid        /var/run/nginx.pid;
+events {
+    worker_connections  1024;
+}
+http {
+    include       /etc/nginx/mime.types;
+    default_type  application/octet-stream;
+    log_format  main  '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+                      '$status $body_bytes_sent &quot;$http_referer&quot; '
+                      '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+    access_log  /var/log/nginx/access.log  main;
+    sendfile        on;
+    keepalive_timeout  65;
+    server_tokens off;
+    gzip  on;
+    include /etc/nginx/conf.d/*.conf;
+}
+
+[root@ansible5 ~]# cat /etc/nginx/conf.d/syslog.example.com.conf
+server {
+    listen       80;
+    server_name  localhost;
+    access_log  /var/log/nginx/syslog.example.com-access.log  main;
+    error_log /var/log/nginx/syslog.example.com-error.log;
+    root /var/www/html/loganalyzer;
+    index index.php;
+    location / {
+        # Check if a file or directory index file exists, else route it to index.php.
+        try_files $uri $uri/ /index.php;
+    }    
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php-fpm.sock;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_index index.php;
+        fastcgi_buffer_size       128k;
+        fastcgi_buffers           64 128k;
+        fastcgi_intercept_errors  on;
+        fastcgi_param   PATH_INFO $fastcgi_path_info;
+        fastcgi_param             HTTP_AUTHORIZATION  $http_authorization;
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+        include                   fastcgi_params;
+        fastcgi_connect_timeout 300;
+        fastcgi_read_timeout 300;
+        fastcgi_send_timeout 300;
+        client_max_body_size 100m;
+    }
+    location ~ /.git
+    {
+        deny all;
+    }
+}
+</code></pre>
+<pre><code class="language-bash">[root@ansible5 ~]# wget http://download.adiscon.com/loganalyzer/loganalyzer-4.1.8.tar.gz
+[root@ansible5 ~]# tar xf loganalyzer-4.1.8.tar.gz
+[root@ansible5 ~]# cp loganalyzer-4.1.8/src  /var/www/html/loganalyzer-4.1.8 -a
+[root@ansible5 ~]# chown nginx.nginx -R /var/www/html/loganalyzer-4.1.8
+[root@ansible5 ~]# ln -s /var/www/html/loganalyzer-4.1.8 /var/www/html/loganalyzer
+</code></pre>
+<pre><code class="language-bash">[root@ansible5 ~]# systemctl start php73-php-fpm.service  &amp;&amp; systemctl enable php73-php-fpm.service
+[root@ansible5 ~]# nginx -t
+[root@ansible5 ~]# nginx
+[root@ansible5 ~]# ss -ltn | grep :80
+LISTEN     0      128          *:80                       *:*     
+</code></pre>
+<p><strong>此时还不能访问：</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://i.loli.net/2019/11/05/8eWDX4jYtoSE7H1.png" alt="" loading="lazy"></figure>
+<pre><code class="language-bash">#不管他，权限都给它了，应该可以自己创建
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://i.loli.net/2019/11/05/X6nWJziTI58qxvG.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://i.loli.net/2019/11/05/7tw6vK3aFWqxjic.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="https://i.loli.net/2019/11/05/3woIOPFJRAfZ72m.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="https://i.loli.net/2019/11/05/cLdHJOTrBzCWNG1.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://i.loli.net/2019/11/05/TLJFsBAX7OEStHj.png" alt="" loading="lazy"></figure>
+<p><strong>访问不了，老师说是这个项目的问题，wordpress都是好的</strong></p>
+<p>不纠结了；</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/_TPLzWYn1/" class="tag">
+                    lnmp
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/4uKosugfJW/" class="tag">
+                    analyzer
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191104haproxy/">
+                  <h3 class="post-title">
+                    haproxy
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

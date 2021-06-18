@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191027制作离线docker安装源 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="制作离线docker安装源
+[root@node1 tmp]# yum install wget yum-utils createrepo nginx -y
+[root@node1 tmp]# wget -O /etc/yum.repos...." />
+    <meta name="keywords" content="dockerfile" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191027制作离线docker安装源</h2>
+            <div class="post-date">2021-04-28</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.docker.com/sites/default/files/social/docker_facebook_share.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="制作离线docker安装源">制作离线docker安装源</h2>
+<pre><code class="language-bash">[root@node1 tmp]# yum install wget yum-utils createrepo nginx -y
+[root@node1 tmp]# wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+[root@node2 ~]# wget -O /etc/yum.repos.d/docker.repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+[root@node1 tmp]# cat &gt; pkg.list &lt;&lt;EOF
+docker-ce-19.03.4
+docker-python 
+docker-compose 
+python-chardet 
+python-requests
+chrony audit rsync jq git tcpdump nc bind-utils net-tools ipvsadm graphviz
+EOF
+[root@node1 tmp]# mkdir rpms
+[root@node1 tmp]# yum install -y --downloadonly --downloaddir=rpms $(cat pkg.list)
+[root@node1 tmp]# createrepo rpms/
+[root@node1 tmp]# sed '/default_server/  s/^/#/' /etc/nginx/nginx.conf -i
+[root@node1 tmp]# cat &gt; /etc/nginx/conf.d/test.conf &lt;&lt;EOF
+server {
+    listen 80;
+    server_name localhost;
+    location / {
+        root /tmp/tmp;
+        index index.html;
+        autoindex on;
+    }
+    
+    error_page 500 502 503 504  /50x.html;
+    location = 50x.html {
+        root /usr/share/nginx/html;
+    }
+}
+EOF
+</code></pre>
+<pre><code class="language-bash">[root@node1 rpms]# cat /tmp/tmp/index.html 
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+&lt;title&gt;Wise2C Yum Repo for Docker/K8S/Ceph/NFS installation&lt;/title&gt;
+&lt;style&gt;
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;h1&gt;Wise2C Yum Repo for Docker/K8S/Ceph/NFS installation&lt;/h1&gt;
+&lt;p&gt;If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.&lt;/p&gt;
+
+&lt;p&gt;For online documentation and support please refer to
+&lt;a href=&quot;http://nginx.org/&quot;&gt;nginx.org&lt;/a&gt;.&lt;br/&gt;
+Commercial support is available at
+&lt;a href=&quot;http://nginx.com/&quot;&gt;nginx.com&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Thank you for using nginx.&lt;/em&gt;&lt;/p&gt;
+
+&lt;br /&gt;
+&lt;br /&gt;
+
+&lt;a href = &quot;rpms&quot; &gt;Enter the RPM folder &lt;/a&gt;&lt;br /&gt;
+
+&lt;br /&gt;
+&lt;br /&gt;
+
+&lt;p&gt;&lt;em&gt;Please create the file wise2c.repo as below and then move to /etc/yum.repos.d/&lt;/em&gt;&lt;/p&gt;
+
+&lt;script type=&quot;text/javascript&quot;&gt;
+  var ip = location.host;
+  var comment = &quot;###############################################&quot;;
+  document.write(comment.fontcolor(&quot;Red&quot;));
+  document.write(&quot;&lt;pm&gt;&lt;em&gt;&lt;/em&gt;&lt;/p&gt;&quot;);
+  document.write(&quot;[wise2c]&quot;+&quot;&lt;br&gt;&quot;);
+  document.write(&quot;name=wise2c&quot;+&quot;&lt;br&gt;&quot;);
+  document.write(&quot;baseurl=http://&quot;+(ip)+&quot;/rpms&quot;+&quot;&lt;br&gt;&quot;);
+  document.write(&quot;enabled=1&quot;+&quot;&lt;br&gt;&quot;);
+  document.write(&quot;gpgcheck=0&quot;+&quot;&lt;br&gt;&quot;);
+  document.write(&quot;&lt;pm&gt;&lt;em&gt;&lt;/em&gt;&lt;/p&gt;&quot;);
+  document.write(comment.fontcolor(&quot;Red&quot;));
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+<pre><code class="language-bash">[root@node1 tmp]# cd
+[root@node1 ~]# nginx -t
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful
+[root@node1 ~]# nginx -s reload
+</code></pre>
+<p><strong>测试没有问题：</strong></p>
+<pre><code class="language-bash">[root@node1 ~]# cat &gt; /etc/yum.repos.d/docker.repo &lt;&lt;EOF
+[wise2c]
+name=wise2c
+baseurl=http://192.168.38.145/rpms
+enabled=1
+gpgcheck=0
+EOF
+[root@node1 ~]# yum install docker-ce-19.03.4 -y
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/kNjQz_ZLc/" class="tag">
+                    dockerfile
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191027dockerfile-duo-jie-duan-gou-jian-zhi-zuo-chi-xian-yum-yuan/">
+                  <h3 class="post-title">
+                    20191027dockerfile多阶段构建制作离线yum源
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190901openssl passwd | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="openssl passwd
+该伪命令用于生成加密的密码。
+#ubuntu，抱歉
+root@qqq:~# whatis passwd
+passwd (5)           - 密码文件
+passwd (1)           - 更改..." />
+    <meta name="keywords" content="openssl,证书" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190901openssl passwd</h2>
+            <div class="post-date">2021-04-23</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="openssl-passwd">openssl passwd</h1>
+<p><strong>该伪命令用于生成加密的密码。</strong></p>
+<pre><code class="language-bash">#ubuntu，抱歉
+root@qqq:~# whatis passwd
+passwd (5)           - 密码文件
+passwd (1)           - 更改用户密码
+passwd (1ssl)        - compute password hashes
+#centos7
+[root@linux5 ~]# whatis passwd
+sslpasswd (1ssl)     - compute password hashes
+passwd (1)           - update user's authentication ...
+</code></pre>
+<p><strong>直接man passwd会得到修改用户密码的passwd命令帮助，而不是openssl passwd的帮助，所以man sslpasswd。</strong></p>
+<pre><code class="language-bash">[root@linux5 ~]# man sslpasswd
+PASSWD(1)              OpenSSL              PASSWD(1)
+
+NAME
+       passwd - compute password hashes
+
+SYNOPSIS
+       openssl passwd [-crypt] [-1] [-apr1] [-salt
+       string] [-in file] [-stdin] [-noverify]
+       [-quiet] [-table] {password}
+</code></pre>
+<p>使用openssl passwd支持3种加密算法方式：不指定算法时，默认使用-crypt</p>
+<pre><code class="language-bash">选项说明：
+
+-crypt：UNIX标准加密算法，此为默认算法。如果加盐(-salt)算密码，只取盐的前2位，2位后面的所有字符都忽略。
+
+-1(数字)：基于MD5的算法代号。更多的算法代号见&quot;http://www.cnblogs.com/f-ck-need-u/p/7011460.html#blog222&quot;。
+
+-apr1(数字)：apache中使用的备选md5算法代号，不能和&quot;-1&quot;选项一起使用，因为apr1本身就默认了md5。htpasswd工具生成的身份验证密码就是此方法。
+
+-salt：加密时加点盐，可以增加算法的复杂度。但加了盐会有副作用：盐相同，密码相同，加密的结果将一样。
+
+-in file：从文件中读取要计算的密码列表
+
+-stdin：从标准输入中获取要输入的密码
+
+-quiet：生成密码过程中不输出任何信息
+</code></pre>
+<p>在命令行中直接输入要加密的密码password或者使用-salt时，将不需要交互确认，否则会交互确认密码</p>
+<pre><code class="language-bash">root@qqq:~# openssl passwd 123456
+0f/7.ebEUdJKs
+root@qqq:~# openssl passwd 123456
+Kn9ng701SW35w
+</code></pre>
+<p>由上面的测试可知，使用默认的-crypt加密的密码是随机的。但是加入盐后，如果密码一样，盐一样，那么加密结果一样。</p>
+<pre><code class="language-bash">root@qqq:~# openssl passwd -salt 'xxx' 123456
+xxkVQ7YXT9yoE
+root@qqq:~# openssl passwd -salt 'xxx' 123456
+xxkVQ7YXT9yoE
+</code></pre>
+<p>同时也看到了-crypt加密算法只取盐的前两位。</p>
+<p>如果盐的前两位和密码任意一个不一样，加密结果都不一样。</p>
+<pre><code class="language-bash">root@qqq:~# openssl passwd -salt 'xxx' 123456
+xxkVQ7YXT9yoE
+root@qqq:~# openssl passwd -salt 'xyx' 123456
+xyJkVhXGAZ8tM
+</code></pre>
+<p>注意，默认的-crypt只取盐的前两位字符，所以只要盐的前两位一样，即使第三位不同，结果也是一样的。</p>
+<pre><code class="language-bash">root@qqq:~# openssl passwd -salt 'xyx' 123456
+xyJkVhXGAZ8tM
+root@qqq:~# openssl passwd -salt 'xyb' 123456
+xyJkVhXGAZ8tM
+</code></pre>
+<p>测试下MD5格式的加密算法。</p>
+<pre><code class="language-bash">root@qqq:~# openssl passwd -1  123456;openssl passwd -1  123456
+$1$7eOWtd4H$SzlKzh1XQy1oYrfl5FPEE0
+$1$OPVCxGzZ$3HAZWF/oGCpPc/zqmCstE.
+</code></pre>
+<p>可见，结果比-crypt的算法更长了，且不加盐时，密码生成是随机的。</p>
+<pre><code class="language-bash">root@qqq:~# openssl passwd -1  -salt 'abcdefg' 123456;openssl passwd -1 -salt 'abcdefg' 123456
+$1$abcdefg$a3UbImglR4PCA3x7OvwMX.
+$1$abcdefg$a3UbImglR4PCA3x7OvwMX.
+</code></pre>
+<p>可以看出，加了盐虽然复杂度增加了，但是也受到了&quot;盐相同，密码相同，则加密结果相同&quot;的限制。另外，盐的长度也不再限于2位了。</p>
+<p>再为apache或nginx生成访问网页时身份验证的密码，即basic authentication验证方式的密码。</p>
+<pre><code class="language-bash">root@qqq:~# openssl passwd -apr1 123456;openssl passwd -apr1 123456
+$apr1$cO7xouBb$j.z8PNaZ7iUZ6.fxmVAAF.
+$apr1$.6bxCZgn$Ma5sR7oPbWaD15Ll1PATO0
+</code></pre>
+<pre><code class="language-bash">root@qqq:~# openssl passwd -apr1 -salt 'abcdefg' 123456;openssl passwd -apr1 -salt 'abcdefg' 123456
+$apr1$abcdefg$PCGBZd8XFTLOgZzLLU3K00
+$apr1$abcdefg$PCGBZd8XFTLOgZzLLU3K00
+</code></pre>
+<p>同样，加了盐就受到&quot;盐相同，密码相同则加密结果相同&quot;的限制。</p>
+<p>关于openssl passwd文件，它生成的密码可以直接复制到/etc/shadow文件中，但openssl passwd因为不支持sha512，所以密码强度不够。如果要生成sha512的密码，可以使用grub-crypt生成，它是一个python脚本，只不过很不幸CentOS 7只有grub2，grub-crypt命令已经没有了。</p>
+<pre><code class="language-bash">[root@centos6 ~]# grub-crypt --sha-512
+</code></pre>
+<p>可以使用语句简单地代替grub-crypt。</p>
+<pre><code class="language-bash">python -c 'import crypt,getpass;pw=getpass.getpass();print(crypt.crypt(pw) if (pw==getpass.getpass(&quot;Confirm: &quot;)) else exit())'
+</code></pre>
+<p>grub-crypt和上述python语句都是交互式的。如果要非交互式，稍稍修改下python语句：</p>
+<pre><code class="language-python">python -c 'import crypt,getpass;pw=&quot;123456&quot;;print(crypt.crypt(pw))'
+</code></pre>
+<pre><code class="language-bash">[root@linux5 ~]# python -c 'import crypt,getpass;pw=&quot;123456&quot;;print(crypt.crypt(pw))'
+$6$n2lJ9IP8VZA4f.ba$wsyKwzKJfZlc5PnNWxyEDkhAxAL4IaMusP2ppky09Kl9Hx5o.MRcOERwR4.39YyyXnO5LKsWGa0BeLApo4PEF0
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/cx2hRHr8nL/" class="tag">
+                    证书
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190901openssl-genrsa/">
+                  <h3 class="post-title">
+                    20190901openssl genrsa
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

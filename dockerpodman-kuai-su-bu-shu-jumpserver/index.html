@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>docker/podman快速部署jumpserver | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="20200905docker/podman快速部署jumpserver
+
+参考:https://hub.docker.com/r/jumpserver/jms_all
+
+jms是跳板机的英文缩写，使用容器方式启动更加方便，省资源
+一、一键部..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">docker/podman快速部署jumpserver</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="20200905dockerpodman快速部署jumpserver">20200905docker/podman快速部署jumpserver</h1>
+<blockquote>
+<p>参考:https://hub.docker.com/r/jumpserver/jms_all</p>
+</blockquote>
+<h3 id="jms是跳板机的英文缩写使用容器方式启动更加方便省资源"><strong>jms是跳板机的英文缩写，使用容器方式启动更加方便，省资源</strong></h3>
+<h2 id="一-一键部署">一、一键部署</h2>
+<blockquote>
+<p>参考:https://docs.jumpserver.org/zh/master/install/docker_install/</p>
+</blockquote>
+<h3 id="linux生成随机数密码"><strong>linux生成随机数密码</strong></h3>
+<p><strong>这一步是为了安全考虑</strong></p>
+<pre><code>if [ ! &quot;$SECRET_KEY&quot; ]; then
+  SECRET_KEY=`cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 50`;
+  echo &quot;SECRET_KEY=$SECRET_KEY&quot; &gt;&gt; ~/.bashrc;
+  echo $SECRET_KEY;
+else
+  echo $SECRET_KEY;
+fi  
+if [ ! &quot;$BOOTSTRAP_TOKEN&quot; ]; then
+  BOOTSTRAP_TOKEN=`cat /dev/urandom | tr -dc A-Za-z0-9 | head -c 16`;
+  echo &quot;BOOTSTRAP_TOKEN=$BOOTSTRAP_TOKEN&quot; &gt;&gt; ~/.bashrc;
+  echo $BOOTSTRAP_TOKEN;
+else
+  echo $BOOTSTRAP_TOKEN;
+fi
+</code></pre>
+<h3 id="启动容器">启动容器</h3>
+<pre><code>docker run --name jms_all -d   -p 80:80 -p 2222:2222   -e SECRET_KEY=$SECRET_KEY   -e BOOTSTRAP_TOKEN=$BOOTSTRAP_TOKEN   -v /opt/jumpserver/data:/opt/jumpserver/data   -v /opt/jumpserver/mysql:/var/lib/mysql   --privileged=true   jumpserver/jms_all
+</code></pre>
+<p>podman:<strong>podman已经别名成docker的用户请直接运行</strong></p>
+<h3 id="docker可以自动拉取hub上存在的镜像">docker可以自动拉取hub上存在的镜像</h3>
+<h2 id="二-检查运行情况">二、检查运行情况</h2>
+<pre><code>docker ps
+</code></pre>
+<h3 id="打开网页输入容器所属服务器ip80查看界面">打开网页，输入容器所属服务器ip:80，查看界面</h3>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/20200905230027.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/zhi-zuo-wo-de-shi-jie-fu-wu-qi-docker-rong-qi-jing-xiang/">
+                  <h3 class="post-title">
+                    制作我的世界服务器docker容器镜像
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

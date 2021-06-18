@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>vmware-minecraft-server(我的世界服务器一) | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="20200817vmware-minecraft-server(我的世界服务器一)
+
+帖子原址：http://quansen88.cn/post/zai-ben-di-da-jian-wo-de-shi-jie-fu-wu-qi-yi/
+
+..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">vmware-minecraft-server(我的世界服务器一)</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="20200817vmware-minecraft-server我的世界服务器一">20200817vmware-minecraft-server(我的世界服务器一)</h1>
+<blockquote>
+<p>帖子原址：http://quansen88.cn/post/zai-ben-di-da-jian-wo-de-shi-jie-fu-wu-qi-yi/</p>
+</blockquote>
+<p>搭建我的世界服务器.logs</p>
+<p>centos7</p>
+<blockquote>
+<p>https://msdn.itellyou.cn</p>
+</blockquote>
+<p><strong>server.jar(测试版本：minecraft1.16.2)</strong></p>
+<pre><code>wget https://launcher.mojang.com/v1/objects/c5f6fb23c3876461d46ec380421e42b289789530/server.jar
+</code></pre>
+<blockquote>
+<p>https://www.minecraft.net/zh-hans/download/server</p>
+</blockquote>
+<h2 id="一-安装与启动">一、安装与启动</h2>
+<p><strong>下载服务器包时会给你一条命令</strong></p>
+<pre><code>java -Xmx1024M -Xms1024M -jar minecraft_server.1.16.2.jar nogui
+</code></pre>
+<p><strong>稍加思索</strong></p>
+<h3 id="1-安装java">1. 安装java</h3>
+<pre><code>yum install java
+</code></pre>
+<p><strong>一般需要注意版本兼容，本次测试没有问题，java1.8</strong></p>
+<h3 id="2-对官网的命令稍加修改">2. 对官网的命令稍加修改</h3>
+<pre><code>java -Xmx1024M -Xms1024M -jar server.jar nogui
+</code></pre>
+<p><strong>因为下载的文件，与命令中略微不同</strong></p>
+<p><strong>然后会报错，不要慌，下一步</strong></p>
+<h3 id="3-根据提示修改配置文件eulatxt">3.  根据提示修改配置文件eula.txt</h3>
+<pre><code>vi eula.txt 
+</code></pre>
+<p>编辑文件如下，即eula=flase改为eula=true</p>
+<pre><code>#By changing the setting below to TRUE you are indicating your agreement to our EULA (https://account.mojang.com/documents/minecraft_eula).
+#Thu Aug 13 20:17:54 EDT 2020
+eula=true
+
+</code></pre>
+<h3 id="4再次执行java">4.再次执行java</h3>
+<pre><code>java -Xmx1024M -Xms1024M -jar server.jar nogui
+</code></pre>
+<h3 id="5未完待续下一期如何让客户端测试连接">5.未完待续，下一期：如何让客户端测试连接</h3>
+<h2 id="脚本-命令历史">脚本、命令历史</h2>
+<pre><code>yum install java #v1.8，主要是与服务器包兼容
+wget https://launcher.mojang.com/v1/objects/c5f6fb23c3876461d46ec380421e42b289789530/server.jar #服务器包
+mkdir ~/mc-server #文件比较乱，创建文件夹放一起
+mv ~/server.jar ~/mc-server/ #服务器包放进去
+cd ~/mc-server/ #切换目录
+java -Xmx1024M -Xms1024M -jar server.jar nogui #生成配置文件
+sed -i 's/eula=false/eula=true/g' eula.txt #修改eula配置文件为true
+java -Xmx1024M -Xms1024M -jar server.jar nogui #开始游戏
+
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/ssh-de-you-hua/">
+                  <h3 class="post-title">
+                    ssh的优化
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

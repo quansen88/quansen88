@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>centos7内核升级 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="两种方式升级内核
+一、yum升级内核
+参考：https://blog.csdn.net/kikajack/article/details/79396793
+不多废话了，直接操作，原理看别的文章
+1、uname -r
+[root@localh..." />
+    <meta name="keywords" content="centos" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">centos7内核升级</h2>
+            <div class="post-date">2021-04-22</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.centos.org/assets/img/centos-logo-white.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="两种方式升级内核">两种方式升级内核</h1>
+<h2 id="一-yum升级内核">一、yum升级内核</h2>
+<p><strong>参考：https://blog.csdn.net/kikajack/article/details/79396793</strong></p>
+<p>不多废话了，直接操作，原理看别的文章</p>
+<h4 id="1-uname-r">1、uname -r</h4>
+<pre><code class="language-bash">[root@localhost ~]# uname -r
+3.10.0-957.el7.x86_64
+</code></pre>
+<h4 id="2-备份数据">2、备份数据</h4>
+<h4 id="3-按照官方导入epel仓库">3、按照官方导入epel仓库</h4>
+<p>参考：http://elrepo.org/tiki/tiki-index.php</p>
+<pre><code class="language-bash">[root@localhost ~]# yum install https://www.elrepo.org/elrepo-release-7.0-4.el7.elrepo.noarch.rpm -y
+#就是一个repo仓库文件
+[root@localhost ~]# rpm -ql elrepo-release-7.0-4.el7.elrepo.noarch
+/etc/pki/elrepo
+/etc/pki/elrepo/SECURE-BOOT-KEY-elrepo.org.der
+/etc/pki/rpm-gpg
+/etc/pki/rpm-gpg/RPM-GPG-KEY-elrepo.org
+/etc/yum.repos.d
+/etc/yum.repos.d/elrepo.repo
+</code></pre>
+<h4 id="4-安装long-term版本吧">4、安装long term版本吧</h4>
+<p>参考：http://elrepo.org/tiki/kernel-lt</p>
+<pre><code class="language-bash">[root@localhost ~]# yum --enablerepo=elrepo-kernel install kernel-lt
+</code></pre>
+<h4 id="5-查看已有的内核">5、查看已有的内核</h4>
+<pre><code class="language-bahs"># '作为分隔符，查找第一列为menuentry的行，打印改行的第二列，i++打印序号，除了数字和字母其他符号要引起来
+[root@localhost ~]# awk -F\' '$1==&quot;menuentry &quot; {print i++ &quot; : &quot; $2}' /etc/grub2.cfg
+0 : CentOS Linux (4.4.190-1.el7.elrepo.x86_64) 7 (Core)
+1 : CentOS Linux (3.10.0-957.el7.x86_64) 7 (Core)
+2 : CentOS Linux (0-rescue-dd6fe5c491024a9486fa9acf832f21a6) 7 (Core)
+</code></pre>
+<h4 id="6-命令设置grub">6、命令设置grub</h4>
+<pre><code class="language-bash">[root@localhost ~]# grub2-set-default 0
+</code></pre>
+<h4 id="7-也可以修改etcdefaultgrub修改完记得重新生成配置文件">7、也可以修改/etc/default/grub,修改完记得重新生成配置文件</h4>
+<pre><code class="language-bash">[root@localhost ~]# sed -i 's/GRUB_DEFAULT=saved/GRUB_DEFAULT=0/' /etc/default/grub
+[root@localhost ~]# cat /etc/default/grub 
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR=&quot;$(sed 's, release .*$,,g' /etc/system-release)&quot;
+GRUB_DEFAULT=0
+GRUB_DISABLE_SUBMENU=true
+GRUB_TERMINAL_OUTPUT=&quot;console&quot;
+GRUB_CMDLINE_LINUX=&quot;rd.lvm.lv=centos/root rd.lvm.lv=centos/swap rhgb quiet&quot;
+GRUB_DISABLE_RECOVERY=&quot;true&quot;
+[root@localhost ~]# grub2-mkconfig -o /boot/grub2/grub.cfg 
+</code></pre>
+<h4 id="8-重启即可">8、重启即可</h4>
+<h4 id="9-清理旧内核可选">9、清理旧内核（可选）</h4>
+<p>能不清理旧别清理吧，centos允许多内核共存</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567170745891.png" alt="1567170745891" loading="lazy"></figure>
+<hr>
+<h2 id="二-源码编译内核">二、源码编译内核</h2>
+<h4 id="1-安装必要的包">1、安装必要的包</h4>
+<pre><code class="language-bash">[root@localhost ~]# yum install gcc ncurses-devel flex bison openssl-devel elfutils-libelf-devel -y
+</code></pre>
+<h4 id="2-解压包">2、解压包</h4>
+<pre><code class="language-bash">[root@localhost ~]# tar xf linux-5.2.11.tar.xz -C /usr/src/
+[root@localhost ~]# cd /usr/src/linux-5.2.11/
+</code></pre>
+<h4 id="3-cp一个配置文件稍作修改">3、cp一个配置文件稍作修改</h4>
+<pre><code class="language-bash">[root@localhost linux-5.2.11]# cp /boot/config-3.10.0-957.el7.x86_64 .config
+[root@localhost linux-5.2.11]# make menuconfig
+</code></pre>
+<p><strong>加一个NTFS文件系统支持：</strong></p>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567234826239.png" alt="1567234826239" loading="lazy"></figure>
+<pre><code class="language-bash">[root@localhost linux-5.2.11]# grep -i  ntfs .config
+CONFIG_NTFS_FS=m
+CONFIG_NTFS_DEBUG=y
+CONFIG_NTFS_RW=y
+</code></pre>
+<h4 id="4-开始编译">4、开始编译</h4>
+<pre><code class="language-bash">[root@localhost linux-5.2.11]# make -j 4
+#经过了一个多小时
+[root@localhost linux-5.2.11]# du -sh .
+12G	.
+[root@localhost linux-5.2.11]# find -name ntfs.ko
+./fs/ntfs/ntfs.ko
+</code></pre>
+<h4 id="5-安装模块">5、安装模块</h4>
+<pre><code class="language-bash">[root@localhost linux-5.2.11]# make modules_install
+
+[root@localhost linux-5.2.11]# ls /lib/modules
+3.10.0-957.el7.x86_64  4.4.190-1.el7.elrepo.x86_64  5.2.11-1.0-laowang_linux_x86_64
+[root@localhost linux-5.2.11]# du -sh /lib/modules/5.2.11-1.0-laowang_linux_x86_64/
+2.7G	/lib/modules/5.2.11-1.0-laowang_linux_x86_64/
+</code></pre>
+<h4 id="6-安装内核">6、安装内核</h4>
+<pre><code class="language-bash">[root@localhost linux-5.2.11]# make install
+</code></pre>
+<h4 id="7-关机加个ntfs优盘使用新内核启动发现可以识别了">7、关机，加个NTFS优盘，使用新内核启动，发现可以识别了</h4>
+<p>如果只是需要ntfs，只需安装ntfs-3g</p>
+<pre><code class="language-bash">[root@localhost ~]# uname -r
+5.2.11-1.0-laowang_linux_x86_64
+[root@localhost ~]# lsblk -f
+NAME            FSTYPE      LABEL           UUID                                   MOUNTPOINT
+sdb                                                                                
+└─sdb1          ntfs        小黑屋          A0283A0D2839E2C8                       
+sr0             iso9660     CentOS 7 x86_64 2018-11-25-21-21-31-00                 
+sda                                                                                
+├─sda2          LVM2_member                 h2lAZD-7e2i-TiO6-x0Bc-2b41-U15R-iGMXBG 
+│ ├─centos-swap swap                        c06f8b43-1b47-4412-bae7-785f3b599368   [SWAP]
+│ ├─centos-home xfs                         c30dee7e-0800-4737-b7b0-90db187eb3f8   /home
+│ └─centos-root xfs                         444b91d1-7fde-4f5d-9016-ad7b63862a5d   /
+└─sda1          xfs                         3778e6e0-8f51-4843-8b8f-239c8b5e826b   /boot
+[root@localhost ~]# mount /dev/sdb1 /mnt/usb
+[root@localhost ~]# ls /mnt/usb                    
+</code></pre>
+<h4 id="8-更改启动优先级">8、更改启动优先级</h4>
+<pre><code class="language-bash">#查看下
+[root@localhost ~]# awk -F\' '$1==&quot;menuentry &quot; {print i++ &quot; : &quot; $2}' /etc/grub2.cfg
+0 : CentOS Linux (5.2.11-1.0-laowang_linux_x86_64) 7 (Core)
+1 : CentOS Linux (4.4.190-1.el7.elrepo.x86_64) 7 (Core)
+2 : CentOS Linux (3.10.0-957.el7.x86_64) 7 (Core)
+3 : CentOS Linux (0-rescue-dd6fe5c491024a9486fa9acf832f21a6) 7 (Core)
+#设置5.2内核有限启动
+[root@localhost ~]# grep -i default /etc/default/grub
+GRUB_DEFAULT=0
+#重新生成grub配置文件
+[root@localhost ~]# grub2-mkconfig -o /boot/grub2/grub.cfg
+</code></pre>
+<h4 id="9-手动删掉编译的内核">9、手动删掉编译的内核</h4>
+<pre><code class="language-bash">[root@localhost ~]# rm /boot/*5.2.11* -f
+[root@localhost ~]# rm /boot/*5.2.11* -f
+[root@localhost ~]# rm -rf /lib/modules/5.2.11-1.0-laowang_linux_x86_64/
+[root@localhost ~]# rm -rf /usr/src/linux-5.2.11/
+[root@localhost ~]# grub2-mkconfig -o /boot/grub2/grub.cfg 
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/WsfqvhG9O/" class="tag">
+                    centos
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190828centos-xiu-gai-grub-de-bei-jing-tu/">
+                  <h3 class="post-title">
+                    20190828CentOS修改grub的背景图
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

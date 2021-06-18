@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> 修改nginx镜像时区 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="修改nginx镜像时区
+问题：
+
+容器时间正确的要求：
+
+宿主机时间正确
+容器时区正确
+
+宿主机时间
+yum install -y chrony
+systemctl enable chronyd &amp;&amp; systemctl r..." />
+    <meta name="keywords" content="nginx" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> 修改nginx镜像时区</h2>
+            <div class="post-date">2021-05-09</div>
+            
+              <div class="feature-container" style="background-image: url('https://nginx.org/nginx.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="修改nginx镜像时区">修改nginx镜像时区</h1>
+<h3 id="问题">问题：</h3>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191126151825.png" alt="" loading="lazy"></figure>
+<h3 id="容器时间正确的要求">容器时间正确的要求：</h3>
+<ul>
+<li><strong>宿主机时间正确</strong></li>
+<li><strong>容器时区正确</strong></li>
+</ul>
+<h3 id="宿主机时间">宿主机时间</h3>
+<pre><code class="language-bash">yum install -y chrony
+systemctl enable chronyd &amp;&amp; systemctl restart chronyd
+</code></pre>
+<h3 id="容器时区">容器时区</h3>
+<pre><code class="language-dockerfile">FROM nginx:alpine
+
+RUN apk --no-cache add ca-certificates tzdata \
+    &amp;&amp; \cp -a /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    &amp;&amp; apk del tzdata ca-certificates \
+    &amp;&amp; rm -rf /var/cache/apk/* 
+</code></pre>
+<pre><code class="language-bash">docker build -t nginx:alpine-1.2 .
+</code></pre>
+<p><strong>对比两个镜像大小</strong></p>
+<pre><code class="language-bash">[root@openvpn ~]# docker image ls nginx
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+nginx               alpine-1.2          6ce437b36039        5 minutes ago       21.6MB
+nginx               alpine              a624d888d69f        6 days ago          21.5MB
+</code></pre>
+<h3 id="日志时间正确了">日志时间正确了</h3>
+<pre><code class="language-bash">$ docker run --name nginx2 -d -p 80:80  nginx:alpine-1.2
+$ date
+Tue Nov 26 15:34:26 CST 2019
+$ docker logs -f nginx2
+172.18.28.28 - - [26/Nov/2019:15:29:07 +0800] &quot;GET / HTTP/1.1&quot; 304 0 &quot;-&quot; &quot;Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.97 Safari/537.36&quot; &quot;-&quot;
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/ycg_qQA4v/" class="tag">
+                    nginx
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/JgHhiXdnK/">
+                  <h3 class="post-title">
+                     ws+tls+web+cdn
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

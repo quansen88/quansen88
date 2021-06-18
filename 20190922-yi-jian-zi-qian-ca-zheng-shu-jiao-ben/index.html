@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190922一键自签CA证书脚本 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="一键自签CA证书脚本
+参考：https://blog.csdn.net/gengxiaoming7/article/details/78505107
+参考：https://blog.csdn.net/yuyin1018/article/de..." />
+    <meta name="keywords" content="证书" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190922一键自签CA证书脚本</h2>
+            <div class="post-date">2021-04-26</div>
+            
+              <div class="feature-container" style="background-image: url('http://repo.bjca.cn/global/static/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="一键自签ca证书脚本">一键自签CA证书脚本</h1>
+<p>参考：https://blog.csdn.net/gengxiaoming7/article/details/78505107</p>
+<p>参考：https://blog.csdn.net/yuyin1018/article/details/82868287</p>
+<h4 id="脚本">脚本：</h4>
+<pre><code class="language-bash">#!/bin/bash
+#**************************************************************
+#Author:                     Linus
+#QQ:                         599503252
+#Date:                       2019-09-22
+#FileName:                   openssl-ca.sh
+#URL:                        https://blog.51cto.com/14012942
+#Description:                Initialize the new server
+#Copyright (C):              2019 Copyright ©  站点名称  版权所有
+#************************************************************
+StandardOutput(){
+    echo -e &quot;\033[1;32m$1\033[0m&quot;
+}
+ErrorOutput(){
+    echo -e &quot;\033[1;31m$1\033[0m&quot;
+}
+
+read -e -p &quot;请输入你的域名：&quot; DOMAIN
+
+mkdir ${DOMAIN} &amp;&amp; cd ${DOMAIN}
+
+(umask 077;openssl genrsa  -out ca.key 2048) 
+openssl req -new -key ca.key -out ca.csr -subj &quot;/C=CN/ST=Shanghai/L=Shanghai/O=Internet/OU=devops/CN=ca.${DOMAIN}&quot;
+openssl x509 -req -days 3650 -in ca.csr -signkey ca.key -out ca.crt
+(umask 077;openssl genrsa  -out ${DOMAIN}.key 2048) 
+openssl req -new -key ${DOMAIN}.key -out  ${DOMAIN}.csr -subj &quot;/C=CN/ST=Shanghai/L=Shanghai/O=Internet/OU=devops/CN=${DOMAIN}&quot;
+openssl x509 -req -days 3650 -in ${DOMAIN}.csr -CA ca.crt -CAkey ca.key  -CAcreateserial -out ${DOMAIN}.crt
+
+StandardOutput &quot;密钥文件路径: ${DOMAIN}/${DOMAIN}.key&quot;
+StandardOutput &quot;证书文件路径: ${DOMAIN}/${DOMAIN}.crt&quot;
+</code></pre>
+<h4 id="效果">效果：</h4>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20190922212404.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/cx2hRHr8nL/" class="tag">
+                    证书
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190921mysql-zhi-man-cha-xun/">
+                  <h3 class="post-title">
+                    20190921mysql之慢查询
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

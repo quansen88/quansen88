@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>手动编译httpd-2.4.25 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="手动编译httpd-2.4.25
+
+系统：CentOS7.1810
+httpd：2.4.25
+编译时报错解决技巧：报什么错，就装这个错误的devel，比如报http2错误，就yum search http2，找到libnghttp2-dev..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">手动编译httpd-2.4.25</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="手动编译httpd-2425">手动编译httpd-2.4.25</h1>
+<blockquote>
+<p>系统：CentOS7.1810</p>
+<p>httpd：2.4.25</p>
+<p>编译时报错解决技巧：报什么错，就装这个错误的devel，比如报http2错误，就yum search http2，找到libnghttp2-devel，然后yum install libnghttp2-devel再重新configure</p>
+</blockquote>
+<pre><code># 配置EPEL源，有些包只有epel源有
+
+[root@centos7 ~]# cat /etc/yum.repos.d/epel.repo 
+[epel]
+name=aliyun epel
+baseurl=https://mirrors.aliyun.com/epel/7/x86_64/
+gpgcheck=1
+gpgkey=https://mirrors.aliyun.com/epel/RPM-GPG-KEY-EPEL-7
+enabled=1
+</code></pre>
+<h3 id="一-下载地址">一、下载地址：</h3>
+<p><a href="https://www.lanzous.com/i5csh0h">https://www.lanzous.com/i5csh0h</a></p>
+<p>http://archive.apache.org/dist/httpd/httpd-2.4.25.tar.bz2</p>
+<h3 id="二-安装依赖">二、安装依赖</h3>
+<pre><code>[root@imooc-nginx ~]# yum install gcc openssl-devel pcre-devel apr-devel apr-utils-devel libnghttp2-devel ncurses-devel
+</code></pre>
+<h3 id="三-解压">三、解压</h3>
+<pre><code>[root@imooc-nginx ~]# bzip2 -d httpd-2.4.25.tar.bz2 
+[root@imooc-nginx ~]# tar xf httpd-2.4.25.tar
+</code></pre>
+<h3 id="四-开始编译">四、开始编译</h3>
+<pre><code>[root@imooc-nginx ~]# cd httpd-2.4.25/
+[root@imooc-nginx httpd-2.4.25]# ./configure \
+ --prefix=/apps/httpd24 \
+ --sysconfdir=/etc/httpd \
+ --enable-http2 \
+ --disable-auth-basic \
+ --enable-ssl \
+ --enable-so
+</code></pre>
+<h3 id="五-根据makefile构建应用程序">五、根据Makefile，构建应用程序</h3>
+<pre><code>[root@imooc-nginx httpd-2.4.25]# make
+# make -j 2   #可以多线程编译，根据CPU个数写
+</code></pre>
+<h3 id="六-make-install">六、make install</h3>
+<pre><code># 拷贝文件
+[root@imooc-nginx httpd-2.4.25]# make install
+</code></pre>
+<h3 id="七-启动apache"><strong>七、启动apache</strong></h3>
+<p><strong>可以考虑加PATH变量或做软链接</strong></p>
+<pre><code>[root@imooc-nginx httpd-2.4.25]# /apps/httpd24/bin/apachectl start
+AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using fe80::20c:29ff:fe4d:5986. Set the 'ServerName' directive globally to suppress this message
+</code></pre>
+<h3 id="八-测试访问"><strong>八、测试访问</strong></h3>
+<p><strong>主页内容：/apps/httpd24/htdocs/index.html</strong></p>
+<pre><code>root@ubutnu:~# curl -q http://172.18.145.106
+&lt;html&gt;&lt;body&gt;&lt;h1&gt;It works!&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;
+</code></pre>
+<h3 id="九-让httpd开机自启">九、让httpd开机自启</h3>
+<pre><code>[root@imooc-nginx httpd-2.4.25]# vim /etc/rc.d/rc.local 
+[root@imooc-nginx httpd-2.4.25]# tail -1 /etc/rc.d/rc.local
+/apps/httpd24/bin/apachectl start
+[root@imooc-nginx httpd-2.4.25]# chmod +x /etc/rc.d/rc.local
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/hei-ke-ping-mu-cmaxtix-bian-yi-an-zhuang/">
+                  <h3 class="post-title">
+                    黑客屏幕cmaxtix编译安装
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

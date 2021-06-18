@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190902加密和安全（ssh等） | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="加密和安全
+selinux
+1、ssh非交互生成密钥
+[qqq@linux5 ~]$ ssh-keygen  -f ~/.ssh/id_rsa -P '' -C 'linux5'
+
+2、ssh -X
+支持x11转发，比如某些图形化东西，比如..." />
+    <meta name="keywords" content="ssh,sha,加密,linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190902加密和安全（ssh等）</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://res.cloudinary.com/canonical/image/fetch/f_auto,q_auto,fl_sanitize,w_116,h_70/https://assets.ubuntu.com/v1/2f1934f0-Liberty-Global-Logo.svg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="加密和安全">加密和安全</h1>
+<h4 id="selinux">selinux</h4>
+<h4 id="1-ssh非交互生成密钥"><strong>1、ssh非交互生成密钥</strong></h4>
+<pre><code class="language-bash">[qqq@linux5 ~]$ ssh-keygen  -f ~/.ssh/id_rsa -P '' -C 'linux5'
+</code></pre>
+<h4 id="2-ssh-x"><strong>2、ssh -X</strong></h4>
+<p>支持x11转发，比如某些图形化东西，比如xclock</p>
+<h4 id="3-xstart"><strong>3、xstart</strong></h4>
+<p>xshell的工具，可以连接虚拟机的图形化，比如桌面，firefox，xclock等，具体百度</p>
+<p><a href="https://blog.csdn.net/yimenren/article/details/85328574">用xstart打开centos7图形化界面</a></p>
+<p><a href="https://www.cnblogs.com/tibit/p/6134150.html">xmanager 打开centos7图形化窗口</a></p>
+<h4 id="4-xmanager"><strong>4、xmanager</strong></h4>
+<p>自行百度</p>
+<h4 id="5-ssh各种文件分布"><strong>5、ssh各种文件分布</strong></h4>
+<p><a href="http://www.jinbuguo.com/openssh/sshd_config.html">sshd_config中文手册</a></p>
+<pre><code class="language-bash">以主机A连接主机B为例，主机A为SSH客户端，主机B为SSH服务端。
+
+在服务端即主机B上：
+
+/etc/ssh/sshd_config  ：ssh服务程序sshd的配置文件。
+/etc/ssh/ssh_host_*   ：服务程序sshd启动时生成的服务端公钥和私钥文件。如ssh_host_rsa_key和ssh_host_rsa_key.pub。
+                                  ：其中.pub文件是主机验证时的host key，将写入到客户端的~/.ssh/known_hosts文件中。
+                                  ：其中私钥文件严格要求权限为600，若不是则sshd服务可能会拒绝启动。
+~/.ssh/authorized_keys：保存的是基于公钥认证机制时来自于客户端的公钥。在基于公钥认证机制认证时，服务端将读取该文件。
+在客户端即主机A上：
+
+/etc/ssh/ssh_config    ：客户端的全局配置文件。
+~/.ssh/config              ：客户端的用户配置文件，生效优先级高于全局配置文件。一般该文件默认不存在。该文件对权限有严
+                                  ：格要求只对所有者有读/写权限，对其他人完全拒绝写权限。
+~/.ssh/known_hosts   ：保存主机验证时服务端主机host key的文件。文件内容来源于服务端的ssh_host_rsa_key.pub文件。
+/etc/ssh/known_hosts：全局host key保存文件。作用等同于~/.ssh/known_hosts。
+~/.ssh/id_rsa              ：客户端生成的私钥。由ssh-keygen生成。该文件严格要求权限，当其他用户对此文件有可读权限时，
+                                  ：ssh将直接忽略该文件。
+~/.ssh/id_rsa.pub       ：私钥id_rsa的配对公钥。对权限不敏感。当采用公钥认证机制时，该文件内容需要复制到服务端的
+                                  ：~/.ssh/authorized_keys文件中。
+~/.ssh/rc                     ：保存的是命令列表，这些命令在ssh连接到远程主机成功时将第一时间执行，执行完这些命令之后才
+                                  ：开始登陆或执行ssh命令行中的命令。
+/etc/ssh/rc                  ：作用等同于~/.ssh/rc。
+</code></pre>
+<h4 id="6-一键shell脚本"><strong>6、一键shell脚本</strong></h4>
+<pre><code class="language-bash">#!/bin/bash
+
+privkey=&quot;$HOME/.ssh/id_rsa&quot;
+publickey=&quot;$HOME/.ssh/id_rsa.pub&quot;
+ 
+# Usage help
+if [ $# -ne 1 ];then
+   echo &quot;Usage:$0 [user@]hostname&quot;
+   exit 1
+fi
+ 
+# test private/publick key exist or not, and the privilege 600 or not
+if [ -f &quot;$privkey&quot; -a -f &quot;$publickey&quot; ];then
+   privkey_priv=`stat -c %a $privkey`
+   if [ &quot;$privkey_priv&quot; -ne 600 ];then
+       echo &quot;The privilege of private key ~/.ssh/id_rsa is not 600, exit now.&quot;
+       exit 1
+   fi
+else
+   echo &quot;private/public key is not exist, it will create it&quot;
+   ssh-keygen -t rsa -f $privkey -N ''
+   echo &quot;keys created over, it located on $HOME/.ssh/&quot;
+fi
+ 
+ssh-copy-id &quot;-o StrictHostKeyChecking=no $1&quot;
+ 
+if [ $? -eq 0 ];then
+   echo -e &quot;\e[31m publickey copy over \e[0m&quot;
+else
+   echo &quot;ssh can't to the remote host&quot;
+   exit 1
+fi
+</code></pre>
+<h4 id="7-ssh-agent"><strong>7、ssh-agent</strong></h4>
+<p>管理密钥登陆还要手动输密码的问题</p>
+<h4 id="8-scp自动应答"><strong>8、scp自动应答</strong></h4>
+<pre><code class="language-bash">[root@xuexi ~]# cat autoscp.exp
+#!/usr/bin/expect
+
+set timeout 10
+set user_hostname [lindex $argv 0]
+set src_file [lindex $argv 1]
+set dest_file [lindex $argv 2]
+set password [lindex $argv 3]
+spawn scp $src_file $user_hostname:$dest_file
+    expect {
+        &quot;(yes/no)?&quot;
+        {
+            send &quot;yes\n&quot;
+            expect &quot;*assword:&quot; { send &quot;$password\n&quot;}
+        }
+        &quot;*assword:&quot;
+        {
+            send &quot;$password\n&quot;
+        }
+    }
+expect &quot;100%&quot;
+expect eof
+</code></pre>
+<h4 id="9-ssh-copy-id自动应答脚本"><strong>9、ssh-copy-id自动应答脚本</strong></h4>
+<pre><code class="language-bash">[root@xuexi ~]# cat /tmp/autocopy.exp
+#!/usr/bin/expect
+
+set timeout 10
+set user_hostname [lindex $argv 0]
+set password [lindex $argv 1]
+spawn ssh-copy-id $user_hostname
+    expect {
+        &quot;(yes/no)?&quot;
+        {
+            send &quot;yes\n&quot;
+            expect &quot;*assword:&quot; { send &quot;$password\n&quot;}
+        }
+        &quot;*assword:&quot;
+        {
+            send &quot;$password\n&quot;
+        }
+    }
+expect eof
+</code></pre>
+<h4 id="10-ssh连接速度慢的几个原因和解决办法"><strong>10、ssh连接速度慢的几个原因和解决办法</strong></h4>
+<pre><code class="language-bash">sshd_config:
+UseDNS no
+GSSAPIAuthentication no
+</code></pre>
+<h4 id="11-ssh安全隧道一本地端口转发"><strong>11、ssh安全隧道一（本地端口转发）</strong></h4>
+<pre><code class="language-bash">#在本机监听9527端口，当访问本机的9527端口时，将数据包加密后转发给172.18.146.117的22端口，再解密转发到192.168.38.155:80
+[root@internet ~]# ssh -L 9527:192.168.38.155:80 172.18.146.117 -fNg
+root@172.18.146.117's password: 
+[root@internet ~]# ss -ltn | grep 9527
+LISTEN     0      128          *:9527                     *:*                  
+LISTEN     0      128         :::9527                    :::* 
+</code></pre>
+<h4 id="12-pssh批量管理"><strong>12、pssh批量管理</strong></h4>
+<pre><code class="language-bash">#安装
+yum install pssh -y
+#管理单台主机，执行命令
+[root@linux1 data]# pssh -H qqq@192.168.38.155 -i 'ls /tmp'	# -i：每个服务器内部处理信息输出 
+[1] 15:13:07 [SUCCESS] qqq@192.168.38.155
+install.sh
+#将信息输出到文件目录：
+[root@linux1 data]# pssh -H qqq@192.168.38.155 -i -o /tmp 'ls /tmp'
+[1] 15:15:43 [SUCCESS] qqq@192.168.38.155
+install.sh
+[root@linux1 data]# ls /tmp
+qqq@192.168.38.155
+#默认pssh使用密钥认证，想使用密码认证使用-A
+[root@linux1 data]# pssh -H qqq@192.168.38.155 -A -i -o /tmp 'ls /tmp'
+#-e 指定错误输出的目录
+[root@linux1 data]# pssh -H qqq@192.168.38.155  -i -o /tmp -e /tmp 'ls /tmp'
+#批量管理主机使用-h
+[root@linux1 data]# cat hosts.txt
+qqq@192.168.38.155
+root@172.18.144.228
+[root@linux1 data]# pssh -h hosts.txt -i 'hostname'
+[1] 15:21:48 [SUCCESS] qqq@192.168.38.155
+qqq
+[2] 15:21:48 [SUCCESS] root@172.18.144.228
+localhost.localdomain
+
+</code></pre>
+<h4 id="13-pscppssh命令">**13、pscp.pssh命令 **</h4>
+<p>pscp.pssh功能是将本地文件批量复制到远程主机</p>
+<pre><code class="language-bash">#可以基于密钥或密码，不管基于那种，都要先ssh连一下，因为pscp.pssh不能自动确认yes
+#复制本地文件到远端主机
+[root@linux1 data]# pscp.pssh -H qqq@192.168.38.155 install.sh  /tmp/
+[1] 15:23:57 [SUCCESS] qqq@192.168.38.155
+[root@linux1 data]# pssh -H qqq@192.168.38.155 -i 'ls /tmp'
+[1] 15:24:21 [SUCCESS] qqq@192.168.38.155
+install.sh
+#复制目录到远程主机，-H指定主机，-h指定一个文件
+[root@centos7 ~]# pscp.pssh -H  root@192.168.38.123 -A -r google-authenticator-libpam/ /tmp/
+Warning: do not enter your password if anyone else has superuser
+privileges or access to your account.
+Password: 
+[1] 21:01:20 [SUCCESS] root@192.168.38.123
+[root@centos7 ~]# pssh -H root@192.168.38.123 -A -i 'ls /tmp -l'
+Warning: do not enter your password if anyone else has superuser
+privileges or access to your account.
+Password: 
+[1] 21:03:50 [SUCCESS] root@192.168.38.123
+total 8
+drwxr-xr-x. 12 root root 4096 Sep  2 21:01 google-authenticator-libpam
+-rw-r--r--.  1 root root   11 Sep  2 15:18 qqq@192.168.38.155
+</code></pre>
+<h4 id="14-pslurp将远端文件复制到本地"><strong>14、pslurp将远端文件复制到本地</strong></h4>
+<pre><code class="language-bash">#同样，需要先连一次，它不能自动输入yes
+#和pssh，pscp一样，-h指定hosts文件，-A使用密码登陆，-r递归，-L /tmp表示本地存储目录，/etc/fstab表示远端要获取的文件 passwd表示将fstab改名为passwd保存到本地
+[root@centos7 ~]# pslurp -h hosts.txt -ArL  /tmp/  /etc/fstab passwd
+Warning: do not enter your password if anyone else has superuser
+privileges or access to your account.
+Password: 
+[1] 21:13:31 [SUCCESS] root@192.168.38.123
+[root@centos7 ~]# tree -C /tmp
+/tmp
+└── 192.168.38.123
+    └── passwd
+#将root@192.168.38.123主机的/etc/目录复制到本地的/tmp目录下面，并将etc改名为google
+[root@centos7 ~]# pslurp -H root@192.168.38.123 -ArL /tmp/ /etc/ google
+Warning: do not enter your password if anyone else has superuser
+privileges or access to your account.
+Password: 
+[1] 21:18:15 [SUCCESS] root@192.168.38.123    
+[root@centos7 ~]# ls /tmp/192.168.38.123 -l
+total 16
+drwxr-xr-x. 87 root root 8192 Sep  2 21:18 google
+-rw-r--r--.  1 root root  541 Sep  2 21:13 passwd
+</code></pre>
+<h4 id="15-ssh端口本地转发"><strong>15、SSH端口本地转发</strong></h4>
+<pre><code class="language-bash">#在本机监听9527端口，当访问本机的9527端口时，将数据包加密后转发给172.18.146.117的22端口，再解密转发到192.168.38.155:80 -N不打开远程shell，-f后台启用，-g启用网关功能，-L指定相关端口和IP，可自行man
+
+#这样就可以用本机（172.18.144.228）的9527端口访问到192.168.38.155:80了，注意各个机器的selinux和iptables
+[root@internet ~]# ssh -L 9527:192.168.38.155:80 172.18.146.117 -fNg
+root@172.18.146.117's password: 
+[root@internet ~]# ss -ltn | grep 9527
+LISTEN     0      128          *:9527                     *:*                  
+LISTEN     0      128         :::9527                    :::* 
+</code></pre>
+<h4 id="16-ssh做跳板机"><strong>16、SSH做跳板机</strong></h4>
+<pre><code class="language-bash">#本地监听2222端口，当访问本机2222端口时，将数据包加密后转发给172.18.146.117的22端口，再解密到192.168.38.155:22 -N不打开远程shell，-f后台启用，-g启用网关功能，
+[root@internet ~]# ssh -g -L 2222:192.168.38.155:22 172.18.146.117 -fN
+root@172.18.146.117's password: 
+</code></pre>
+<p><strong>现在就可以通过</strong>172.18.144.228的2222端口连接到192.168.38.155:22了</p>
+<pre><code class="language-bash">[root@testbox ~]# ssh root@172.18.144.228 -p2222
+Password: 
+Verification code: 
+Welcome to Ubuntu 18.04.3 LTS (GNU/Linux 5.0.0-27-generic x86_64)
+</code></pre>
+<p>缺点：中间机器172.18.146.117使用的22端口</p>
+<h4 id="17-ssh端口远程转发有点像vpn在家里连自己公网服务器的指定端口就链接到公司内部网络了">17、SSH端口远程转发(有点像VPN，在家里连自己公网服务器的指定端口，就链接到公司内部网络了)</h4>
+<p>将远程端口的数据转发到本地</p>
+<pre><code class="language-bash">#lanserver是本地的一个虚拟机172.18.146.230，172.18.144.228是另一台虚拟机，67.230.174.208是一个公网虚拟机（ssh端口修改为32568），
+#我使用wang用户身份连接67.230.174.208的32568ssh端口，并在该机器上监听33333端口，当我访问67.230.174.208的33333端口时，将数据转发给172.18.144.228:22
+#这条命令实现了远程连接67.230.174.208的33333端口，可以直接连到我的虚拟机172.18.144.228:22，有点像vpn
+root@lanserver:~# ssh  -R 33333:172.18.144.228:22 wang@67.230.174.208 -p32568
+</code></pre>
+<p><strong>但这条命令只是这样还不够，还达不到目的。会发现33333端口监听在127.0.0.1上，而不是0.0.0.0上，此处需要：</strong></p>
+<pre><code class="language-bash">#监听在本地
+State      Recv-Q Send-Q              Local Address:Port                             Peer Address:Port              
+LISTEN     0      128                     127.0.0.1:33333                                       *:*   
+#修改67.230.174.208的/etc/ssh/sshd_config,将GatewayPorts修改为yes
+[root@glowing-bliss-1 ~]# sed '$a GatewayPorts yes' /etc/ssh/sshd_config -i
+[root@glowing-bliss-1 ~]# systemctl restart sshd
+#启动该选项后，不给定bind_addr或bind_addr设置为&quot;*&quot;都表示绑定在所有地址上，如下
+root@lanserver:~# ssh  -fgN -R 33333:172.18.144.228:22 wang@67.230.174.208 -p32568
+wang@67.230.174.208's password: 
+</code></pre>
+<p><strong>然后就监听在所有地址上了</strong></p>
+<pre><code class="language-bash">[root@glowing-bliss-1 ~]# ss -ltn | grep :33333
+LISTEN     0      128          *:33333                    *:*                  
+LISTEN     0      128         :::33333                   :::*     
+</code></pre>
+<p><strong>然后连接67.230.174.208:33333</strong></p>
+<p><strong>理论上是可以的，我这里卡住了,明天高</strong></p>
+<pre><code class="language-bash">[root@internet ~]# ssh wang@67.230.174.208 -p33333 -vvv
+</code></pre>
+<p><strong>今天第二天，搞了个香港的服务器试试：</strong></p>
+<p>首先lanserver是本地的一个虚拟机，IP：172.18.146.224</p>
+<p>testbox是本地另一个虚拟机，IP：172.18.146.230</p>
+<p>香港服务器IP为47.75.165.238</p>
+<p>在lanserver上操作</p>
+<pre><code class="language-bash">root@lanserver:~# ssh  -fgN -R 12345:172.18.146.230:22 root@47.75.165.238
+The authenticity of host '47.75.165.238 (47.75.165.238)' can't be established.
+ECDSA key fingerprint is SHA256:qaV50sxlVPSq9ER0NA+3YGCAUbonmPKzSbVhDJ+wqQY.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '47.75.165.238' (ECDSA) to the list of known hosts.
+root@47.75.165.238's password: 
+root@lanserver:~# 
+</code></pre>
+<p>输入香港服务器密码，此时香港服务器已经监听12345端口了</p>
+<pre><code class="language-bash">#香港服务器也要开启GatewayPorts
+[root@hk-server ~]# sed '$a GatewayPorts yes' /etc/ssh/sshd_config -i
+[root@hk-server ~]#  systemctl restart sshd
+[root@hk-server ~]# ss -ltn
+State      Recv-Q Send-Q              Local Address:Port                             Peer Address:Port              
+LISTEN     0      128                             *:22                                          *:*                  
+LISTEN     0      128                             *:12345                                       *:*                
+</code></pre>
+<p>此时连接香港服务器的12345端口，会将流量转发到本地的172.18.146.230:22（testbox）上，直接输入172.18.146.230（testbox）服务器密码即可</p>
+<pre><code class="language-bash">[C:\Users\24305]$ ssh root@47.75.165.238 12345
+
+Connecting to 47.75.165.238:12345...
+Connection established.
+To escape to local shell, press 'Ctrl+Alt+]'.
+
+Last failed login: Tue Sep  3 17:23:07 CST 2019 from 172.18.146.224 on ssh:notty
+There were 2 failed login attempts since the last successful login.
+Last login: Tue Sep  3 17:18:58 2019 from 172.18.28.28
+[root@testbox ~]#
+</code></pre>
+<h4 id="18-ssh安全隧道三动态端口转发socks代理"><strong>18、ssh安全隧道(三)：动态端口转发(SOCKS代理)</strong></h4>
+<p>有点像科学上网的意思</p>
+<p>首先lanserver是本地的一个虚拟机，IP：172.18.146.224</p>
+<p>testbox是本地另一个虚拟机，IP：172.18.146.230</p>
+<p>香港服务器IP为47.75.165.238</p>
+<p>在lanserver上操作</p>
+<pre><code class="language-bash">root@lanserver:~# ssh -Nfg -D 2222 root@47.75.165.238
+root@47.75.165.238's password: 
+</code></pre>
+<p>执行完上面的命令，lanserver将在本地开启SOCKS4或SOCKS5服务来监听2222端口。只要客户端程序工具(隐含了使用的应用层协议类型)将其自身的代理设置为lanserver:2222，则该程序所有产生的数据都将转发到lanserver:2222，再由lanserver:2222将数据通过隧道转发给香港服务器，最后由lanserver和互联网或lanserver上对应客户端工具的应用层协议的端口进行通信。</p>
+<p><strong>现在设置浏览器代理为172.18.146.224:2222（lanserver）然后访问google试试</strong></p>
+<h4 id="19-只在在香港服务器上配置实现科学上网失败了成功了"><strong>19、只在在香港服务器上配置，实现科学上网（<s>失败了</s>成功了）</strong></h4>
+<p><strong>经过不懈努力，终于成功了，不能访问google的原因是DNS问题，国内DNS被污染了，需要改个小东西</strong></p>
+<p>参考：https://blog.csdn.net/mergerly/article/details/50908128</p>
+<pre><code class="language-bash"># 香港服务器既做
+[root@hk-server ~]# ssh -gD 1723 127.0.0.1 -Nf
+root@127.0.0.1's password: 
+[root@hk-server ~]# ss -ltn
+State      Recv-Q Send-Q              Local Address:Port                             Peer Address:Port              
+LISTEN     0      128                             *:22                                          *:*                  
+LISTEN     0      128                             *:12345                                       *:*                  
+LISTEN     0      128                             *:1723                                        *:*                  
+LISTEN     0      128                            :::1723                                       :::*         
+</code></pre>
+<p>上面命令意思：在本地监听1723端口，将1723端口的请求转发给本机127.0.0.1:22端口</p>
+<p>应该是成功了，但是不能访问google</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567481959741.png" alt="1567481959741" loading="lazy"></figure>
+<p>总结：科学上网的步骤：</p>
+<p>1、香港服务器开启转发：ssh -fND 127.0.0.1 -g</p>
+<p>2、火狐浏览器设置代理，SOcket代理</p>
+<p>3、火狐浏览器打开about:config将network.proxy.socks_remote_dns改为true，打开远程DNS功能</p>
+<h4 id="20-sshd_config"><strong>20、sshd_config</strong></h4>
+<pre><code class="language-bash">[root@xuexi ~]# cat /etc/ssh/sshd_config
+
+#Port 22                # 服务端SSH端口，可以指定多条表示监听在多个端口上
+#ListenAddress 0.0.0.0  # 监听的IP地址。0.0.0.0表示监听所有IP
+Protocol 2              # 使用SSH 2版本
+ 
+#####################################
+#          私钥保存位置               #
+#####################################
+# HostKey for protocol version 1
+#HostKey /etc/ssh/ssh_host_key      # SSH 1保存位置/etc/ssh/ssh_host_key
+# HostKeys for protocol version 2
+#HostKey /etc/ssh/ssh_host_rsa_key  # SSH 2保存RSA位置/etc/ssh/ssh_host_rsa _key
+#HostKey /etc/ssh/ssh_host_dsa_key  # SSH 2保存DSA位置/etc/ssh/ssh_host_dsa _key
+ 
+ 
+###################################
+#           杂项配置               #
+###################################
+#PidFile /var/run/sshd.pid        # 服务程序sshd的PID的文件路径
+#ServerKeyBits 1024               # 服务器生成的密钥长度
+#SyslogFacility AUTH              # 使用哪个syslog设施记录ssh日志。日志路径默认为/var/log/secure
+#LogLevel INFO                    # 记录SSH的日志级别为INFO
+ 
+###################################
+#   以下项影响认证速度               #
+###################################
+#UseDNS yes                       # 指定是否将客户端主机名解析为IP，以检查此主机名是否与其IP地址真实对应。默认yes。
+                                  # 由此可知该项影响的是主机验证阶段。建议在未配置DNS解析时，将其设置为no，否则主机验证阶段会很慢
+ 
+###################################
+#   以下是和安全有关的配置           #
+###################################
+#PermitRootLogin yes              # 是否允许root用户登录
+#GSSAPIAuthentication no          # 是否开启GSSAPI身份认证机制，默认为yes
+#PubkeyAuthentication yes         # 是否开启基于公钥认证机制
+#AuthorizedKeysFile  .ssh/authorized_keys  # 基于公钥认证机制时，来自客户端的公钥的存放位置
+PasswordAuthentication yes        # 是否使用密码验证，如果使用密钥对验证可以关了它
+#PermitEmptyPasswords no          # 是否允许空密码，如果上面的那项是yes，这里最好设置no
+#MaxSessions 10                   # 最大客户端连接数量
+#LoginGraceTime 2m                # 身份验证阶段的超时时间，若在此超时期间内未完成身份验证将自动断开
+#MaxAuthTries 6                   # 指定每个连接最大允许的认证次数。默认值是6。
+                                  # 如果失败认证次数超过该值一半，将被强制断开，且生成额外日志消息。
+MaxStartups 10                    # 最大允许保持多少个未认证的连接。默认值10。
+
+###################################
+#   以下可以自行添加到配置文件        #
+###################################
+DenyGroups  hellogroup testgroup  # 表示hellogroup和testgroup组中的成员不允许使用sshd服务，即拒绝这些用户连接
+DenyUsers   hello test            # 表示用户hello和test不能使用sshd服务，即拒绝这些用户连接
+ 
+###################################
+#   以下一项和远程端口转发有关        #
+###################################
+#GatewayPorts no                  # 设置为yes表示sshd允许被远程主机所设置的本地转发端口绑定在非环回地址上
+                                  # 默认值为no，表示远程主机设置的本地转发端口只能绑定在环回地址上，见后文&quot;远程端口转发&quot;
+</code></pre>
+<h4 id="21-ssh_config配置"><strong>21、ssh_config配置</strong></h4>
+<pre><code class="language-bash"># Host *                              # Host指令是ssh_config中最重要的指令，只有ssh连接的目标主机名能匹配此处给定模式时，
+                                      # 下面一系列配置项直到出现下一个Host指令才对此次连接生效
+#   ForwardAgent no
+#   ForwardX11 no
+#   RhostsRSAAuthentication no
+#   RSAAuthentication yes
+#   PasswordAuthentication yes     # 是否启用基于密码的身份认证机制
+#   HostbasedAuthentication no     # 是否启用基于主机的身份认证机制
+#   GSSAPIAuthentication no        # 是否启用基于GSSAPI的身份认证机制
+#   GSSAPIDelegateCredentials no
+#   GSSAPIKeyExchange no
+#   GSSAPITrustDNS no
+#   BatchMode no                   # 如果设置为&quot;yes&quot;，将禁止passphrase/password询问。比较适用于在那些不需要询问提供密
+                                   # 码的脚本或批处理任务任务中。默认为&quot;no&quot;。
+#   CheckHostIP yes
+#   AddressFamily any
+#   ConnectTimeout 0
+#   StrictHostKeyChecking ask        # 设置为&quot;yes&quot;，ssh将从不自动添加host key到~/.ssh/known_hosts文件，
+                                     # 且拒绝连接那些未知的主机(即未保存host key的主机或host key已改变的主机)。
+                                     # 它将强制用户手动添加host key到~/.ssh/known_hosts中。
+                                     # 设置为ask将询问是否保存到~/.ssh/known_hosts文件。
+                                     # 设置为no将自动添加到~/.ssh/known_hosts文件。
+#   IdentityFile ~/.ssh/identity     # ssh v1版使用的私钥文件
+#   IdentityFile ~/.ssh/id_rsa       # ssh v2使用的rsa算法的私钥文件
+#   IdentityFile ~/.ssh/id_dsa       # ssh v2使用的dsa算法的私钥文件
+#   Port 22                          # 当命令行中不指定端口时，默认连接的远程主机上的端口
+#   Protocol 2,1
+#   Cipher 3des                      # 指定ssh v1版本中加密会话时使用的加密协议
+#   Ciphers aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128,aes128-cbc,3des-cbc  # 指定ssh v1版本中加密会话时使用的加密协议
+#   MACs hmac-md5,hmac-sha1,umac-64@openssh.com,hmac-ripemd160
+#   EscapeChar ~
+#   Tunnel no
+#   TunnelDevice any:any
+#   PermitLocalCommand no    # 功能等价于~/.ssh/rc，表示是否允许ssh连接成功后在本地执行LocalCommand指令指定的命令。
+#   LocalCommand             # 指定连接成功后要在本地执行的命令列表，当PermitLocalCommand设置为no时将自动忽略该配置
+                             # %d表本地用户家目录，%h表示远程主机名，%l表示本地主机名，%n表示命令行上提供的主机名，
+                             # p%表示远程ssh端口，r%表示远程用户名，u%表示本地用户名。
+#   VisualHostKey no         # 是否开启主机验证阶段时host key的图形化指纹
+Host *
+        GSSAPIAuthentication yes
+</code></pre>
+<h4 id="22-curl命令的选项-socks5"><strong>22、curl命令的选项--socks5</strong></h4>
+<pre><code class="language-bash">curl --socks 47.75.165.238:1723 www.google.com
+</code></pre>
+<h4 id="23-ssh服务的最佳实战"><strong>23、ssh服务的最佳实战</strong></h4>
+<pre><code class="language-bash">建议使用非默认端口 
+禁止使用protocol version 1 
+限制可登录用户 
+设定空闲会话超时时长 
+利用防火墙设置ssh访问策略 
+仅监听特定的IP地址 
+基于口令认证时，使用强密码策略     tr -dc A-Za-z0-9_ &lt; /dev/urandom | head -c 12| xargs 
+使用基于密钥的认证 
+禁止使用空密码 
+禁止root用户直接登录 
+限制ssh的访问频度和并发在线数 
+经常分析日志
+</code></pre>
+<h4 id="24-脚本每天晚上对登陆日志分析将失败ip大于5的放到防火墙"><strong>24、脚本：每天晚上对登陆日志分析，将失败IP大于5的放到防火墙</strong></h4>
+<pre><code class="language-bash">#发起错误密码攻击
+root@lanserver:~# for i in `seq 100`;do sshpass -p 12345 ssh root@192.168.38.154 -o StrictHostKeyChecking=no;done
+#btmb日志切割脚本
+[root@imooc-nginx scripts]# cat btmp_logrotate.sh 
+#!/bin/bash
+cp /var/log/btmp /data/btmp-`date +%Y%m%d -d yesterday`
+&gt; /var/log/btmp
+#自动将IP加入防火墙
+[root@imooc-nginx scripts]# cat deny_dos.sh 
+#!/bin/bash
+. /etc/profile
+FILE=/data/btmp-`date +%Y%m%d -d yesterday`
+lastb -f $FILE | awk '{ip[$3]++} END {for(i in ip){if(ip[i]&gt;5)system(&quot;iptables -A INPUT -s &quot;i&quot; -j REJECT&quot;)}}'
+#将二者加入计划任务
+[root@imooc-nginx scripts]#  echo '0 0 * * * /bin/bash /root/scripts/btmp_logrotate.sh' &gt;&gt; /var/spool/cron/root
+[root@imooc-nginx scripts]#  echo '0 10 * * * /bin/bash /root/scripts/deny_dos.sh' &gt;&gt; /var/spool/cron/root
+#修改时间测试
+[root@imooc-nginx scripts]# date -s '2019-09-03 23:59:30'
+#查看防火墙规则，成功
+[root@imooc-nginx ~]# iptables -vnL
+Chain INPUT (policy ACCEPT 7 packets, 951 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+   55  3256 REJECT     all  --  *      *       192.168.38.155       0.0.0.0/0            reject-with icmp-port-unreachable
+</code></pre>
+<h4 id="25-rsync同步文件"><strong>25、rsync同步文件</strong></h4>
+<p>--exclude排除原则</p>
+<p>--exclude选项指定排除规则，排除那些不需要传输的文件</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -r -v --exclude=&quot;anaconda/*.log&quot; /var/log/anaconda /var/log/audit /tmp
+sending incremental file list
+anaconda/
+anaconda/syslog
+audit/
+audit/audit.log
+
+sent 506,720 bytes  received 66 bytes  1,013,572.00 bytes/sec
+total size is 506,359  speedup is 1.00
+[root@testbox tmp]# tree -C .
+.
+├── anaconda
+│   └── syslog
+└── audit
+    └── audit.log
+
+2 directories, 2 files
+</code></pre>
+<p>​		上例中只排除了anaconda目录中的log文件，但是audit目录中的log文件是正常传输的。</p>
+<p>​		注意，一个&quot;--exclude&quot;只能指定一条规则，要指定多条排除规则，需要使用多个&quot;--exclude&quot;选项，或者将排除规则写入到文件中，然后使用&quot;--exclude-from&quot;选项读取该规则文件。</p>
+<p>​		另外，除了&quot;--exclude&quot;排除规则，还有&quot;--include&quot;包含规则，顾名思义，它就是筛选出要进行传输的文件，所以include规则也称为传输规则。它的使用方法和&quot;--exclude&quot;一样。如果一个文件即能匹配排除规则，又能匹配包含规则，则先匹配到的立即生效，生效后就不再进行任何匹配。</p>
+<p>​		最后，关于规则，最重要的一点是它的作用时间。**当发送端敲出rsync命令后，rsync将立即扫描命令行中给定的文件和目录(扫描过程中还会按照目录进行排序，将同一个目录的文件放在相邻的位置)，这称为拷贝树(copy tree)，扫描完成后将待传输的文件或目录记录到文件列表中，然后将文件列表传输给接收端。而筛选规则的作用时刻是在扫描拷贝树时，所以会根据规则来匹配并决定文件是否记录到文件列表中(严格地说是会记录到文件列表中的，只不过排除的文件会被标记为hide隐藏起来)，只有记录到了文件列表中的文件或目录才是真正需要传输的内容。换句话说，筛选规则的生效时间在rsync整个同步过程中是非常靠前的，它会影响很多选项的操作对象，最典型的如&quot;--delete&quot;。**也许，你看完这一整篇文章都没感觉到这一点的重要性，但如果你阅读rsync的man文档或者学习rsync的原理，你一定会深有体会。</p>
+<p>​		实际上，排除规则和包含规则都只是&quot;--filter&quot;筛选规则的两种特殊规则。&quot;--filter&quot;比较复杂，它有自己的规则语法和匹配模式，由于篇幅有限，以及考虑到本文的难度定位，&quot;--filter&quot;规则不便在此多做解释，仅简单说明下规则类，帮助理解下文的&quot;--delete&quot;。</p>
+<p>​		以下是rsync中的规则种类，不解之处请结合下文的&quot;--delete&quot;分析：</p>
+<p>​		(1).exclude规则：即排除规则，只作用于发送端，被排除的文件不会进入文件列表(实际上是加上隐藏规则进行隐藏)。</p>
+<p>​		(2).include规则：即包含规则，也称为传输规则，只作用于发送端，被包含的文件将明确记录到文件列表中。</p>
+<p>​		(3).hide规则：即隐藏规则，只作用于发送端，隐藏后的文件对于接收端来说是看不见的，也就是说接收端会认为它不存在于源端。</p>
+<p>​		(4).show规则：即显示规则，只作用于发送端，是隐藏规则的反向规则。</p>
+<p>​		(5).protect规则：即保护规则，该规则只作用于接收端，被保护的文件不会被删除掉。</p>
+<p>​		(6).risk规则：即取消保护规则。是protect的反向规则。</p>
+<p>​		除此之外，还有一种规则是&quot;clear规则&quot;，作用是删除include/exclude规则列表。</p>
+<h4 id="26-rsync如何一次写对exclude规则"><strong>26、rsync如何一次写对exclude规则</strong></h4>
+<p>​		很多人写不来规则，总发现写出来后没有生效，要写成功一次规则得要不断地进行调试、调试、调试，令人无比心烦。</p>
+<p>​		其实很多工具的规则写法是类似的，比如tar也一样。规则写好后不生效的原因一般有两种：绝对路径和相对路径的问题、尾随斜线的问题。</p>
+<p>​		一般来说，操作的路径是绝对路径，那么规则里必须也写绝对路径，而且必须写完整的绝对路径。操作的路径是相对路径，那么规则里必须写相对路径，从哪里开始相对可能和工具有关。比如要操作路径&quot;/abc/def&quot;，想要筛选def下的所有txt文件，必须写成&quot;/abc/def/*.txt&quot;，如果操作路径是&quot;abc/def&quot;，那么要筛选这个目录下的所有txt文件，可能需要写成&quot;abc/def/*.txt&quot;，也有可能写成&quot;*.txt&quot;，甚至写成&quot;def/*.txt&quot;，写成哪种形式依赖于这个软件如何解析相对路径。</p>
+<p>​		对于rsync来说，要更复杂一些，因为除了bash的相对路径外，它自身还提供了一个相对路径的解析规则，而且尾随斜线也会影响规则的写法。这就是为什么写rsync规则非常麻烦的原因。</p>
+<p>​		我这里提供一个判断规则写法的方式，纯属我个人的经验总结：<strong>使用&quot;-n&quot;选项是dry run模式，也就是只测试不传输，&quot;-i&quot;选项是输出要传输文件的路径</strong>。&quot;-i&quot;只是一个便捷性选项，可以替换成其它选项来自定义输出格式，有时候通过这些信息来做一些判断是非常有用的，具体的可以翻man手册。</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -nr -i /var/log/anaconda /tmp/
+&gt;f+++++++++ anaconda/X.log
+&gt;f+++++++++ anaconda/anaconda.log
+&gt;f+++++++++ anaconda/ifcfg.log
+&gt;f+++++++++ anaconda/journal.log
+&gt;f+++++++++ anaconda/ks-script-9uRtfE.log
+&gt;f+++++++++ anaconda/packaging.log
+&gt;f+++++++++ anaconda/program.log
+&gt;f+++++++++ anaconda/storage.log
+&gt;f..T...... anaconda/syslog
+</code></pre>
+<p>这里已经显示了传输文件的路径&quot;anaconda/*&quot;，也就是说包括了目录anaconda，且是相对路径的。所以要写规则时，需要加上这个anaconda路径，比如下面的排除规则。</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -nr -i --exclude='anaconda/*.log' /var/log/anaconda /tmp
+&gt;f..T...... anaconda/syslog
+</code></pre>
+<p>如果上面的传输路径anaconda加上尾随斜线，再看-i的输出路径信息，发现已经改变了：</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -nr -i /var/log/anaconda/ /tmp
+&gt;f+++++++++ X.log
+&gt;f+++++++++ anaconda.log
+&gt;f+++++++++ ifcfg.log
+&gt;f+++++++++ journal.log
+&gt;f+++++++++ ks-script-9uRtfE.log
+&gt;f+++++++++ packaging.log
+&gt;f+++++++++ program.log
+&gt;f+++++++++ storage.log
+&gt;f+++++++++ syslog
+</code></pre>
+<p>所以这时的排除规则中不应该包含anaconda目录前缀：</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -nr -i --exclude='*.log' /var/log/anaconda/ /tmp
+&gt;f+++++++++ syslog
+</code></pre>
+<h4 id="27-rsync的-delete解释"><strong>27、rsync的--delete解释</strong></h4>
+<p>使用&quot;--delete&quot;选项，这时会将目标端多出的文件给删除掉，然后进行同步。</p>
+<pre><code class="language-bash">[root@testbox tmp]# ls /tmp/cron.d/
+0hourly  fstab
+[root@testbox tmp]# ls /etc/cron.d
+0hourly
+[root@testbox tmp]# rsync -r -v /etc/cron.d /tmp --delete
+sending incremental file list
+deleting cron.d/fstab
+cron.d/0hourly
+
+sent 248 bytes  received 52 bytes  600.00 bytes/sec
+total size is 128  speedup is 0.43
+</code></pre>
+<p>​		这样的行为实现了远程删除的功能，对于作用于本地的rsync，也就实现了rm的本地删除功能。而且，如果使用空目录作为源目录，则它的作用是清空目录上的整个目录。</p>
+<p>​		如果将&quot;--delete&quot;选项和&quot;--exclude&quot;选项一起使用，则被排除的文件不会被删除。例如：</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -r /var/log/anaconda /tmp
+[root@testbox tmp]# cp /etc/fstab /tmp/anaconda/
+[root@testbox tmp]# rsync -r -v --exclude=&quot;anaconda/*.log&quot; /var/log/anaconda /var/log/audit /tmp --delete
+sending incremental file list
+deleting anaconda/fstab
+anaconda/syslog
+audit/
+audit/audit.log
+
+sent 506,717 bytes  received 81 bytes  1,013,596.00 bytes/sec
+total size is 506,359  speedup is 1.00
+</code></pre>
+<p>​		结果发现只删除了&quot;anaconda/fstab&quot;文件，被&quot;--exclude&quot;规则匹配的anaconda/*.log文件都没有被删除。也就是网上所说的言论：exclude排除的文件不会被删除。</p>
+<p>​		结论是没错的，但我想很多人不知道为何会如此，也可能从来没想过为何会如此，所以我简单地做个说明。</p>
+<p>​		**在发送端将文件列表发送给接收端后，接收端的generator(要是不知道，你认为是某个就好了)进程会扫描每个文件列表中的信息，然后对列表中的每个信息条目都计算数据块校验码，最后将数据库校验码发给发送端，发送端通过校验码来匹配哪些数据块是需要传输的，这样就实现了增量传输的功能——只传输改变的部分，不会传输整个文件。而delete删除的时间点是generator进程处理每个文件列表时、生成校验码之前进行的，**先将目标上存在但源上不存在的多余文件删除，这样就无需为多余的文件生成校验码。</p>
+<p>​		所以，delete动作是比&quot;--exclude&quot;规则更晚执行的，被&quot;--exclude&quot;规则排除的文件不会进入文件列表中，在执行了delete时会认为该文件不存在于源端，从而导致目标端将这些文件删除。但这是想当然的，尽管理论上确实是这样的，但是rsync为了防止众多误删除情况，提供了两种规则：保护规则(protect)和取消保护规则(risk)。默认情况下，&quot;--delete&quot;和&quot;--exclude&quot;一起使用时，虽然发送端的exclude规则将文件标记为隐藏，使得接收端认为这些被排除文件在源端不存在，但rsync会将这些隐藏文件标记为保护文件，使得它们不受delete行为的影响，这样delete就删除不了这些被排除的文件。如果还是想要强行删除被exclude排除的文件，可以使用&quot;--delete-excluded&quot;选项强制取消保护，这样即使被排除的文件也会被删除。</p>
+<p>​		那么现在，是否理解了网上的言论&quot;exclude排除的文件不会被删除&quot;？</p>
+<p>​		除了&quot;--delete&quot;，相关的选项还有&quot;--delete-before&quot;、&quot;--delete-during&quot;、&quot;--delete-delay&quot;等，它们都隐含了&quot;--delete&quot;选项，它们分别表示generator处理各个文件列表之前一次性全部删除待删除文件、处理文件列表时处理到哪个文件列表就删除该文件列表中的待删除文件，以及同步完所有数据后一次性删除所有待删除文件。</p>
+<p>​		举个例子，假如源端要传输3个目录a、b、c，在目标端a目录中有a1、a2、a3共3个文件需要被删除，b目录中有b1、b2、b3需要删除，同理c目录也一样c1、c2、c3需要被删除。</p>
+<p>​		如果是&quot;--delete-before&quot;，则在目标端rsync刚启动时，就会把a1-a3、b1-b3、c1-c3一次性删除，然后才会处理文件列表中的a目录，处理完a后处理b，再是c。</p>
+<p>如果是&quot;--delete-during&quot;，则在目标端rsync刚启动时，先处理文件列表中的a目录，处理a目录时发现此目录中有待删除文件a1-a3，顺手就删除它们，然后完成a目录的相关操作，再处理文件列表中的b目录，发现也有待删除文件b1-b3，顺手删除它们，同理c1-c3也如此。</p>
+<p>​		如果是&quot;--delete-delay&quot;，则同步完文件列表中的a/b/c目录后，最后一次性删除a1-a3、b1-b3、c1-c3。</p>
+<p>​		其实&quot;--delete&quot;选项大多数情况下默认采用的就是&quot;--delete-during&quot;。</p>
+<h4 id="28-dropbear使用">28、dropbear使用</h4>
+<p>和ssh一类的</p>
+<pre><code class="language-bash">#dropbear也是22端口，查看/lib/systemd/system/dropbear.service发现它依赖/lib/systemd/system/dropbear-keygen.service，而这个文件就是先判断密钥存在否，不存在则生成
+yum install dropbear
+/usr/bin/dropbearkey -t rsa -f /etc/dropbear/dropbear_rsa_host_key
+/usr/bin/dropbearkey -t dss -f /etc/dropbear/dropbear_dss_host_key
+[root@textbox ~]# dropbear -p :2222
+</code></pre>
+<h4 id="29-aidelinux的入侵检测软件">29、aide（linux的入侵检测软件）</h4>
+<pre><code class="language-bash">#使用方法，现在/etc/aide.conf中定义要监控的文件，aide会对文件的各种属性，md5监控
+[root@textbox ~]# yum install aide -y
+[root@textbox ~]# rpm -ql aide | grep -v '^/usr'
+/etc/aide.conf
+/etc/logrotate.d/aide
+/var/lib/aide
+/var/log/aide
+#手动在aide.conf中饭添加监控规则
+TEST = p+u+g+sha512
+#手动添加要监控的目录或文件：监控/tmp,使用TEST规则
+/tmp TEST
+#生成数据库
+[root@textbox ~]# aide -i
+### AIDE database at /var/lib/aide/aide.db.new.gz initialized.
+#/tmp下修改个文件的属性，然后检测看下，其实就是收集现有文件信息，对比下
+[root@textbox ~]# chown qqq /tmp/1.log
+[root@textbox ~]# mv /var/lib/aide/aide.db.new.gz  /var/lib/aide/aide.db.gz
+[root@textbox ~]# aide -C
+AIDE 0.15.1 found differences between database and filesystem!!
+Start timestamp: 2019-09-05 11:02:20
+
+Summary:
+  Total number of files:	130
+  Added files:			0
+  Removed files:		0
+  Changed files:		1
+
+
+---------------------------------------------------
+Changed files:
+---------------------------------------------------
+
+changed: /tmp/1.log
+
+---------------------------------------------------
+Detailed information about changes:
+---------------------------------------------------
+
+
+File: /tmp/1.log
+ Uid      : 0                                , 1000
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0Jn19faEr/" class="tag">
+                    ssh
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/jfuARlPE18/" class="tag">
+                    sha
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/y-Ok13laTf/" class="tag">
+                    加密
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190902-gu-ge-shen-fen-yan-zheng-qi-shi-yong/">
+                  <h3 class="post-title">
+                    20190902谷歌身份验证器使用
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

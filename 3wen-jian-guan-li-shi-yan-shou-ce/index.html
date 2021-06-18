@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> 3.文件管理 实验手册 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="3.文件管理 实验手册
+实验目的
+掌握创建和查看文件、复制、转移和删除文件
+前提准备
+linux系统，centos6系统，centos7或ubuntu
+实验步骤
+
+-：表示普通文件
+d：表示目录文件
+c：表示字符设备文件
+b：表示块设备文件..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> 3.文件管理 实验手册</h2>
+            <div class="post-date">2021-04-20</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="3文件管理-实验手册">3.文件管理 实验手册</h1>
+<h4 id="实验目的">实验目的</h4>
+<p>掌握创建和查看文件、复制、转移和删除文件</p>
+<h4 id="前提准备">前提准备</h4>
+<p>linux系统，centos6系统，centos7或ubuntu</p>
+<h4 id="实验步骤">实验步骤</h4>
+<ul>
+<li>-：表示普通文件</li>
+<li>d：表示目录文件</li>
+<li>c：表示字符设备文件</li>
+<li>b：表示块设备文件</li>
+<li>l：表示软链接文件</li>
+<li>p：表示管道文件</li>
+<li>s：表示套接字文件</li>
+</ul>
+<h5 id="例1查看文件类型">【例1】查看文件类型</h5>
+<pre><code class="language-bash">[root@centos7 ~]# ll
+总用量 24
+-rw-r--r--. 1 root root   6 7月  23 09:17 1.txt
+-rw-r--r--. 1 root root   0 7月  20 20:04 2.txt
+-rw-r--r--. 1 root root   0 7月  20 20:04 3.txt
+drwxr-xr-x. 2 root root   6 7月  20 20:04 download
+drwxr-xr-x. 2 root root  49 7月  21 19:06 Downloads
+-rw-r--r--. 1 root root  22 7月  24 14:51 f1
+-rw-r--r--. 1 root root  21 7月  24 14:52 f2
+-rw-r--r--. 1 root root  13 7月  20 20:27 hello2.txt
+-rw-r--r--. 1 root root  15 7月  22 11:20 hello.txt
+-rw-r--r--. 1 root root   3 7月  22 17:59 win.txt
+drwxr-xr-x. 2 root root 162 7月  24 15:36 模板
+</code></pre>
+<p>显示结果中，第一个位置的符号&quot;-&quot;就代表了文件类型为普通文件</p>
+<h5 id="1-pwd命令显示当前shell的工作目录">1、pwd命令：显示当前shell的工作目录</h5>
+<h6 id="例2显示当前shell的工作目录">【例2】显示当前shell的工作目录</h6>
+<pre><code class="language-bash">[root@centos7 ~]# pwd
+/root
+</code></pre>
+<h5 id="2-basename命令取路径基名">2、basename命令：取路径基名</h5>
+<h6 id="例3获取etcsysconfig的基名">【例3】获取/etc/sysconfig/的基名</h6>
+<pre><code class="language-bash">[root@centos7 ~]# basename /etc/sysconfig/
+sysconfig
+</code></pre>
+<h5 id="3-dirname命令取路径名">3、dirname命令：取路径名</h5>
+<h6 id="例4取etcsysconfig路径名">【例4】取/etc/sysconfig路径名</h6>
+<pre><code class="language-bash">[root@centos7 ~]# dirname /etc/sysconfig/
+/etc
+</code></pre>
+<h5 id="4-cd命令切换目录">4、cd命令：切换目录</h5>
+<h6 id="例5切换到用户家目录">【例5】切换到用户家目录</h6>
+<pre><code class="language-bash">[root@centos7 sysconfig]# cd
+[root@centos7 ~]# pwd
+/root
+</code></pre>
+<h6 id="或">或：</h6>
+<pre><code class="language-bash">[root@centos7 sysconfig]# cd ~
+[root@centos7 ~]# pwd
+/root
+</code></pre>
+<h6 id="例6切换到父目录">【例6】切换到父目录</h6>
+<pre><code class="language-bash">[root@centos7 sysconfig]# cd ..
+[root@centos7 etc]# 
+</code></pre>
+<h6 id="例7切换到etcsysconfig目录下">【例7】切换到/etc/sysconfig目录下</h6>
+<pre><code class="language-bash">[root@centos7 ~]# cd /etc/sysconfig/
+[root@centos7 sysconfig]# 
+</code></pre>
+<h6 id="例8切换到上一次所在的目录">【例8】切换到上一次所在的目录</h6>
+<pre><code class="language-bash">[root@centos7 sysconfig]# cd -
+/root
+[root@centos7 ~]#
+</code></pre>
+<h5 id="5-ls命令列出目录的内容">5、ls命令：列出目录的内容</h5>
+<blockquote>
+<p>选项：</p>
+<p>​	-a：包含隐藏文件</p>
+<p>​	-l：显示额外信息</p>
+<p>​	-R：目录递归显示</p>
+<p>​	-1：文件分行显示，一行显示一个</p>
+</blockquote>
+<h6 id="例9显示当前目录下所有文件">【例9】显示当前目录下所有文件</h6>
+<pre><code class="language-bash">[root@centos7 ~]# ls -a
+.   1.txt  3.txt          .bash_logout   .bashrc  .config  .dbus     Downloads  f1  hello2.txt  .history       .lesshst  .mozilla  .rnd  .tcshrc   win.txt
+..  2.txt  .bash_history  .bash_profile  .cache   .cshrc   download  .esd_auth  f2  hello.txt   .ICEauthority  .local    .pki      .ssh  .viminfo  模板
+</code></pre>
+<h6 id="例10显示目录内容外的额外信息">【例10】显示目录内容外的额外信息</h6>
+<pre><code class="language-bash">[root@centos7 ~]# ls -l
+总用量 24
+-rw-r--r--. 1 root root   6 7月  23 09:17 1.txt
+-rw-r--r--. 1 root root   0 7月  20 20:04 2.txt
+-rw-r--r--. 1 root root   0 7月  20 20:04 3.txt
+drwxr-xr-x. 2 root root   6 7月  20 20:04 download
+drwxr-xr-x. 2 root root  49 7月  21 19:06 Downloads
+-rw-r--r--. 1 root root  22 7月  24 14:51 f1
+-rw-r--r--. 1 root root  21 7月  24 14:52 f2
+-rw-r--r--. 1 root root  13 7月  20 20:27 hello2.txt
+-rw-r--r--. 1 root root  15 7月  22 11:20 hello.txt
+-rw-r--r--. 1 root root   3 7月  22 17:59 win.txt
+drwxr-xr-x. 2 root root 162 7月  24 15:36 模板
+</code></pre>
+<h6 id="或-2">或</h6>
+<pre><code class="language-bash">[root@centos7 ~]# ll
+总用量 24
+-rw-r--r--. 1 root root   6 7月  23 09:17 1.txt
+-rw-r--r--. 1 root root   0 7月  20 20:04 2.txt
+-rw-r--r--. 1 root root   0 7月  20 20:04 3.txt
+drwxr-xr-x. 2 root root   6 7月  20 20:04 download
+drwxr-xr-x. 2 root root  49 7月  21 19:06 Downloads
+-rw-r--r--. 1 root root  22 7月  24 14:51 f1
+-rw-r--r--. 1 root root  21 7月  24 14:52 f2
+-rw-r--r--. 1 root root  13 7月  20 20:27 hello2.txt
+-rw-r--r--. 1 root root  15 7月  22 11:20 hello.txt
+-rw-r--r--. 1 root root   3 7月  22 17:59 win.txt
+drwxr-xr-x. 2 root root 162 7月  24 15:36 模板
+</code></pre>
+<h6 id="例11递归显示目录内容">【例11】递归显示目录内容</h6>
+<pre><code class="language-bash">[root@centos7 ~]# ls -R
+.:
+1.txt  2.txt  3.txt  download  Downloads  f1  f2  hello2.txt  hello.txt  win.txt  模板
+
+./download:
+
+./Downloads:
+wps-office-11.1.0.8722-1.x86_64.rpm
+
+./模板:
+DOCX 文档.docx  DOC 文档.doc  PPTX 演示文稿.pptx  PPT 演示文稿.ppt  XLSX 工作表.xlsx  XLS 工作表.xls
+</code></pre>
+<h6 id="例12组合应用">【例12】组合应用</h6>
+<pre><code class="language-bash">[root@centos7 data]# ls -al
+总用量 7358376
+drwxr-xr-x.   6 root root       4096 7月  24 15:53 .
+dr-xr-xr-x.  20 root root        262 7月  22 17:37 ..
+-rw-r--r--.   1 root root         38 7月  24 11:31 1.txt~
+drwxr-xr-x. 144 root root       8192 7月  23 10:07 2019-07-23
+-rw-r--r--.   1 root root          0 7月  22 15:26 7.txtx
+-rw-r--r--.   1 root root          8 7月  20 19:51 a
+-rw-r--r--.   1 root root         11 7月  24 14:23 all.log
+-rw-r--r--.   1 root root         16 7月  24 15:51 a.log
+-rw-r--r--.   1 root root          0 7月  24 14:02 f1.txt
+-rw-r--r--.   1 root root          0 7月  24 14:04 fd
+-rw-r--r--.   1 root root         21 7月  20 17:05 fi.log
+-rw-r--r--.   1 root root         79 7月  24 16:05 issue
+-rw-r--r--.   1 root root         79 7月  24 09:15 issue2
+-rw-r--r--.   1 root root         50 7月  24 14:09 log.log
+-rw-r--r--.   1 root root          0 7月  24 14:06 ls.log
+-rw-r--r--.   1 root root          0 7月  24 15:12 motd
+-rw-r--r--.   1 root root         51 7月  24 15:53 my.cnf
+-rw-r--r--.   1 root root       2426 7月  24 16:36 passwd
+-rw-r--r--.   1 root root 7534911488 7月  24 12:00 .passwd.swp
+dr-xr-x---.  12 root root       4096 7月  23 10:12 rootdir
+-rw-r--r--.   1 root root          0 7月  24 14:13 stderr.log
+-rw-r--r--.   1 root root          0 7月  24 14:13 stdout.log
+drwxr-xr-x.   7 root root       4096 7月  22 14:12 sysconfig-bak
+drwxr-xr-x.   2 root root          6 7月  22 20:49 .trash
+</code></pre>
+<h5 id="6-stat命令查看文件状态">6、stat命令：查看文件状态</h5>
+<h6 id="例13查看testtxt文件的状态注意三个时间戳">【例13】查看test.txt文件的状态，注意三个时间戳</h6>
+<pre><code class="language-bash">[root@centos7 ~]# stat 1.txt 
+  文件：&quot;1.txt&quot;
+  大小：6         	块：8          IO 块：4096   普通文件
+设备：802h/2050d	Inode：201518774   硬链接：1
+权限：(0644/-rw-r--r--)  Uid：(    0/    root)   Gid：(    0/    root)
+环境：unconfined_u:object_r:admin_home_t:s0
+最近访问：2019-07-24 13:59:17.238016239 +0800
+最近更改：2019-07-23 09:17:50.724956696 +0800
+最近改动：2019-07-23 09:17:50.728956695 +0800
+创建时间：-
+</code></pre>
+<h5 id="7-touch命令创建空文件和刷新时间">7、touch命令：创建空文件和刷新时间</h5>
+<blockquote>
+<p>touch一个已经存在的文件，不会改变文件内容，但会改变文件的时间，比如mtime等</p>
+</blockquote>
+<h6 id="例14创建空文件testsh">【例14】创建空文件test.sh</h6>
+<pre><code class="language-bash">[root@centos7 ~]# touch test.sh
+[root@centos7 ~]# ll test.sh
+-rw-r--r--. 1 root root 0 7月  24 20:04 test.sh
+</code></pre>
+<h5 id="8-cp命令">8、cp命令</h5>
+<h6 id="例15把etchttpdconfhttpdconf和etcmycnf两个文件拷贝到当前目录">【例15】把/etc/httpd/conf/httpd.conf和/etc/my.cnf两个文件拷贝到当前目录</h6>
+<pre><code class="language-bash">[root@centos7 ~]# cp /etc/httpd/conf/httpd.conf /etc/my.cnf .
+[root@centos7 ~]# ls -l !*
+ls -l /etc/httpd/conf/httpd.conf /etc/my.cnf .
+-rw-r--r--.  1 root root 11753 4月  24 21:44 /etc/httpd/conf/httpd.conf
+-rw-r--r--.  1 root root   570 8月  16 2018 /etc/my.cnf
+</code></pre>
+<h6 id="例16把etcnginx目录及其下面所有文件和子目录拷贝到当前目录">【例16】把/etc/nginx目录及其下面所有文件和子目录拷贝到当前目录</h6>
+<pre><code class="language-bash">[root@centos7 ~]# cp /etc/nginx . -R
+[root@centos7 ~]# ll -d nginx
+drwxr-xr-x. 3 root root 177 7月  24 20:17 nginx
+</code></pre>
+<h6 id="例17复制httpdconf文件并重命名为httpdconfbak">【例17】复制httpd.conf文件并重命名为httpd.conf.bak</h6>
+<pre><code class="language-bash">[root@centos7 ~]# cp /etc/httpd/conf/httpd.conf{,.bak}
+[root@centos7 ~]# ll /etc/httpd/conf
+总用量 40
+-rw-r--r--. 1 root root 11753 4月  24 21:44 httpd.conf
+-rw-r--r--. 1 root root 11753 7月  24 20:20 httpd.conf.bak
+-rw-r--r--. 1 root root 13077 4月  24 21:46 magic
+</code></pre>
+<h6 id="例18复制etc目录下面所有文件及其子目录并重命名为etc_bak">【例18】复制/etc目录下面所有文件及其子目录并重命名为/etc_bak</h6>
+<pre><code class="language-bash">[root@centos7 ~]# cp /etc ./etc_bak -a
+[root@centos7 ~]# ll -d etc_bak/
+drwxr-xr-x. 145 root root 8192 7月  24 20:16 etc_bak/
+</code></pre>
+<h5 id="9-mv命令移动文件或目录-注意移动目录时无需添加-r递归选项要与cp命令区别">9、mv命令：移动文件或目录。注意：移动目录时，无需添加-R递归选项，要与cp命令区别</h5>
+<h6 id="例19把当前目录下nginx目录重命名为nginx_bak">【例19】把当前目录下nginx目录重命名为nginx_bak</h6>
+<pre><code class="language-bash">[root@centos7 ~]# mv nginx/ nginx_bak
+[root@centos7 ~]# ll nginx_bak/ -d
+drwxr-xr-x. 3 root root 177 7月  24 20:17 nginx_bak/
+</code></pre>
+<h6 id="例20把httpdconf文件移动到tmp目录下面">【例20】把httpd.conf文件移动到/tmp目录下面</h6>
+<pre><code class="language-bash">[root@centos7 ~]# mv httpd.conf /tmp
+[root@centos7 ~]# ll /tmp/httpd.conf 
+-rw-r--r--. 1 root root 11753 7月  24 20:12 /tmp/httpd.conf
+</code></pre>
+<h5 id="10-rm命令删除文件或目录">10、rm命令：删除文件或目录</h5>
+<h6 id="例21删除当前目录下所有文件">【例21】删除当前目录下所有文件</h6>
+<pre><code class="language-bash">[root@centos7 tmp]# rm -rf ./*
+[root@centos7 tmp]# ll
+总用量 0
+</code></pre>
+<h5 id="11-mkdir命令">11、mkdir命令</h5>
+<h6 id="例22创建目录a其下包含b和c两目录且b和c目录下面都有一个目录d">【例22】创建目录a，其下包含b和c两目录，且b和c目录下面都有一个目录d</h6>
+<pre><code class="language-bash">[root@centos7 tmp]# mkdir a/{b,c}/d -p
+[root@centos7 tmp]# tree -C a
+a
+|-- b
+|   `-- d
+`-- c
+    `-- d
+
+4 directories, 0 files
+</code></pre>
+<h5 id="12-tree命令显示目录树">12、tree命令：显示目录树</h5>
+<h6 id="例23显示a目录的目录树">【例23】显示a目录的目录树</h6>
+<pre><code class="language-bash">[root@centos7 tmp]# mkdir a/{b,c}/d -p
+[root@centos7 tmp]# tree -C a
+a
+|-- b
+|   `-- d
+`-- c
+    `-- d
+
+4 directories, 0 files
+</code></pre>
+<h6 id="例24查看usrlocal目录树但仅查看2级的目录深度">【例24】查看/usr/local目录树，但仅查看2级的目录深度</h6>
+<pre><code class="language-bash">[root@centos7 tmp]# tree /usr/local/ -L 2
+/usr/local/
+|-- bin
+|-- etc
+|-- games
+|-- include
+|-- lib
+|-- lib64
+|-- libexec
+|-- sbin
+|-- share
+|   |-- applications
+|   |-- info
+|   `-- man
+`-- src
+
+13 directories, 0 files
+</code></pre>
+<h5 id="13-ln命令创建链接文件">13、ln命令：创建链接文件</h5>
+<h6 id="例25把usrsbinapachectl文件在当前目录下创建软链接为apachectl">【例25】把/usr/sbin/apachectl文件在当前目录下创建软链接为apachectl</h6>
+<pre><code class="language-bash">[root@centos7 tmp]# ll apachectl 
+lrwxrwxrwx. 1 root root 15 7月  24 20:34 apachectl -&gt; /sbin/apachectl
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/podman-zhi-zuo-jing-xiang/">
+                  <h3 class="post-title">
+                    podman制作镜像
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

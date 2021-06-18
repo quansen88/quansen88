@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190929mysql主从复制加密 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="mysql主从复制加密
+环境：
+
+
+
+master
+192.168.38.139
+
+
+
+
+slave
+192.168.38.140
+
+
+
+一、初始化环境
+二、yum安装mysql5.7.27
+[root@master ~]# cat mys..." />
+    <meta name="keywords" content="mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190929mysql主从复制加密</h2>
+            <div class="post-date">2021-04-27</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="mysql主从复制加密">mysql主从复制加密</h1>
+<h4 id="环境">环境：</h4>
+<table>
+<thead>
+<tr>
+<th>master</th>
+<th>192.168.38.139</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>slave</strong></td>
+<td><strong>192.168.38.140</strong></td>
+</tr>
+</tbody>
+</table>
+<h4 id="一-初始化环境">一、初始化环境</h4>
+<h4 id="二-yum安装mysql5727">二、yum安装mysql5.7.27</h4>
+<pre><code class="language-bash">[root@master ~]# cat mysql5.7.27-yum.sh 
+#!/bin/bash
+#**************************************************************
+#Author:                     Linus
+#:                      
+#Date:                       2019-09-25
+#FileName:                   mysql5.7.27-yum.sh
+#URL:                   
+#Description:                Initialize the new server
+#Copyright (C):              2019 Copyright ©  站点名称  版权所有
+#************************************************************
+cat &gt; /etc/yum.repos.d/mysql.repo &lt;&lt;'EOF'
+[mysql56]
+name=MySQL
+baseurl=http://mirrors.ustc.edu.cn/mysql-repo/yum/mysql-5.6-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=0
+
+[mysql57]
+name=MySQL
+baseurl=http://mirrors.ustc.edu.cn/mysql-repo/yum/mysql-5.7-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=0
+EOF
+
+yum install mysql-community-server -y
+cp /etc/my.cnf{,.bak}
+
+cat &gt; /etc/my.cnf &lt;&lt;EOF
+[mysqld]
+socket=/var/lib/mysql/mysql.sock
+datadir=/data/mysql
+log-bin
+server-id=1
+expire-logs-days=15
+binlog-format=row
+symbolic-links=0
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+EOF
+
+mkdir /data/mysql -p
+mysqld --initialize --datadir=/data/mysql --user=mysql
+systemctl start mysqld
+mysqladmin -uroot -p$(grep &quot; temporary password&quot; /var/log/mysqld.log | awk '{print $NF}') password 123456
+</code></pre>
+<h4 id="三-生成ca证书私钥公钥">三、生成ca证书，私钥公钥</h4>
+<p><strong>方法一：使用mysql命令</strong></p>
+<pre><code class="language-bash">[root@master ~]# mkdir /etc/my.cnf.d/ssl
+[root@master ~]# chown mysql.mysql /etc/my.cnf.d/ssl
+[root@master ~]# mysql_ssl_rsa_setup --datadir=/etc/my.cnf.d/ssl --uid=mysql
+</code></pre>
+<pre><code class="language-bash">[root@master ~]# ll /etc/my.cnf.d/ssl/
+total 32
+-rw------- 1 mysql mysql 1679 Sep 29 09:58 ca-key.pem
+-rw-r--r-- 1 mysql mysql 1107 Sep 29 09:58 ca.pem
+-rw-r--r-- 1 mysql mysql 1107 Sep 29 09:58 client-cert.pem
+-rw------- 1 mysql mysql 1679 Sep 29 09:58 client-key.pem
+-rw------- 1 mysql mysql 1679 Sep 29 09:58 private_key.pem
+-rw-r--r-- 1 mysql mysql  451 Sep 29 09:58 public_key.pem
+-rw-r--r-- 1 mysql mysql 1107 Sep 29 09:58 server-cert.pem
+-rw------- 1 mysql mysql 1675 Sep 29 09:58 server-key.pem
+</code></pre>
+<p><strong>方法二：openssl手动生成</strong></p>
+<pre><code class="language-bash">[root@master ~]# cat ca-genrsa.sh
+StandardOutput(){
+    echo -e &quot;\033[1;32m$1\033[0m&quot;
+}
+ErrorOutput(){
+    echo -e &quot;\033[1;31m$1\033[0m&quot;
+}
+
+read -e -p &quot;请输入你的域名：&quot; DOMAIN
+
+mkdir ${DOMAIN} &amp;&amp; cd ${DOMAIN}
+
+    
+(umask 077;openssl genrsa  -out ca.key 2048) 
+openssl req -new -key ca.key -out ca.csr -subj &quot;/C=CN/ST=Shanghai/L=Shanghai/O=Internet/OU=devops/CN=CA&quot;
+openssl x509 -req -days 3650 -in ca.csr -signkey ca.key -out ca.crt
+
+while true;do
+    (umask 077;openssl genrsa  -out ${DOMAIN}.key 2048) 
+    openssl req -new -key ${DOMAIN}.key -out  ${DOMAIN}.csr -subj &quot;/C=CN/ST=Shanghai/L=Shanghai/O=Internet/OU=devops/CN=${DOMAIN}&quot;
+    openssl x509 -req -days 3650 -in ${DOMAIN}.csr -CA ca.crt -CAkey ca.key  -CAcreateserial -out ${DOMAIN}.crt
+    
+    StandardOutput &quot;CA文件路径: ${DOMAIN}/ca.crt&quot;
+    StandardOutput &quot;密钥文件路径: ${DOMAIN}/${DOMAIN}.key&quot;
+    StandardOutput &quot;证书文件路径: ${DOMAIN}/${DOMAIN}.crt&quot;
+    read -e -p &quot;请输入你的域名：&quot; DOMAIN
+done
+</code></pre>
+<pre><code class="language-bash">[root@master ~]# bash ca-genrsa.sh 
+请输入你的域名：master
+...生成过程...
+请输入你的域名：slave
+...生成过程...
+[root@master ~]# ll master/
+total 40
+-rw-r--r-- 1 root root 1192 Sep 29 10:01 ca.crt
+-rw-r--r-- 1 root root 1001 Sep 29 10:01 ca.csr
+-rw------- 1 root root 1679 Sep 29 10:01 ca.key
+-rw-r--r-- 1 root root   17 Sep 29 10:01 ca.srl
+-rw-r--r-- 1 root root 1200 Sep 29 10:01 master.crt
+-rw-r--r-- 1 root root 1005 Sep 29 10:01 master.csr
+-rw------- 1 root root 1675 Sep 29 10:01 master.key
+-rw-r--r-- 1 root root 1196 Sep 29 10:01 slave.crt
+-rw-r--r-- 1 root root 1005 Sep 29 10:01 slave.csr
+-rw------- 1 root root 1679 Sep 29 10:01 slave.key
+</code></pre>
+<h4 id="四-配置文件修改">四、配置文件修改</h4>
+<p><strong>master节点</strong></p>
+<pre><code class="language-bash\">[root@master ~]# cat /etc/my.cnf
+[mysqld]
+#下面三行定义ssl-ca，key，cert位置
+ssl-ca=/etc/my.cnf.d/ssl/ca.pem
+ssl-key=/etc/my.cnf.d/ssl/server-key.pem
+ssl-cert=/etc/my.cnf.d/ssl/server-cert.pem
+socket=/var/lib/mysql/mysql.sock
+datadir=/data/mysql
+#下面四行定义开启binlog，指定serverid，日志自动清理，binlog记录格式
+log-bin
+server-id=1
+expire-logs-days=15
+binlog-format=row
+symbolic-links=0
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+</code></pre>
+<pre><code class="language-bash">[root@master ~]# systemctl restart mysqld
+[root@master ~]# mysql -uroot -p
+mysql&gt; show variables like '%ssl%';
++---------------+-----------------------------------+
+| Variable_name | Value                             |
++---------------+-----------------------------------+
+| have_openssl  | YES                               |
+| have_ssl      | YES                               |
+| ssl_ca        | /etc/my.cnf.d/ssl/ca.pem          |
+| ssl_capath    |                                   |
+| ssl_cert      | /etc/my.cnf.d/ssl/server-cert.pem |
+| ssl_cipher    |                                   |
+| ssl_crl       |                                   |
+| ssl_crlpath   |                                   |
+| ssl_key       | /etc/my.cnf.d/ssl/server-key.pem  |
++---------------+-----------------------------------+
+9 rows in set (0.00 sec)
+</code></pre>
+<p><strong>slave节点</strong></p>
+<pre><code class="language-bash">[root@slave ~]# cat /etc/my.cnf
+[mysqld]
+socket=/var/lib/mysql/mysql.sock
+datadir=/data/mysql
+#如果只是单一的slave节点，没有其他用途，只写个server-id即可
+server-id=2
+symbolic-links=0
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+</code></pre>
+<pre><code class="language-bash">[root@slave ~]# systemctl restart mysqld
+</code></pre>
+<h4 id="五-配置主从">五、配置主从</h4>
+<p><strong>master节点</strong></p>
+<pre><code class="language-bash">mysql&gt; grant replication slave on *.*  to 'repluser'@'192.168.38.%' identified by 'XDcIjYAAxOlaGQ' require ssl;
+mysql&gt; flush privileges;
+mysql&gt; show master status;
++-------------------+----------+--------------+------------------+-------------------+
+| File              | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set |
++-------------------+----------+--------------+------------------+-------------------+
+| master-bin.000012 |      154 |              |                  |                   |
++-------------------+----------+--------------+------------------+-------------------+
+1 row in set (0.00 sec)
+</code></pre>
+<p><strong>从节点</strong></p>
+<pre><code class="language-bash">#获取证书
+[root@slave ~]# mkdir /etc/my.cnf.d/ssl
+[root@slave ~]# scp -r 192.168.38.139:/etc/my.cnf.d/ssl/{ca.pem,client-cert.pem,client-key.pem}  /etc/my.cnf.d/ssl/
+[root@slave ~]# chown mysql.mysql /etc/my.cnf.d/ssl -R
+</code></pre>
+<pre><code class="language-bash">#测试连接,连接成
+[root@slave ssl]# mysql -urepluser -p'XDcIjYAAxOlaGQ' -h192.168.38.139 --ssl-ca=/etc/my.cnf.d/ssl/ca.pem  --ssl-key=/etc/my.cnf.d/ssl/client-key.pem --ssl-cert=/etc/my.cnf.d/ssl/client-cert.pem
+mysql&gt;
+</code></pre>
+<pre><code class="language-bash">[root@slave ssl]# mysql -uroot -p
+mysql&gt; CHANGE MASTER TO
+    -&gt; MASTER_HOST='192.168.38.139',
+    -&gt; MASTER_USER='repluser',
+    -&gt; MASTER_PASSWORD='XDcIjYAAxOlaGQ',
+    -&gt; MASTER_PORT=3306,
+    -&gt; MASTER_SSL=1,
+    -&gt; MASTER_SSL_CA ='/etc/my.cnf.d/ssl/ca.pem',
+    -&gt; MASTER_SSL_CERT = '/etc/my.cnf.d/ssl/client-cert.pem',
+    -&gt; MASTER_SSL_KEY = '/etc/my.cnf.d/ssl/client-key.pem',
+    -&gt; MASTER_LOG_FILE='master-bin.000012',
+    -&gt; MASTER_LOG_POS=154,
+    -&gt; MASTER_CONNECT_RETRY=10;
+Query OK, 0 rows affected, 2 warnings (0.01 sec)
+
+mysql&gt; start slave;
+</code></pre>
+<pre><code class="language-bash">#两个Yes表示连接成供
+mysql&gt; show slave status\G
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for master to send event
+                  Master_Host: 192.168.38.139
+                  Master_User: repluser
+                  Master_Port: 3306
+                Connect_Retry: 10
+              Master_Log_File: master-bin.000012
+          Read_Master_Log_Pos: 154
+               Relay_Log_File: slave-relay-bin.000002
+                Relay_Log_Pos: 321
+        Relay_Master_Log_File: master-bin.000012
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+              Replicate_Do_DB: 
+          Replicate_Ignore_DB: 
+           Replicate_Do_Table: 
+       Replicate_Ignore_Table: 
+      Replicate_Wild_Do_Table: 
+  Replicate_Wild_Ignore_Table: 
+                   Last_Errno: 0
+                   Last_Error: 
+                 Skip_Counter: 0
+          Exec_Master_Log_Pos: 154
+              Relay_Log_Space: 528
+              Until_Condition: None
+               Until_Log_File: 
+                Until_Log_Pos: 0
+           Master_SSL_Allowed: Yes
+           Master_SSL_CA_File: /etc/my.cnf.d/ssl/ca.pem
+           Master_SSL_CA_Path: 
+              Master_SSL_Cert: /etc/my.cnf.d/ssl/client-cert.pem
+            Master_SSL_Cipher: 
+               Master_SSL_Key: /etc/my.cnf.d/ssl/client-key.pem
+        Seconds_Behind_Master: 0
+Master_SSL_Verify_Server_Cert: No
+                Last_IO_Errno: 0
+                Last_IO_Error: 
+               Last_SQL_Errno: 0
+               Last_SQL_Error: 
+  Replicate_Ignore_Server_Ids: 
+             Master_Server_Id: 1
+                  Master_UUID: 6c39b2b6-e25c-11e9-a9ba-000c29d5d143
+             Master_Info_File: /data/mysql/master.info
+                    SQL_Delay: 0
+          SQL_Remaining_Delay: NULL
+      Slave_SQL_Running_State: Slave has read all relay log; waiting for more updates
+           Master_Retry_Count: 86400
+                  Master_Bind: 
+      Last_IO_Error_Timestamp: 
+     Last_SQL_Error_Timestamp: 
+               Master_SSL_Crl: 
+           Master_SSL_Crlpath: 
+           Retrieved_Gtid_Set: 
+            Executed_Gtid_Set: 
+                Auto_Position: 0
+         Replicate_Rewrite_DB: 
+                 Channel_Name: 
+           Master_TLS_Version: 
+1 row in set (0.00 sec)
+</code></pre>
+<h4 id="六-测试主从">六、测试主从</h4>
+<pre><code class="language-bash">#master
+mysql&gt; create database dba;
+Query OK, 1 row affected (0.00 sec)
+#slave
+mysql&gt; show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| dba                |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.00 sec)
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190929mysql5727-zhu-cong-fu-zhi-jia-mi-shi-yan-2/">
+                  <h3 class="post-title">
+                    20190929mysql5.7.27主从复制加密实验2
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

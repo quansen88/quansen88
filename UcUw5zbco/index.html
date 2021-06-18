@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>WDS部署 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="参考：https://blog.51cto.com/14449541/2426900
+https://www.itsk.com/forum.php?mod=viewthread&amp;tid=391485&amp;highlight=wd..." />
+    <meta name="keywords" content="WDS" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">WDS部署</h2>
+            <div class="post-date">2021-05-05</div>
+            
+              <div class="feature-container" style="background-image: url('https://bkimg.cdn.bcebos.com/pic/342ac65c103853434d2b1e2e9313b07ecb8088dd?x-bce-process=image/watermark,image_d2F0ZXIvYmFpa2U4MA==,g_7,xp_5,yp_5/format,f_auto')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <p>参考：https://blog.51cto.com/14449541/2426900</p>
+<p>https://www.itsk.com/forum.php?mod=viewthread&amp;tid=391485&amp;highlight=wds</p>
+<p><strong>条件：</strong></p>
+<ul>
+<li>激活的windows2016系统</li>
+<li>win10 1909镜像</li>
+</ul>
+<p><strong>1.服务器安装WindowsSever系统启用添加WDS服务</strong><br>
+<strong>2.添加带网卡驱动的PE做启动映像</strong><br>
+<strong>3.客户机BIOS开启PXE</strong><br>
+<strong>4.启动菜单选择PXE启动（支持UEFI启动）</strong><br>
+<strong>5.进入PE做系统等操作</strong></p>
+<h3 id="一-wds部署服务的配置">一、WDS部署服务的配置</h3>
+<h4 id="11-添加角色和功能">1.1、添加角色和功能</h4>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255011735.png" alt="1574255011735" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255220840.png" alt="1574255220840" loading="lazy"></figure>
+<figure data-type="image" tabindex="3"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255220840.png" alt="1574255259487" loading="lazy"></figure>
+<figure data-type="image" tabindex="4"><img src="%E5%9B%BE%E7%89%87/1574255294075.png" alt="1574255294075" loading="lazy"></figure>
+<figure data-type="image" tabindex="5"><img src="%E5%9B%BE%E7%89%87/1574255336895.png" alt="1574255336895" loading="lazy"></figure>
+<figure data-type="image" tabindex="6"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255366571.png" alt="1574255366571" loading="lazy"></figure>
+<figure data-type="image" tabindex="7"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255384993.png" alt="1574255384993" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255402130.png" alt="1574255402130" loading="lazy"></figure>
+<figure data-type="image" tabindex="9"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255423962.png" alt="1574255423962" loading="lazy"></figure>
+<figure data-type="image" tabindex="10"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255454929.png" alt="1574255454929" loading="lazy"></figure>
+<figure data-type="image" tabindex="11"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255480369.png" alt="1574255480369" loading="lazy"></figure>
+<h4 id="12-安装完成后左边多了一个wds">1.2、安装完成后左边多了一个WDS</h4>
+<figure data-type="image" tabindex="12"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255526487.png" alt="1574255526487" loading="lazy"></figure>
+<h4 id="13-继续配置wds">1.3、继续配置WDS</h4>
+<figure data-type="image" tabindex="13"><img src="%E5%9B%BE%E7%89%87/1574255652806.png" alt="1574255652806" loading="lazy"></figure>
+<figure data-type="image" tabindex="14"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255725202.png" alt="1574255725202" loading="lazy"></figure>
+<figure data-type="image" tabindex="15"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255739850.png" alt="1574255739850" loading="lazy"></figure>
+<figure data-type="image" tabindex="16"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255739850.png" alt="1574255768821" loading="lazy"></figure>
+<figure data-type="image" tabindex="17"><img src="%E5%9B%BE%E7%89%87/1574255853019.png" alt="1574255853019" loading="lazy"></figure>
+<figure data-type="image" tabindex="18"><img src="%E5%9B%BE%E7%89%87/1574255887423.png" alt="1574255887423" loading="lazy"></figure>
+<figure data-type="image" tabindex="19"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255934396.png" alt="1574255934396" loading="lazy"></figure>
+<figure data-type="image" tabindex="20"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574255980546.png" alt="1574255980546" loading="lazy"></figure>
+<h4 id="14添加启动映像">1.4添加启动映像</h4>
+<figure data-type="image" tabindex="21"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574256177983.png" alt="1574256177983" loading="lazy"></figure>
+<figure data-type="image" tabindex="22"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574256468998.png" alt="1574256468998" loading="lazy"></figure>
+<figure data-type="image" tabindex="23"><img src="%E5%9B%BE%E7%89%87/1574256526464.png" alt="1574256526464" loading="lazy"></figure>
+<figure data-type="image" tabindex="24"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574256539106.png" alt="1574256539106" loading="lazy"></figure>
+<figure data-type="image" tabindex="25"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574256609043.png" alt="1574256609043" loading="lazy"></figure>
+<figure data-type="image" tabindex="26"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574256624711.png" alt="1574256624711" loading="lazy"></figure>
+<figure data-type="image" tabindex="27"><img src="%E5%9B%BE%E7%89%87/1574256676545.png" alt="1574256676545" loading="lazy"></figure>
+<figure data-type="image" tabindex="28"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574256759790.png" alt="1574256759790" loading="lazy"></figure>
+<h4 id="15添加其他pe的启动映像">1.5添加其他pe的启动映像</h4>
+<p><strong>比如wepe</strong></p>
+<figure data-type="image" tabindex="29"><img src="%E5%9B%BE%E7%89%87/1574257826400.png" alt="1574257826400" loading="lazy"></figure>
+<figure data-type="image" tabindex="30"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574257904275.png" alt="1574257904275" loading="lazy"></figure>
+<p>其他pe：http://bbs.wuyou.net/forum.php?mod=viewthread&amp;tid=370573</p>
+<p>链接：https://pan.baidu.com/s/1b_IiRQ6JwspSeKIwau2VcA<br>
+提取码：9qgr</p>
+<figure data-type="image" tabindex="31"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574258697525.png" alt="1574258697525" loading="lazy"></figure>
+<h4 id="16启动客户机测试一下">1.6启动客户机测试一下</h4>
+<figure data-type="image" tabindex="32"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574257952933.png" alt="1574257952933" loading="lazy"></figure>
+<figure data-type="image" tabindex="33"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574257980231.png" alt="1574257980231" loading="lazy"></figure>
+<h4 id="17pe定制说明">1.7pe定制说明</h4>
+<p>暂时没这个需要，不做了</p>
+<h4 id="18网络映射">1.8网络映射</h4>
+<p>这一步的目的是上面操作只设置了启动映像，并没有安装映像，因此这一步可以通过windows共享，或者ftp或者smb让pe系统连到共享服务器上获取镜像，不过这样就需要pe带网络功能了，很遗憾，wepe不带网络功能，可以选择百度云中的镜像作为启动映像</p>
+<p>如果pe确实没网络，下面添加安装映像</p>
+<h4 id="19添加安装映像">1.9添加安装映像</h4>
+<figure data-type="image" tabindex="34"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574259536247.png" alt="1574259536247" loading="lazy"></figure>
+<figure data-type="image" tabindex="35"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574259569683.png" alt="1574259569683" loading="lazy"></figure>
+<figure data-type="image" tabindex="36"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574259611478.png" alt="1574259611478" loading="lazy"></figure>
+<figure data-type="image" tabindex="37"><img src="%E5%9B%BE%E7%89%87/1574259646617.png" alt="1574259646617" loading="lazy"></figure>
+<figure data-type="image" tabindex="38"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574259881797.png" alt="1574259881797" loading="lazy"></figure>
+<figure data-type="image" tabindex="39"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574259919700.png" alt="1574259919700" loading="lazy"></figure>
+<h4 id="110把电脑的名字改短一点待会儿要登陆">1.10把电脑的名字改短一点，待会儿要登陆</h4>
+<figure data-type="image" tabindex="40"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574260083758.png" alt="1574260083758" loading="lazy"></figure>
+<h4 id="111找一个电脑测试">1.11找一个电脑测试</h4>
+<figure data-type="image" tabindex="41"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574260156935.png" alt="1574260156935" loading="lazy"></figure>
+<figure data-type="image" tabindex="42"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574260174123.png" alt="1574260174123" loading="lazy"></figure>
+<figure data-type="image" tabindex="43"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574260198152.png" alt="1574260198152" loading="lazy"></figure>
+<figure data-type="image" tabindex="44"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1574260229355.png" alt="1574260229355" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/g6f-GovV9/" class="tag">
+                    WDS
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/y0_4xzSo0/">
+                  <h3 class="post-title">
+                     KVM实验（一）
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190904编译安装httpd2.4.25并编写systemd脚本 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="编译安装httpd2.4.25并编写systemd脚本
+一、官方的httpd安装脚本
+[root@textbox ~]# rpm -q --scripts httpd
+preinstall scriptlet (using /bin/sh)..." />
+    <meta name="keywords" content="httpd,systemd" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190904编译安装httpd2.4.25并编写systemd脚本</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://assets.ubuntu.com/v1/84cb7d7d-Hirsuit_Hippo_Colour_takeover.svg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="编译安装httpd2425并编写systemd脚本">编译安装httpd2.4.25并编写systemd脚本</h1>
+<p><strong>一、官方的httpd安装脚本</strong></p>
+<pre><code class="language-bash">[root@textbox ~]# rpm -q --scripts httpd
+preinstall scriptlet (using /bin/sh):
+# Add the &quot;apache&quot; group and user
+/usr/sbin/groupadd -g 48 -r apache 2&gt; /dev/null || :
+/usr/sbin/useradd -c &quot;Apache&quot; -u 48 -g apache \
+	-s /sbin/nologin -r -d /usr/share/httpd apache 2&gt; /dev/null || :
+postinstall scriptlet (using /bin/sh):
+
+if [ $1 -eq 1 ] ; then 
+        # Initial installation 
+        systemctl preset httpd.service htcacheclean.service &gt;/dev/null 2&gt;&amp;1 || : 
+fi
+preuninstall scriptlet (using /bin/sh):
+
+if [ $1 -eq 0 ] ; then 
+        # Package removal, not upgrade 
+        systemctl --no-reload disable httpd.service htcacheclean.service &gt; /dev/null 2&gt;&amp;1 || : 
+        systemctl stop httpd.service htcacheclean.service &gt; /dev/null 2&gt;&amp;1 || : 
+fi
+postuninstall scriptlet (using /bin/sh):
+
+systemctl daemon-reload &gt;/dev/null 2&gt;&amp;1 || : 
+
+
+# Trigger for conversion from SysV, per guidelines at:
+# https://fedoraproject.org/wiki/Packaging:ScriptletSnippets#Systemd
+posttrans scriptlet (using /bin/sh):
+test -f /etc/sysconfig/httpd-disable-posttrans || \
+  /bin/systemctl try-restart httpd.service htcacheclean.service &gt;/dev/null 2&gt;&amp;1 || :
+</code></pre>
+<p><strong>二、httpd的systemd文件</strong></p>
+<p>参考：http://www.jinbuguo.com/systemd/systemd.kill.html</p>
+<p>分为3部分：[Unit]、[Service]和[Install]</p>
+<pre><code class="language-bash">[root@textbox system]# cat httpd.service
+[Unit]
+Description=The Apache HTTP Server		#描述信息
+After=network.target remote-fs.target nss-lookup.target		#当前unit应当晚于哪些unit启动
+Documentation=man:httpd(8)		#man手册
+Documentation=man:apachectl(8)	#man手册
+
+[Service]
+Type=notify		#unit进程启动类型，notify为在启动完成后会发送一个通知消息。还需要配合 NotifyAccess 来让 Systemd 接收消息 
+EnvironmentFile=/etc/sysconfig/httpd	#环境配置文件
+ExecStart=/usr/sbin/httpd $OPTIONS -DFOREGROUND	#指明启动unit要运行命令或脚本的绝对路径 
+ExecReload=/usr/sbin/httpd $OPTIONS -k graceful	#指明reloadunit要运行的命令或脚本绝对路径
+ExecStop=/bin/kill -WINCH ${MAINPID}	#指明停止unit要运行的命令或脚本
+# We want systemd to give httpd some time to finish gracefully, but still want
+# it to kill httpd after TimeoutStopSec if something went wrong during the
+# graceful stop. Normally, Systemd sends SIGTERM signal right after the
+# ExecStop, which would kill httpd. We are sending useless SIGCONT here to give
+# httpd time to finish.
+KillSignal=SIGCONT	#设置杀死进程的 第一步使用什么信号(见上文)SIGCONT是18号信号，表示继续
+PrivateTmp=true		#启动服务时会在/tmp目录生成一个类似system-private-xxx的文件，存在临时文件
+	
+[Install]
+WantedBy=multi-user.target		#：被哪些units所依赖，弱依赖 
+</code></pre>
+<p><strong>三、一键安装脚本</strong></p>
+<p>参考：https://blog.51cto.com/14012942/2427694</p>
+<p><strong>四、最终自己写的system文件</strong></p>
+<pre><code class="language-bash">[root@textbox ~]# cat /usr/lib/systemd/system/httpd.service 
+[Unit]
+Description=The Apache HTTP Server
+After=network.target remote-fs.target nss-lookup.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/httpd/httpd.conf
+ExecStart=/apps/httpd24/bin/apachectl -k start  -DFOREGROUND
+ExecReload=/apps/httpd24/bin/apachectl  -k graceful
+ExecStop=/usr/bin/kill -WINCH ${MAINPID}
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
+</code></pre>
+<p><strong>效果：</strong></p>
+<pre><code class="language-bash">[root@textbox ~]# systemctl start httpd
+[root@textbox ~]# systemctl status httpd
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+   Active: active (running) since Wed 2019-09-04 21:25:16 CST; 1min 51s ago
+ Main PID: 35575 (apachectl)
+   CGroup: /system.slice/httpd.service
+           ├─35575 /bin/sh /apps/httpd24/bin/apachectl -k start -DFOREGROUND
+           ├─35577 /apps/httpd24/bin/httpd -k start -DFOREGROUND
+           ├─35593 /apps/httpd24/bin/httpd -k start -DFOREGROUND
+           ├─35594 /apps/httpd24/bin/httpd -k start -DFOREGROUND
+           └─35595 /apps/httpd24/bin/httpd -k start -DFOREGROUND
+
+Sep 04 21:25:16 textbox systemd[1]: Started The Apache HTTP Server.
+Sep 04 21:25:31 textbox apachectl[35575]: AH00558: httpd: Could not reliably determine the server's fully qual...ssage
+Hint: Some lines were ellipsized, use -l to show in full.
+[root@textbox ~]# systemctl stop httpd
+[root@textbox ~]# systemctl status httpd
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+   Active: inactive (dead)
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/IX3ja_8rR/" class="tag">
+                    httpd
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/KpA6cfgxPG/" class="tag">
+                    systemd
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190904tcp_wrapper-guo-lu/">
+                  <h3 class="post-title">
+                    20190904tcp_wrapper过滤
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

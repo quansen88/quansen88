@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>更新说明 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="说明文档
+来自：http://bbs.wuyou.net/forum.php?mod=viewthread&amp;tid=370573
+本系统涵盖了MS公司自WinXP后发布主要系统，包括：WinXP/Win2003/Win7/Win8(..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">更新说明</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="说明文档">说明文档</h1>
+<p>来自：http://bbs.wuyou.net/forum.php?mod=viewthread&amp;tid=370573</p>
+<p>本系统涵盖了MS公司自WinXP后发布主要系统，包括：WinXP/Win2003/Win7/Win8(32+64)/Win8.1(32+64)/Win10(32+64)，各系统共享外置工具和部分驱动程序；含多种介质启动方式：硬盘、光盘、USB盘（UD/U+/UDM）、网启（PXE/iPXE）；多种启动软件启动方式：MS(BIOS+EFI)、Grub4Dos、Syslinux、EasyBoot、Grub2(BIOS+EFI)、rEfind、xorboot；多种应用模式分层加载：第一层：内核层--&gt;第二层：系统维护层--&gt;第三层：网络应用层--&gt;第四层：影音娱乐游戏办公层，附加层：用户自定制层，进入桌面后可按需升级或降级应用层次。应用超多，体积巨大，确是一艘PE航母！</p>
+<p>本系统所含PE有各自不能被其他完全替代的特点：</p>
+<table>
+<thead>
+<tr>
+<th><strong>项目</strong></th>
+<th style="text-align:center"><strong>登录形式</strong></th>
+<th><strong>内置网络驱动</strong></th>
+<th><strong>桌面菜单样式</strong></th>
+<th><strong>EFI****支持</strong></th>
+<th><strong>磁盘驱动</strong></th>
+<th><strong>网启支持</strong></th>
+<th><strong>WIM****新驱动选择</strong></th>
+<th><strong>应用特点</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Win03PE</td>
+<td style="text-align:center">PE（SYSTEM）</td>
+<td>No</td>
+<td>MS传统菜单</td>
+<td>No</td>
+<td>多</td>
+<td>仅PXE</td>
+<td>No</td>
+<td>一般维护等</td>
+</tr>
+<tr>
+<td>非RAMXPPE</td>
+<td style="text-align:center">PE（SYSTEM）</td>
+<td>No</td>
+<td>MS传统菜单</td>
+<td>No</td>
+<td>少</td>
+<td>No</td>
+<td>No</td>
+<td>最低可64M内存启动</td>
+</tr>
+<tr>
+<td>Native 03PE</td>
+<td style="text-align:center">PE（SYSTEM）</td>
+<td>No</td>
+<td>MS传统菜单</td>
+<td>No</td>
+<td>少</td>
+<td>仅PXE</td>
+<td>No</td>
+<td>USB慢速机</td>
+</tr>
+<tr>
+<td>全内置03PE</td>
+<td style="text-align:center">PE（SYSTEM）</td>
+<td>Yes（手动）</td>
+<td>MS传统菜单</td>
+<td>No</td>
+<td>中</td>
+<td>仅PXE（能装服务器外置）</td>
+<td>No</td>
+<td>启动后可拔掉启动设备，也可作网启工作站</td>
+</tr>
+<tr>
+<td>Win7PE</td>
+<td style="text-align:center">PE（SYSTEM）</td>
+<td>Yes（手动）</td>
+<td>MS传统菜单</td>
+<td>No</td>
+<td>系统自带</td>
+<td>(i)PXE（能装服务器外置）</td>
+<td>Yes</td>
+<td>新老机维护，但WIM老驱动在位于只读媒体时有小问题</td>
+</tr>
+<tr>
+<td>Win8PE(含64)</td>
+<td style="text-align:center">PE（SYSTEM）</td>
+<td>No</td>
+<td>MS Win7菜单</td>
+<td>Yes(32+64)</td>
+<td>系统自带</td>
+<td>(i)PXE</td>
+<td>Yes</td>
+<td>新机安装维护，无网驱体积较小，载入较快。网络不驱动防火墙，方便做网启服务器</td>
+</tr>
+<tr>
+<td>Win8.1PE(含64)</td>
+<td style="text-align:center">RAMOS（Administrator）</td>
+<td>Yes（自动）</td>
+<td>MS Metro菜单（可切换到StartisBack）</td>
+<td>Yes(32+64)</td>
+<td>系统自带</td>
+<td>(i)PXE（能装服务器外置）</td>
+<td>Yes</td>
+<td>新机安装维护应用，内置网卡自动启动，方便作网启工作站。如果作网启服务器，由于网络驱动防火墙，NT5与其连接不便。（64位含bitlocker组件）</td>
+</tr>
+<tr>
+<td>Win10PE(含64)</td>
+<td style="text-align:center">PE（SYSTEM）</td>
+<td>Yes（自动）</td>
+<td>StartisBack</td>
+<td>Yes(32+64)</td>
+<td>系统自带</td>
+<td>(i)PXE（能装服务器外置）</td>
+<td>Yes</td>
+<td>新机安装维护，内置网卡自动启动，方便作网启工作站。如果作网启服务器，由于网络驱动防火墙，NT5与其连接不便。</td>
+</tr>
+</tbody>
+</table>
+<p>本系统应该从07年开始制作，生命不息，更新不止。本次开一个新帖来发布新的系统，新的系统将含有最新的Win10PE，老的不含Win10PE系统的版本可以到：<a href="http://bbs.wuyou.net/forum.php?mod=viewthread&amp;tid=136576&amp;extra=page%3D2">http://bbs.wuyou.net/forum.php?m ... 6576&amp;extra=page%3D2</a>去查询。</p>
+<p><strong>系统定位：</strong><br>
+1、系统维护：系统安装恢复、数据救援、故障排查等；<br>
+2、系统替代：临时代替系统使用或移动办公；<br>
+3、PE研究制作：制作打包、工具测试、各种启动方式等<br>
+4、硬件测试：测试硬件对平台适应性及表现。</p>
+<p><strong>最新引用成果：</strong><br>
+　　PECMD的开发者mdyblog的PECMD工具及示例代码、slore的MTP HOOK工具、sp_star 的winbuilder制作脚本、红毛樱木/2012qnmd /yaojy等对Win10PE的研究、sinoxer定制的IQI工具、notepad/addaadda等对OFC2007的研究、527104427等关于挂载的研究、yamingw大侠对于驱动装载核心组件drvinst破解及Win10MTP驱动级拦截的研究...........这只是近期的，加上以前的太多了，没办法列举了！感谢论坛中为PE发展做出各种努力的无忧网友们！也对自己一直以来制作PE的热情点个赞！</p>
+<p>希望大家继续保持热情，我分享故我快乐！</p>
+<p><em>本帖最后由 hhh333 于 2019-7-18 15:09 编辑</em><br>
+<strong>H3多启多模集成PE系统</strong><br>
+　　本系统涵盖了MS公司自WinXP后发布主要系统，包括：WinXP/Win2003/Win7/Win8(32+64)/Win8.1(32+64)/Win10(32+64)，各系统共享外置工具和部分驱动程序；含多种介质启动方式：硬盘、光盘、USB盘（UD/U+/UDM）、网启（PXE/iPXE）；多种启动软件启动方式：MS(BIOS+EFI)、Grub4Dos、Syslinux、EasyBoot、Grub2(BIOS+EFI)、rEfind、xorboot；多种应用模式分层加载：第一层：内核层--&gt;第二层：系统维护层--&gt;第三层：网络应用层--&gt;第四层：影音娱乐游戏办公层，附加层：用户自定制层，进入桌面后可按需升级或降级应用层次。应用超多，体积巨大，确是一艘PE航母！<br>
+　　本系统所含PE有各自不能被其他完全替代的特点：<br>
+<strong>项目<strong><strong>登录形式</strong></strong>内置网络驱动<strong><strong>桌面菜单样式</strong></strong>EFI<strong><strong>支持</strong></strong>磁盘驱动<strong><strong>网启支持</strong></strong>WIM<strong><strong>新驱动选择</strong></strong>应用特点</strong>Win03PEPE（SYSTEM）NoMS传统菜单No多仅PXENo一般维护等非RAMXPPEPE（SYSTEM）NoMS传统菜单No少NoNo最低可64M内存启动Native 03PEPE（SYSTEM）NoMS传统菜单No少仅PXENoUSB慢速机全内置03PEPE（SYSTEM）Yes（手动）MS传统菜单No中仅PXE（能装服务器外置）No启动后可拔掉启动设备，也可作网启工作站Win7PEPE（SYSTEM）Yes（手动）MS传统菜单No系统自带(i)PXE（能装服务器外置）Yes新老机维护，但WIM老驱动在位于只读媒体时有小问题Win8PE(含64)PE（SYSTEM）NoMS Win7菜单Yes(32+64)系统自带(i)PXEYes新机安装维护，无网驱体积较小，载入较快。网络不驱动防火墙，方便做网启服务器Win8.1PE(含64)RAMOS（Administrator）Yes（自动）MS Metro菜单（可切换到StartisBack）Yes(32+64)系统自带(i)PXE（能装服务器外置）Yes新机安装维护应用，内置网卡自动启动，方便作网启工作站。如果作网启服务器，由于网络驱动防火墙，NT5与其连接不便。（64位含bitlocker组件）Win10PE(含64)PE（SYSTEM）Yes（自动）StartisBackYes(32+64)系统自带(i)PXE（能装服务器外置）Yes新机安装维护，内置网卡自动启动，方便作网启工作站。如果作网启服务器，由于网络驱动防火墙，NT5与其连接不便。<br>
+　　本系统应该从07年开始制作，生命不息，更新不止。本次开一个新帖来发布新的系统，新的系统将含有最新的Win10PE，老的不含Win10PE系统的版本可以到：<a href="http://bbs.wuyou.net/forum.php?mod=viewthread&amp;tid=136576&amp;extra=page%3D2">http://bbs.wuyou.net/forum.php?m ... 6576&amp;extra=page%3D2</a>去查询。</p>
+<p><strong>系统定位：</strong><br>
+1、系统维护：系统安装恢复、数据救援、故障排查等；<br>
+2、系统替代：临时代替系统使用或移动办公；<br>
+3、PE研究制作：制作打包、工具测试、各种启动方式等<br>
+4、硬件测试：测试硬件对平台适应性及表现。<br>
+<strong>最新引用成果：</strong><br>
+　　PECMD的开发者mdyblog的PECMD工具及示例代码、slore的MTP HOOK工具、sp_star 的winbuilder制作脚本、红毛樱木/2012qnmd /yaojy等对Win10PE的研究、sinoxer定制的IQI工具、notepad/addaadda等对OFC2007的研究、527104427等关于挂载的研究、yamingw大侠对于驱动装载核心组件drvinst破解及Win10MTP驱动级拦截的研究...........这只是近期的，加上以前的太多了，没办法列举了！感谢论坛中为PE发展做出各种努力的无忧网友们！也对自己一直以来制作PE的热情点个赞！<br>
+希望大家继续保持热情，我分享故我快乐！<br>
+<strong>2019年7月5日新春第四次修订版</strong><br>
+一、内核<br>
+1、Win8及以上增加BDESVC和DSMSVC服务，以便实现Bitlocker解锁和USB弹出功能；<br>
+2、Win10打印相关CAT文件外置；<br>
+3、Win10更换了一个稍大的精简字体以便显示偏僻字；<br>
+二、外置<br>
+1、修正指定INF文件目录安装驱动时如果该目录有多个INF文件只安装找到的第一个INF文件可能造成安装失败的问题；<br>
+2、修正Win8(64与32)打印组件中的错误，并让其共用Win8.1的打印驱动；<br>
+3、重新整理驱动总管工具界面，把可以选择安装方式的声、显、网、打印归为驱动类，其他不需要选择安装方式的统一归为组件类，如MTP、BitLocker等；<br>
+4、更改打印机安装逻辑，让其可以选择安装方式；<br>
+5、更改外置驱动安装逻辑：公共文件统一在启动时安装，其他所有驱动或组件安装时再不对公共文件进行判断和安装；<br>
+6、增加设备资源文件：在安装打印机后可以在设备和打印机控制面板中查看以3D图标显示的设备列表；<br>
+7、增加Win10的Bitlocker组件；<br>
+8、工具更新：7z--&gt;19.0.0、G4D--&gt;20190607、DISM++--&gt;10.1.1000.100、FastCopy--&gt;3.6.3.0、WinNTSetup--&gt;3.9.4；HFS驱动--&gt;6.0.1.0<br>
+9、PETOOLS中增加USB3 Drivers Smart Install v2.0.6.3和系统总裁工具，以方便离线注入SRS和USB3驱动；<br>
+三、其他<br>
+同步提供Win10 1903(18362.175)的全套文件，包括内核和外置，可以撤下更换1709的内核（H3_10PE.WIM、H3_1064.WIM）和外置（DR10、DR1064）。<br>
+（看了下UUP18362又有更新，干脆等稳定后再做再放出吧）<br>
+<strong>下载：</strong><br>
+文件:H3CDALL.ISO<br>
+大小: 4024438784 字节<br>
+修改时间: 2019年7月5日, 8:33:49<br>
+MD5: B26EEC02B71F06DE719562D343DE2498<br>
+SHA1: 6A170A0748C8AEE13F7871EE675F8501079F6B3D<br>
+CRC32: BEE2CD2F<br>
+链接：https://pan.baidu.com/s/1ON6RA0JTpda-x0Ictrz00A<br>
+提取码：wf9l<br>
+1903内核的完整版：<br>
+文件: H3CDALL.ISO<br>
+大小: 4065654784 字节<br>
+修改时间: 2019年7月18日, 11:39:00<br>
+MD5: 308478BF7D1B9370B57A40A8AF0EAB8A<br>
+SHA1: B8C393B2A7FCD31B838FBDCDFCADCACA53035CF8<br>
+CRC32: D5E9C2A0<br>
+链接：https://pan.baidu.com/s/18rE_OP-rsJZA4xTYAuDv9A<br>
+提取码：pzyw</p>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/zabbix-jian-kong-ru-men-ji-chu-jian-kong-tomcatzhu-bei-dong-mo-shi/">
+                  <h3 class="post-title">
+                    zabbix监控入门基础，监控tomcat，主被动模式
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

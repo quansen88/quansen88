@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190831制作一个最小的CentOS6系统 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="制作一个最小的CentOS6系统
+首先要明确一下CentOS6启动的过程
+
+POST -&gt; BootSequence(BIOS) -&gt; Bootloader(MBR) -&gt; Kernel(ramdisk) -&gt; ro..." />
+    <meta name="keywords" content="centos" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190831制作一个最小的CentOS6系统</h2>
+            <div class="post-date">2021-04-22</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.centos.org/assets/img/centos-logo-white.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="制作一个最小的centos6系统">制作一个最小的CentOS6系统</h1>
+<p>首先要明确一下CentOS6启动的过程</p>
+<blockquote>
+<p>POST -&gt; BootSequence(BIOS) -&gt; Bootloader(MBR) -&gt; Kernel(ramdisk) -&gt; rootfs -&gt; switchroot -&gt; /sbin/init -&gt; (/etc/inittab,/etc/init/*.conf) -&gt; 设置默认运行级别 -&gt; 系统初始化脚本 -&gt;关闭或启动对应级别下的服务 -&gt; 启动终端</p>
+</blockquote>
+<p><strong>1、POST不用管，硬件的事</strong></p>
+<p><strong>2、BootSequence，手动选择某个硬盘启动即可</strong></p>
+<p><strong>3、Bootloader即stage1.0阶段，使用grub-install生成</strong></p>
+<p><strong>stage1.5阶段也用grub-install生成</strong></p>
+<p><strong>4、stage2.0阶段即内核文件vmlinuz和ramdisk镜像从源系统复制一份</strong></p>
+<p>然后需要grub文件，CentOS6就手动写一份吧，格式如下：</p>
+<pre><code class="language-bash">default=#：设定默认启动的菜单项；落单项（title）编号从0开始
+timeout=#：指定菜单等待选项选择的时长
+splashimage=（hd#，#）/PATH/TO/XPM_PIC_FILE:指定菜单背景图片
+hiddenmenu：隐藏菜单
+title TITLE：定义菜单标题
+	root(hd#,#)grub查找stage2及kernel文件所在的设备分区：为grub的根
+	kernel /PATH/TO/VMLINUZ_FILE:启动的内核
+	initrd /PATH/TO/INITRAMFS_FILE:内核匹配的ramfs文件
+	password [--md5] STRING:菜单编辑认证
+</code></pre>
+<p><strong>5、复制几个命令，开启也别启动/sbin/init，直接启动/bin/bash行了</strong></p>
+<p><strong>脚本：</strong><a href="https://blog.51cto.com/14012942/2432996">copycmd-拷贝命令及其依赖库</a></p>
+<h2 id="开始搞">开始搞</h2>
+<h4 id="一-centos6虚拟机加一个硬盘">一、CentOS6虚拟机加一个硬盘</h4>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567224002639.png" alt="1567224002639" loading="lazy"></figure>
+<h4 id="二-分区挂到临时目录下">二、分区挂到临时目录下</h4>
+<p><strong>swap分区可以不要，刚开始启动不起来，我还以为是缺少swap分区，后来发现，是因为selinux问题，grub.conf里面kernel哪一行加上selinux=0即可</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# for i in `seq 0 2`;do echo - - - &gt;/sys/class/scsi_host/host$i/scan;done
+[root@localhost ~]# lsblk /dev/sdb -f
+NAME FSTYPE LABEL UUID MOUNTPOINT
+sdb 
+#一个boot分区，一个根分区算了
+[root@localhost ~]# fdisk /dev/sdb
+Command (m for help): n
+p
+Partition number (1-4): 1
+First cylinder (1-130, default 1):
+Last cylinder, +cylinders or +size{K,M,G} (1-130, default 130): +300M
+Command (m for help): n
+p
+Partition number (1-4):
+Partition number (1-4): 2
+Last cylinder, +cylinders or +size{K,M,G} (40-130, default 130): +100M
+Command (m for help): t
+Partition number (1-4): 2
+Hex code (type L to list codes): 82
+Command (m for help): n
+p
+Partition number (1-4): 3
+Last cylinder, +cylinders or +size{K,M,G} (54-130, default 130):
+Command (m for help): w
+The partition table has been altered!
+#创建文件系统
+[root@localhost ~]# mkfs.ext4 /dev/sdb1
+[root@localhost ~]# mkswap /dev/sdb2
+[root@localhost ~]# mkfs.ext4 /dev/sdb3
+[root@localhost ~]# lsblk -f /dev/sdb
+NAME   FSTYPE LABEL UUID                                 MOUNTPOINT
+sdb                                                      
+├─sdb1 ext4         54632ecc-7b84-400e-9c44-bc01edf500b5 
+├─sdb2 swap         6ca8ef8e-3753-447e-ba89-569b6258ea25 
+└─sdb3 ext4         a80dd4f2-d9f6-4eb0-909a-54d1ac06fd6b 
+#临时挂
+[root@localhost ~]# mkdir /mnt/{boot,sysroot}
+[root@localhost ~]# mount /dev/sdb1 /mnt/boot/
+[root@localhost ~]# mount /dev/sdb3 /mnt/sysroot/
+
+</code></pre>
+<h4 id="三-生成grubstage10-stage20文件">三、生成grubstage1.0-stage2.0文件</h4>
+<pre><code class="language-bash">[root@localhost ~]# grub-install --root-directory=/mnt /dev/sdb
+Probing devices to guess BIOS drives. This may take a long time.
+Installation finished. No error reported.
+This is the contents of the device map /mnt/boot/grub/device.map.
+Check if this is correct or not. If any of the lines is incorrect,
+fix it and re-run the script `grub-install'.
+
+(fd0)	/dev/fd0
+(hd0)	/dev/sda
+(hd1)	/dev/sdb
+</code></pre>
+<h4 id="四-复制内核文件vmlinuz和ramfs镜像">四、复制内核文件vmlinuz和ramfs镜像</h4>
+<pre><code class="language-bash">[root@localhost ~]# cp /boot/vmlinuz-2.6.32-754.el6.x86_64 /mnt/boot/vmlinuz
+[root@localhost ~]# cp /boot/initramfs-2.6.32-754.el6.x86_64.img /mnt/boot/initramfs.img
+</code></pre>
+<p><strong>手写grub.conf,照着/boot/grub/grub.conf</strong></p>
+<p>注意：selinux=0不启用selinux，init=/bin/bash表示开机使用/bin/bash，不使用/sbin/init</p>
+<pre><code class="language-bash">[root@localhost ~]# cat /mnt/boot/grub/grub.conf 
+default=0
+timeout=5
+title CentOS6 test (hehehaha)
+kernel /vmlinuz ro root=/dev/sda3 selinux=0 init=/bin/bash
+initrd /initramfs.img
+</code></pre>
+<h4 id="五-创建目录复制命令">五、创建目录，复制命令</h4>
+<p>脚本：<a href="https://blog.51cto.com/14012942/2432996">copycmd-拷贝命令及其依赖库</a></p>
+<pre><code class="language-bash">[root@localhost sysroot]# mkdir home tmp root usr lib lib64 proc etc mnt bin sbin dev opt var sys
+
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567226541640.png" alt="1567226541640" loading="lazy"></figure>
+<p><strong>切根试试：</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# chroot /mnt/sysroot/
+bash-4.1# ls
+bin  etc   lib	  mnt  proc  sbin  tmp	var
+dev  home  lib64  opt  root  sys   usr
+bash-4.1# pwd
+/
+bash-4.1# cd root
+bash-4.1# pwd
+/root
+</code></pre>
+<p><strong>顺便复制个网卡驱动</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# ethtool -i eth0
+driver: e1000
+version: 7.3.21-k8-NAPI
+firmware-version: 
+bus-info: 0000:02:01.0
+supports-statistics: yes
+supports-test: yes
+supports-eeprom-access: yes
+supports-register-dump: yes
+supports-priv-flags: no
+[root@localhost ~]# find / -name e1000.ko
+/lib/modules/2.6.32-754.el6.x86_64/kernel/drivers/net/e1000/e1000.ko
+[root@localhost ~]# cp /lib/modules/2.6.32-754.el6.x86_64/kernel/drivers/net/e1000/e1000.ko /mnt/sysroot/lib/
+</code></pre>
+<h4 id="六-关机新建虚拟机使用该磁盘启动">六、关机，新建虚拟机使用该磁盘启动</h4>
+<p>自定义创建虚拟机</p>
+<figure data-type="image" tabindex="3"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567226906347.png" alt="1567226906347" loading="lazy"></figure>
+<p><strong>神奇的grub界面：</strong></p>
+<figure data-type="image" tabindex="4"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567231400700.png" alt="1567231400700" loading="lazy"></figure>
+<p><strong>进去之后，加载网卡，配IP，ping一下别的虚拟机</strong></p>
+<figure data-type="image" tabindex="5"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567231674929.png" alt="1567231674929" loading="lazy"></figure>
+<p><strong>LFS：构建最小Linux文档：https://lctt.github.io/LFS-BOOK/</strong></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/WsfqvhG9O/" class="tag">
+                    centos
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190830centos-shan-vmlinuz-wan/">
+                  <h3 class="post-title">
+                    20190830CentOS删vmlinuz玩
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

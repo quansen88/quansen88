@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>k8s | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="k8s是什么？
+编排容器的工具（容器太多，不好管理，k8s帮助管理）
+k8s包含哪些组件？
+k8s包含master节点和worker节点。
+APISERVER：所有服务访问统一入口
+ControllerManager：维持副本期望数目
+Sc..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">k8s</h2>
+            <div class="post-date">2021-04-26</div>
+            
+            <div class="post-content" v-pre>
+              <p>k8s是什么？<br>
+编排容器的工具（容器太多，不好管理，k8s帮助管理）</p>
+<p>k8s包含哪些组件？<br>
+k8s包含master节点和worker节点。<br>
+APISERVER：所有服务访问统一入口<br>
+ControllerManager：维持副本期望数目<br>
+Scheduler：负责介绍任务，选择合适的节点进行分配任务<br>
+ETCD：键值对数据库，存储k8s集群所有重要信息<br>
+kubelet：直接跟容器引擎交互实现容器生命周期管理<br>
+Kube-proxy：负责写入规则到ipvs或者iptables实现服务映射访问的<br>
+coredns：可以为集群中的svc创建域名ip的对应关系解析<br>
+dashboard：给k8s集群提供一个B/S访问结构体系<br>
+ingress controller：官方只能实现4层代理，ingress可以实现7层代理<br>
+prometheus：提供k8s集群的监控能力<br>
+ELK：提供k8s集群日志统一分析介入平台</p>
+<p>什么是微服务？<br>
+使用一套小服务来开发单个应用的方式，每个服务运行在独立的进程里，一般采用轻量级的通讯机制互联，并且它们可以通过自动化的方式部署。</p>
+<p>微服务架构的优势？<br>
+独立性：构建，部署，扩容，缩容，容错，数据库都是单独管理的，所以每个服务只需要管理好自己就好了<br>
+敏捷性：对使用者来说，暴露的接口会相对简单。以为它们的功能相对单一，并且有清晰的API，对使用者来说理解起来就非常的容易。同时可以快速的应对的变化。<br>
+技术栈灵活：只要保证API接口不变，使用的技术不再拘束。<br>
+高效团队：团队相对比较小，因为每个团队只需要负责自己的微服务，因此调整起来也比较灵活。</p>
+<p>微服务架构的不足？<br>
+额外的工作：服务的拆分，该怎么拆分服务。<br>
+数据的一致性：单体架构只有一个数据库，使用事务可以很容易达到数据一致性。拆分微服务时应尽量保证对数据库的连表操作在一个微服务中进行，但是也很难保证没有意外发生。<br>
+沟通成本：单体架构下改一个接口，可以顺便把调用这个接口的地方改掉。但是微服务中很可能你想修改的地方已经不是你负责的了，如果修改的多的话，沟通成本就大了。</p>
+<p>什么是服务编排？<br>
+服务编排包括：服务发现，服务部署，更新，扩缩容等。</p>
+<p>k8s的yaml文件组成？<br>
+apiversion：<br>
+metadata：<br>
+Spec<br>
+status</p>
+<p>k8s解决了什么难题？</p>
+<p>命令创建一个pod的同时，都发生了什么？<br>
+https://xyz.uscwifi.xyz/post/bNVc3H5Tj/</p>
+<p>flannel和calic区别：<br>
+flannel配置简单，不支持网络策略<br>
+calic配置复杂，支持网络策略</p>
+<p>deployment，statefulset，daemonset服务的区别？<br>
+首先，这三种服务对应于k8s里面三种不同的资源对象。Deployment：无状态服务，statefulset：有状态服务。daemonset：运行在每个节点上的守护进程。</p>
+<p>有状态与无状态？<br>
+应用程序与用户，设备，其他应用程序或外部组件进行通信时候，根据其是否需要激励前一次或多次通信的相关事件信息以作为下一次通信的标准，可以将那些需要记录信息的应用程序称为有状态应用，而无需记录的则称为无状态应用<br>
+无状态应用：除了主机名，ip地址等属性外，这些pod资源没有本质的区别。具有很强的相似性<br>
+有状态应用：有着固定的主机名，专有的存储卷，特定的启动关闭顺序，固定且唯一的网络标识。有状态服务使用headless类型的service</p>
+<p>状态和存储的关系？<br>
+状态是进程的时间属性。无状态意味着进程不用跟踪过去的交互操作，本质上是一个纯粹的功能性行为。对应的，有状态则记录了以前交互过程的记录。至于这个记录保存在内存中还是磁盘上，这是另一个问题<br>
+存储是表述持久保存数据的方法。<br>
+举例说明：<br>
+有状态且需要读写磁盘：redis，mongodb，zookeeper等<br>
+无状态需要读写磁盘：静态网页等web类服务程序<br>
+无状态且不读写磁盘：？<br>
+有状态不需要读写磁盘：购物车系统（但是一般不会使用纯内存）</p>
+<p>k8s有哪些控制器，举例说明？<br>
+目前来说，我们比较常用的控制器，如 pod 控制器、deployment 控制器、service 控制器、replicaset 控制器等。这些控制器一部分是由 kube controller manager 这个管理器实现和管理，而像 route 控制器和 service 控制器，则由 cloud controller manager 实现</p>
+<p>来自 <a href="https://www.infoq.cn/article/voxldzvyhzzohtkxauda">https://www.infoq.cn/article/voxldzvyhzzohtkxauda</a></p>
+<p>pod内的容器共享的名称空间有哪些？<br>
+默认情况下，同一个pod里面的的容器共享以下4个名称空间：UTS，IPC，NET，USER<br>
+UTS：主机名等。通过进入每个容器查看，主机名是一样的<br>
+IPC：进程间通信<br>
+NET：网络名称空间，pod内的容器都共享infra容器的网络名称空间<br>
+USER：用户名称空间，同一pod内容器共享用户名称空间<br>
+参考：https://www.cnblogs.com/rexcheny/p/11017146.html</p>
+<p>存活性探测和就绪性探测的区别？<br>
+有些应用持续运行一段时间后会变成不可用状态，又称僵死状态，不能继续提供服务，为了解决这个问题，可以给容器配置存活性探测以及重启策略，星巴克容器场景常用的存活性探测是基于HTTP的。重启策略默认是always，表示容器只要状态不正常就重启。Never表示，不重启容器，死了就死了，挂了就挂了，适用于job。Onfailure表示容器异常退出时候才重启<br>
+就绪性探测：容器启动之后需要一段时间才能完成初始化，这时候我们为了避免程序还未起来就接入客户端请求可以给程序配置就绪性探测，让程序真正运行起来了才转换为就绪状态给客户端提供服务，就绪性探测不会杀死或重启容器，而是通知尚未就绪。说明：未定义就绪性探测的pod对象，在pod状态变为  Running后立即就绪</p>
+<p>如何实现灰度发布？<br>
+可以通过部署两个具有相同pod标签的deployment来实现灰度发布，目前compass这边不能支持这个。deployment不能设置podselector，service也不能设置</p>
+<p>自我介绍：你好，我叫全志伟，现在属于eps交付团队的，从去年3月份到现在一直做的是公司compass容器云平台产品在星巴克客户的交付工作，现在主要用到的技术偏容器方面，很多东西还在慢慢学习过程中，我的大概情况就这些，谢谢。</p>
+<p>你在工作中遇到的棘手的问题和怎么处理的？<br>
+twistlock部署相关</p>
+<p>devops应用发布流程？<br>
+代码仓库的代码会经过jenkins进行编译，如果是容器部署的话，会打包成镜像，并经过jfrog那边扫描；如果是</p>
+<p>k8s网络插件选型依据？</p>
+<p>deployment实现原理？<br>
+deployment本质是replicaset的合集</p>
+<p>k8s升级考量点，升级步骤？<br>
+kubeadm升级<br>
+二进制升级：</p>
+<p>单元测试：<br>
+安全检查<br>
+合规检查</p>
+<p>简述Prometheus主要组件及其功能？<br>
+Prometheus 的主要模块包含：prometheus server, exporters, push gateway, PromQL, Alertmanager, WebUI 等。<br>
+1. prometheus server：定期从静态配置的 targets 或者服务发现（主要是DNS、consul、k8s、mesos等）的 targets 拉取数据，用于收集和存储时间序列数据。<br>
+2. exporters：负责向prometheus server做数据汇报，暴露一个http服务的接口给Prometheus server定时抓取。而不同的数据汇报由不同的exporters实现，比如监控主机有node-exporters，mysql有MySQL server exporter。<br>
+3. push gateway：主要使用场景为，当Prometheus 采用 pull 模式，可能由于不在一个子网或者防火墙原因，导致 Prometheus 无法直接拉取各个 target 数据。此时需要push gateway接入，以便于在监控业务数据的时候，将不同数据汇总, 由 Prometheus 统一收集。实现机制类似于zabbix-proxy功能。<br>
+4. Alertmanager：从 Prometheus server 端接收到 alerts 后，会进行去除重复数据，分组，并路由到对收的接受方式，发出报警，即主要实现prometheus的告警功能。AlertManager的整体工作流程如下图所示:<br>
+5. webui：Prometheus内置一个简单的Web控制台，可以查询指标，查看配置信息或者Service Discovery等，实践中通常结合Grafana，Prometheus仅作为Grafana的数据源。<br>
+简述Prometheus的机制？<br>
+Prometheus简单机制如下：<br>
+• Prometheus以其Server为核心，用于收集和存储时间序列数据。Prometheus Server 从监控目标中拉取数据，或通过push gateway间接的把监控目标的监控数据存储到本地HDD/SSD中。<br>
+• 用户接口界面通过各种UI使用PromQL查询语言从Server获取数据。<br>
+• 一旦Server检测到异常，会推送告警到AlertManager，由告警管理负责去通知相关方。<br>
+简述Prometheus中什么是时序数据？<br>
+Prometheus 存储的是时序数据,，时序数据是指按照相同时序(相同的名字和标签)，以时间维度存储连续的数据的集合。时序(time series) 是由名字(Metric)，以及一组 key/value 标签定义的，具有相同的名字以及标签属于相同时序。<br>
+简述Prometheus时序数据有哪些类型？<br>
+Prometheus 时序数据分为 Counter, Gauge, Histogram, Summary 四种类型。<br>
+• Counter：计数器表示收集的数据是按照某个趋势（增加／减少）一直变化的，通常用它记录服务请求总量，错误总数等。<br>
+• Gauge：计量器表示搜集的数据是一个瞬时的，与时间没有关系，可以任意变高变低，往往可以用来记录内存使用率、磁盘使用率等。<br>
+• Histogram：直方图 Histogram 主要用于对一段时间范围内的数据进行采样，（通常是请求持续时间或响应大小），并能够对其指定区间以及总数进行统计，通常我们用它计算分位数的直方图。<br>
+• Summary：汇总Summary 和 直方图Histogram 类似，主要用于表示一段时间内数据采样结果，（通常是请求持续时间或响应大小），它直接存储了 quantile 数据，而不是根据统计区间计算出来的。</p>
+<p>这家公司是做容器云服务的，本次面试软件实施交付工程师</p>
+<p>1、第一面是hr面试<br>
+了解基本情况，为啥离职，工作内容，上班时间，住在哪里等，当前有没有收到offer。。。<br>
+问了3个基本技术：<br>
+1、怎么查看容器ip<br>
+docker inspect --format='{{.NetworkSettings.IPAddress}}' 容器ID<br>
+2、怎么看k8s指定名称空间下面的pod<br>
+kubectl get pod -n ns名字<br>
+3、k8s包含哪些组件<br>
+k8s分为master节点和worker节点<br>
+master节点上主要有三大组件：<br>
+apiserver：所有服务的统一入口<br>
+Controller-manager:是一组控制器的合集，负责控制管理对应的资源<br>
+scheduler：负责将等待调度的pod按照一定算法绑定到合适的工作节点上<br>
+node节点上主要有两大组件：<br>
+kubelet：直接与pod打交道，负责pod的整个生命周期<br>
+kube-proxy：将service转发到对应endpoint<br>
+然后所有节点都需要docker作为底层容器引擎<br>
+然后etcd存储整个集群的配置和状态，可以单独部署，可以和master节点复用<br>
+4、上下文切换说一下？</p>
+<p>第二天早上面试<br>
+1、自我介绍<br>
+2、 k8s组件<br>
+3、pv和pvc的关系（没答上）<br>
+pv：PersistentVolume  用于定义pv的容量，访问模式和回收策略<br>
+PVC：PersistentVolumeClaim 它是存储卷类型的资源，通过申请PV而创建，与PV是一一对应的关系。申请时，只需指定目标空间大小，访问模式，pv标签选择器和storageclass等相关信息<br>
+4、客户想使用hostpath，但我们没有，怎么办？怎么和客户说明<br>
+5、api server起不来怎么解决，提问的方式，如何高效地提问？（答得不好）<br>
+5、prometheus工作模式了解不了解（我说只是简单用过，没有研究过）<br>
+6、僵尸进程怎么产生的？（我说没遇到过，没答上来）<br>
+孤儿进程：一个父进程退出，而它的一个或多个子进程还在运行，那么那些子进程将成为孤儿进程。孤儿进程将被init进程(进程号为1)所收养，并由init进程对它们完成状态收集工作。<br>
+僵尸进程：一个进程使用fork创建子进程，如果子进程退出，而父进程并没有调用wait或waitpid获取子进程的状态信息，那么子进程的进程描述符仍然保存在系统中。这种进程称之为僵死进程。<br>
+6、Dockerfile中ADD和COPY的区别<br>
+7、客户那边服务出问题想甩锅，怎么办？（答得不好）<br>
+我觉得应该这样答：<br>
+1、原因我们肯定是要查的，但不能直接地承担全部责任<br>
+2、我们要与客户协商，看是不是客户业务达到峰值，或者代码逻辑有问题，业务有变动等，他们的服务器网络是否有变动，并通过看日志分析。多方面找原因，而不是随便背锅<br>
+8、加班和出差的理解</p>
+<p>20200321早上9点三面（技术面）<br>
+问的技术问题：<br>
+1、docker有几种网络模型？（我答错了，可能有点紧张了，全忘了）<br>
+bridge：docker的默认网络<br>
+host：容器和宿主机共享网络名称空间<br>
+none：容器完全与外界隔绝<br>
+container：又称联盟式网络，和指定容器共享网络名称空间<br>
+用户自定义网络：<br>
+如果需要实现跨主机通信的话，还有overlay网络</p>
+<p>2、shell脚本如何调试？（说到了set -x）<br>
+我答的bash -x，面试官不是很满意。说脚本中使用set -x就可以有详细日志输出了，免得老要echo<br>
+3、pod的概念，里面的容器怎么通信的，采用的哪种？答错了<br>
+pod的k8s的最小调度单元。pod内共享network和namespace。优先启动pause容器，其他容器都去共享pause容器的network和namespace，所以pod里面的容器之间可以用localhost访问，使用的是docker网络模型里面的container网络模型（容器共享容器的网络）</p>
+<p>4、nginx -s reload的原理</p>
+<p>5、time_wait过多怎么办</p>
+<p>20200321中午12点四面cto<br>
+1、ingress了解不？（我不了解，很尴尬）<br>
+2、pod访问另一个service的过程？（我都不知道怎么答）<br>
+又是dns解析，又是flannel，docker0，不知道怎么串起来<br>
+3、你之前工作中有没有遇到过和开发扯皮的事？你有哪些总结教训<br>
+4、nginx和haproxy的区别？</p>
+<p>20200322早上10点5面ceo<br>
+主要说了下<br>
+工作的性质：直接面向的是客户，需要经常与客户沟通，需要不断学习，遇到问题你一般怎么解决，多线程工作能否接受。<br>
+职业规划：打算怎么规划未来三年，在什么样的情况下你会选择跳槽，你是否会因为比如家庭等原因离职</p>
+
+            </div>
+            
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

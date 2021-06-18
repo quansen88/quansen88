@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190909DNS实验一：搭建一个简单的DNS服务器 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="DNS实验一：搭建一个简单的DNS服务器，配置正向解析与反向解析
+参考：https://thson.blog.csdn.net/article/details/94427779
+老生常谈：初始化机器
+[root@server ~]# yum..." />
+    <meta name="keywords" content="DNS" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190909DNS实验一：搭建一个简单的DNS服务器</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://alidns.com/public/img/selections/trouble/trouble.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="dns实验一搭建一个简单的dns服务器配置正向解析与反向解析">DNS实验一：搭建一个简单的DNS服务器，配置正向解析与反向解析</h1>
+<p>参考：https://thson.blog.csdn.net/article/details/94427779</p>
+<p><strong>老生常谈：初始化机器</strong></p>
+<pre><code class="language-bash">[root@server ~]# yum install bind -y
+</code></pre>
+<h4 id="2-nameconf">2、name.conf</h4>
+<p>option代码段含义：</p>
+<p>可以自行去man：man named.conf</p>
+<p>需要修改两项：</p>
+<pre><code class="language-bash">#默认
+	listen-on port 53 { 127.0.0.1; };	#named监听在127.0.0.1的53端口
+	allow-query     { localhost; };		#只允许本地查询
+#修改办法一：这两行注释掉
+#修改办法二：
+	listen-on port 53 { localhost; };
+	allow-query     { any; };
+</code></pre>
+<p><strong>[root@server ~]# systemctl restart named</strong></p>
+<pre><code class="language-bash">[root@server ~]# ss -ltunp | grep :53
+udp    UNCONN     0      0      192.168.38.128:53                    *:*                   users:((&quot;named&quot;,pid=7184,fd=515),(&quot;named&quot;,pid=7184,fd=514))
+udp    UNCONN     0      0      127.0.0.1:53                    *:*                   users:((&quot;named&quot;,pid=7184,fd=513),(&quot;named&quot;,pid=7184,fd=512))
+udp    UNCONN     0      0       ::1:53                   :::*                   users:((&quot;named&quot;,pid=7184,fd=517),(&quot;named&quot;,pid=7184,fd=516))
+tcp    LISTEN     0      10     192.168.38.128:53                    *:*                   users:((&quot;named&quot;,pid=7184,fd=22))
+tcp    LISTEN     0      10     127.0.0.1:53                    *:*                   users:((&quot;named&quot;,pid=7184,fd=21))
+tcp    LISTEN     0      10      ::1:53                   :::*                   users:((&quot;named&quot;,pid=7184,fd=23))
+</code></pre>
+<h4 id="3-添加域">3、添加域</h4>
+<p>​		zone关键字后面接的是域和类，域是自定义的域名，IN是internet的简称，是bind 9中的默认类，所以可以省略。type定义该域的类型是&quot;master | slave | stub | hint | forward&quot;中的哪种，file定义该域的区域数据文件，因为这里是相对路径db.taobao.com，它的相对路径是相对于/var/named的，也可以指定绝对路径/var/named/db.taobao.com。</p>
+<pre><code class="language-bash">vim /etc/named.conf
+
+zone &quot;taobao.com&quot; IN {                                                                                                
+        type master;
+        file &quot;db.taobao.com&quot;
+}
+</code></pre>
+<h4 id="4-配置区域文件varnameddbtaobaocom">4、配置区域文件/var/named/db.taobao.com</h4>
+<p>​		嗯，现在我有三台虚拟机和一个dns服务器（即当前机器）。三台虚拟机分别是www（淘宝首页），miaosha（淘宝秒杀），xianyu（二手咸鱼）。</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1568038159167.png" alt="1568038159167" loading="lazy"></figure>
+<pre><code class="language-bash">cd /var/named/
+cp -a named.localhost db.taobao.com
+cat db.taobao.com 
+
+
+$TTL 6h
+@              IN  SOA dnsserver.taobao.com.   admin.taobao.com. (
+                       1     ; serial num
+                       3h    ; refresh time 
+                       1h    ; retry time 
+                       1w    ; expire time
+                       1h )  ; negative time
+
+taobao.com.              IN  NS  dnsserver.taobao.com.
+
+dnsserver.taobao.com.    IN  A   192.168.38.128
+www.taobao.com.          IN  A   192.168.38.130
+miaosha.taobao.com.          IN  A   192.168.38.131
+xianyu.taobao.com.         IN  A   192.168.38.132
+
+www1.taobao.com.         IN  CNAME  www.taobao.com.
+</code></pre>
+<p>​		其中第一行的&quot;<span class="katex"><span class="katex-mathml"><math><semantics><mrow><mi>T</mi><mi>T</mi><mi>L</mi><mn>6</mn><mi>h</mi><mi mathvariant="normal">&quot;</mi><mi mathvariant="normal">表</mi><mi mathvariant="normal">示</mi><mi mathvariant="normal">缓</mi><mi mathvariant="normal">存</mi><mi mathvariant="normal">周</mi><mi mathvariant="normal">期</mi><mi mathvariant="normal">，</mi><mi mathvariant="normal">即</mi><mi mathvariant="normal">查</mi><mi mathvariant="normal">询</mi><mi mathvariant="normal">该</mi><mi mathvariant="normal">域</mi><mi mathvariant="normal">中</mi><mi mathvariant="normal">记</mi><mi mathvariant="normal">录</mi><mi mathvariant="normal">时</mi><mi mathvariant="normal">肯</mi><mi mathvariant="normal">定</mi><mi mathvariant="normal">答</mi><mi mathvariant="normal">案</mi><mi mathvariant="normal">的</mi><mi mathvariant="normal">缓</mi><mi mathvariant="normal">存</mi><mi mathvariant="normal">时</mi><mi mathvariant="normal">间</mi><mi mathvariant="normal">长</mi><mi mathvariant="normal">度</mi><mi mathvariant="normal">。</mi><mi mathvariant="normal">例</mi><mi mathvariant="normal">如</mi><mi mathvariant="normal">本</mi><mi mathvariant="normal">地</mi><mi mathvariant="normal">查</mi><mi mathvariant="normal">询</mi><mi>w</mi><mi>w</mi><mi>w</mi><mi mathvariant="normal">.</mi><mi>b</mi><mi>a</mi><mi>i</mi><mi>d</mi><mi>u</mi><mi mathvariant="normal">.</mi><mi>c</mi><mi>o</mi><mi>m</mi><mi mathvariant="normal">时</mi><mi mathvariant="normal">，</mi><mi mathvariant="normal">本</mi><mi mathvariant="normal">地</mi><mi mathvariant="normal">将</mi><mi mathvariant="normal">缓</mi><mi mathvariant="normal">存</mi><mi>b</mi><mi>a</mi><mi>i</mi><mi>d</mi><mi>u</mi><mi mathvariant="normal">.</mi><mi>c</mi><mi>o</mi><mi>m</mi><mi mathvariant="normal">域</mi><mi mathvariant="normal">的</mi><mi mathvariant="normal">相</mi><mi mathvariant="normal">关</mi><mi mathvariant="normal">查</mi><mi mathvariant="normal">询</mi><mi mathvariant="normal">结</mi><mi mathvariant="normal">果</mi><mi mathvariant="normal">，</mi><mi mathvariant="normal">缓</mi><mi mathvariant="normal">存</mi><mi mathvariant="normal">时</mi><mi mathvariant="normal">间</mi><mi mathvariant="normal">长</mi><mi mathvariant="normal">度</mi><mi mathvariant="normal">由</mi><mi>b</mi><mi>a</mi><mi>i</mi><mi>d</mi><mi>u</mi><mi mathvariant="normal">.</mi><mi>c</mi><mi>o</mi><mi>m</mi><mi mathvariant="normal">这</mi><mi mathvariant="normal">个</mi><mi mathvariant="normal">域</mi><mi mathvariant="normal">的</mi><mi mathvariant="normal">区</mi><mi mathvariant="normal">域</mi><mi mathvariant="normal">数</mi><mi mathvariant="normal">据</mi><mi mathvariant="normal">文</mi><mi mathvariant="normal">件</mi><mi mathvariant="normal">中</mi><mi mathvariant="normal">定</mi><mi mathvariant="normal">义</mi><mi mathvariant="normal">的</mi></mrow><annotation encoding="application/x-tex">TTL 6h&quot;表示缓存周期，即查询该域中记录时肯定答案的缓存时间长度。例如本地查询www.baidu.com时，本地将缓存baidu.com域的相关查询结果，缓存时间长度由baidu.com这个域的区域数据文件中定义的</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:0.69444em;vertical-align:0em;"></span><span class="mord mathdefault" style="margin-right:0.13889em;">T</span><span class="mord mathdefault" style="margin-right:0.13889em;">T</span><span class="mord mathdefault">L</span><span class="mord">6</span><span class="mord mathdefault">h</span><span class="mord">&quot;</span><span class="mord cjk_fallback">表</span><span class="mord cjk_fallback">示</span><span class="mord cjk_fallback">缓</span><span class="mord cjk_fallback">存</span><span class="mord cjk_fallback">周</span><span class="mord cjk_fallback">期</span><span class="mord cjk_fallback">，</span><span class="mord cjk_fallback">即</span><span class="mord cjk_fallback">查</span><span class="mord cjk_fallback">询</span><span class="mord cjk_fallback">该</span><span class="mord cjk_fallback">域</span><span class="mord cjk_fallback">中</span><span class="mord cjk_fallback">记</span><span class="mord cjk_fallback">录</span><span class="mord cjk_fallback">时</span><span class="mord cjk_fallback">肯</span><span class="mord cjk_fallback">定</span><span class="mord cjk_fallback">答</span><span class="mord cjk_fallback">案</span><span class="mord cjk_fallback">的</span><span class="mord cjk_fallback">缓</span><span class="mord cjk_fallback">存</span><span class="mord cjk_fallback">时</span><span class="mord cjk_fallback">间</span><span class="mord cjk_fallback">长</span><span class="mord cjk_fallback">度</span><span class="mord cjk_fallback">。</span><span class="mord cjk_fallback">例</span><span class="mord cjk_fallback">如</span><span class="mord cjk_fallback">本</span><span class="mord cjk_fallback">地</span><span class="mord cjk_fallback">查</span><span class="mord cjk_fallback">询</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mord mathdefault" style="margin-right:0.02691em;">w</span><span class="mord">.</span><span class="mord mathdefault">b</span><span class="mord mathdefault">a</span><span class="mord mathdefault">i</span><span class="mord mathdefault">d</span><span class="mord mathdefault">u</span><span class="mord">.</span><span class="mord mathdefault">c</span><span class="mord mathdefault">o</span><span class="mord mathdefault">m</span><span class="mord cjk_fallback">时</span><span class="mord cjk_fallback">，</span><span class="mord cjk_fallback">本</span><span class="mord cjk_fallback">地</span><span class="mord cjk_fallback">将</span><span class="mord cjk_fallback">缓</span><span class="mord cjk_fallback">存</span><span class="mord mathdefault">b</span><span class="mord mathdefault">a</span><span class="mord mathdefault">i</span><span class="mord mathdefault">d</span><span class="mord mathdefault">u</span><span class="mord">.</span><span class="mord mathdefault">c</span><span class="mord mathdefault">o</span><span class="mord mathdefault">m</span><span class="mord cjk_fallback">域</span><span class="mord cjk_fallback">的</span><span class="mord cjk_fallback">相</span><span class="mord cjk_fallback">关</span><span class="mord cjk_fallback">查</span><span class="mord cjk_fallback">询</span><span class="mord cjk_fallback">结</span><span class="mord cjk_fallback">果</span><span class="mord cjk_fallback">，</span><span class="mord cjk_fallback">缓</span><span class="mord cjk_fallback">存</span><span class="mord cjk_fallback">时</span><span class="mord cjk_fallback">间</span><span class="mord cjk_fallback">长</span><span class="mord cjk_fallback">度</span><span class="mord cjk_fallback">由</span><span class="mord mathdefault">b</span><span class="mord mathdefault">a</span><span class="mord mathdefault">i</span><span class="mord mathdefault">d</span><span class="mord mathdefault">u</span><span class="mord">.</span><span class="mord mathdefault">c</span><span class="mord mathdefault">o</span><span class="mord mathdefault">m</span><span class="mord cjk_fallback">这</span><span class="mord cjk_fallback">个</span><span class="mord cjk_fallback">域</span><span class="mord cjk_fallback">的</span><span class="mord cjk_fallback">区</span><span class="mord cjk_fallback">域</span><span class="mord cjk_fallback">数</span><span class="mord cjk_fallback">据</span><span class="mord cjk_fallback">文</span><span class="mord cjk_fallback">件</span><span class="mord cjk_fallback">中</span><span class="mord cjk_fallback">定</span><span class="mord cjk_fallback">义</span><span class="mord cjk_fallback">的</span></span></span></span>TTL的值决定。</p>
+<p>​		第二行定义的是SOA记录，每个区域文件中的第一个资源记录定义行都要是SOA记录。在该行中除了指定了master dns服务器，还指定了一些附加属性，包括序列号为1，还有各种时长等信息。第四列指定了&quot;dnsserver.taobao.com.&quot;为该域的master DNS服务器。第五列是该域的管理员邮箱地址，但注意不能使用@格式的邮箱，而是要将@符号替换为点&quot;.&quot;第六列使用括号将几个值包围起来。第一个值是区域数据文件的序列编号serial，每次修改此区域数据文件都需要修改该编号值以便让slave dns服务器同步该区域数据文件。第二个值是刷新refresh时间间隔，表示slave dns服务器找master dns服务器更新区域数据文件的时间间隔。第三个值是重试retry时间间隔，表示slave dns服务器找master dns服务器更新区域数据文件时，如果联系不上master，则等待多久再重试联系，该值一般比refresh时间短，否则该值表示的重试就失去了意义。第四个值是过期expire时间值，表示slave dns服务器上的区域数据文件多久过期。第五个值是negative ttl，表示客户端找dns服务器解析时，否定答案的缓存时间长度。这几个值可以分行写，也可以直接写在同一行中使用空格分开，所以，上面的SOA记录可以写成如下格式：</p>
+<pre><code>taobao.com.   IN  SOA dnsserver.taobao.com.   mail.taobao.com. ( 1 3h 1h 1w 1h )
+</code></pre>
+<p>​		第一列的@表示taobao.com.</p>
+<p>​		后面5行就是A记录和CNAME记录了，分别定义了{dnsserver,www,miaosha,xianyu}.taobao.com主机对应的IP地址，最后一行的CNAME就是别名了。</p>
+<p><strong>检查区域文件：</strong></p>
+<pre><code class="language-bash">[root@server named]# named-checkzone taobao.com /var/named/db.taobao.com
+zone taobao.com/IN: loaded serial 1
+OK
+</code></pre>
+<p><strong>检查配置文件</strong></p>
+<pre><code class="language-bash">[root@server named]# named-checkconf
+/etc/named.conf:62: missing ';' before '}'
+/etc/named.conf:63: missing ';' before 'include'
+[root@server named]# vim /etc/named.conf 
+[root@server named]# named-checkconf
+/etc/named.conf:63: missing ';' before 'include'
+[root@server named]# vim /etc/named.conf 
+[root@server named]# named-checkconf
+</code></pre>
+<p><strong>启动服务和加载配置文件</strong></p>
+<pre><code class="language-bash">[root@server named]# systemctl start named
+[root@server named]# rndc reload
+server reload successful
+</code></pre>
+<h4 id="5-dig或host或nslookup测试下">5、dig或host或nslookup测试下</h4>
+<pre><code class="language-bash">[root@server ~]# dig www.taobao.com @192.168.38.128
+
+; &lt;&lt;&gt;&gt; DiG 9.9.4-RedHat-9.9.4-74.el7_6.2 &lt;&lt;&gt;&gt; www.taobao.com @192.168.38.128
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 27201
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;www.taobao.com.			IN	A
+
+;; ANSWER SECTION:
+www.taobao.com.		21600	IN	A	192.168.38.130
+
+;; AUTHORITY SECTION:
+taobao.com.		21600	IN	NS	dnsserver.taobao.com.
+
+;; ADDITIONAL SECTION:
+dnsserver.taobao.com.	21600	IN	A	192.168.38.128
+
+;; Query time: 0 msec
+;; SERVER: 192.168.38.128#53(192.168.38.128)
+;; WHEN: Mon Sep 09 14:32:19 CST 2019
+;; MSG SIZE  rcvd: 99
+</code></pre>
+<h4 id="6-给wwwmiaoshaxianyu三台服务器配置网页">6、给www，miaosha，xianyu三台服务器配置网页</h4>
+<h4 id="7-windows测试windows要手动改dns">7、windows测试，windows要手动改dns</h4>
+<p>参考这个改：https://thson.blog.csdn.net/article/details/94427779</p>
+<h4 id=""><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1568078454880.png" alt="1568078454880" loading="lazy"></h4>
+<h3 id="实验二-配置反向查找区域">实验二、配置反向查找区域</h3>
+<p>​		反向查找是根据ip地址查找其对应的主机名。在/etc/named.conf中，需要定义&quot;zone <em>.in-addr.arpa&quot;，其中&quot;</em>&quot;是点分十进制ip的反写，可以是反写ip后的任意一段长度，例如127.0.0.1反写后是1.0.0.127，所以zone所定义的可以是&quot;1.0.0.127&quot;、&quot;0.0.127&quot;、&quot;0.127&quot;，甚至是&quot;127&quot;，长度位数不同，在区域数据文件中需要补全的数值就不同。</p>
+<p>​		另外，反向查找区域的各种缓存时间可以都设置长一点，因为用的不多。</p>
+<p>​		就以127.0.0.1解析为localhost为例。</p>
+<p>​		在/etc/named.rfc1912.zones中已有这样一段：</p>
+<pre><code>zone &quot;1.0.0.127.in-addr.arpa&quot; IN {
+       type master;
+       file &quot;named.loopback&quot;;
+       allow-update { none; };
+};
+</code></pre>
+<p>其区域数据文件/var/named/named.loopback内容如下：</p>
+<pre><code>[root@xuexi ~]# cat /var/named/named.loopback 
+$TTL 1D
+@       IN SOA  @ rname.invalid. (
+                                        0       ; serial
+                                        1D      ; refresh
+                                        1H      ; retry
+                                        1W      ; expire
+                                        3H )    ; minimum
+        NS      @
+        A       127.0.0.1
+        AAAA    ::1
+        PTR     localhost.
+</code></pre>
+<p>将/etc/named.rfc1912.zones中将1.0.0.127.in-addr.arpa区域的配置注释掉，改为如下内容：</p>
+<pre><code class="language-bash">zone &quot;0.127.in-addr.arpa&quot; IN {
+        type master;
+        file &quot;named.loopback.test&quot;;                                  
+        allow-update { none; };
+};
+</code></pre>
+<p>然后书写其区域数据文件/var/named/named.loopback.test。</p>
+<pre><code class="language-bash">$TTL 1D
+@    IN    SOA     1.0    rname.invalid. ( 0 1D 1H 1W 3H )  
+           NS      1.0.0.127.in-addr.arpa.
+1.0        A       127.0.0.1
+1.0        PTR     local.
+</code></pre>
+<p>在上述配置中，特意将1.0的ptr记录写成了&quot;local.&quot;，这样查询1.0.0.127的主机名时，<strong>将得到local而不是localhost</strong>。</p>
+<p>使用dig -x测试，dig的&quot;-x&quot;选项专门用于反向查找。</p>
+<pre><code class="language-bash">[root@server named]# rndc reload
+[root@server ~]# dig -x 127.0.0.1 @127.0.0.1
+
+; &lt;&lt;&gt;&gt; DiG 9.9.4-RedHat-9.9.4-74.el7_6.2 &lt;&lt;&gt;&gt; -x 127.0.0.1 @127.0.0.1
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 55713
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;1.0.0.127.in-addr.arpa.		IN	PTR
+
+;; ANSWER SECTION:
+1.0.0.127.in-addr.arpa.	86400	IN	PTR	local.
+
+;; AUTHORITY SECTION:
+0.127.in-addr.arpa.	86400	IN	NS	1.0.0.127.in-addr.arpa.
+
+;; ADDITIONAL SECTION:
+1.0.0.127.in-addr.arpa.	86400	IN	A	127.0.0.1
+
+;; Query time: 2 msec
+;; SERVER: 127.0.0.1#53(127.0.0.1)
+;; WHEN: Mon Sep 09 15:10:53 CST 2019
+;; MSG SIZE  rcvd: 100
+</code></pre>
+<p>​		现在，可以配置longshuai.com中主机的反向解析区域，由于在实验过程中，该域中的主机地址都是192.168.38.0/24网段内的主机，所以只需要配置一个38.168.192.in-addr.arpa反向查找区域即可，如果域内主机跨了多个网段，例如172.16.10.0/24和192.168.100.0/24，则需要配置两个反向查找区域。</p>
+<pre><code class="language-bash">vim /etc/named.conf
+
+zone &quot;38.168.192.in-addr.arpa&quot; in {
+        type master;
+        file &quot;db.38.168.192&quot;;
+};
+</code></pre>
+<pre><code class="language-bash">[root@server named]# cp -a named.loopback  db.38.168.192
+[root@server named]# cat db.38.168.192
+$TTL 1D
+@	IN SOA	28 admin.taobao.com. (
+					0	; serial
+					1D	; refresh
+					1H	; retry
+					1W	; expire
+					3H )	; minimum
+	IN NS	dnsserver.taobao.com.
+128	IN PTR	dnsserver.taobao.com.
+130	IN PTR	www.taobao.com.
+131	IN PTR 	miaosha.taobao.com.
+132	IN PTR	xianyu.taobao.com.
+[root@server named]# named-checkzone 38.168.192.in-addr.arpa db.38.168.192
+zone 38.168.192.in-addr.arpa/IN: loaded serial 0
+OK
+
+</code></pre>
+<p>重启named，然后使用dig -x测试。</p>
+<pre><code class="language-bash">[root@server named]# systemctl restart named
+[root@server named]# dig -x 192.168.38.131 @127.0.0.1
+
+; &lt;&lt;&gt;&gt; DiG 9.9.4-RedHat-9.9.4-74.el7_6.2 &lt;&lt;&gt;&gt; -x 192.168.38.131 @127.0.0.1
+;; global options: +cmd
+;; Got answer:
+;; -&gt;&gt;HEADER&lt;&lt;- opcode: QUERY, status: NOERROR, id: 42341
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+;131.38.168.192.in-addr.arpa.	IN	PTR
+
+;; ANSWER SECTION:
+131.38.168.192.in-addr.arpa. 86400 IN	PTR	miaosha.taobao.com.
+
+;; AUTHORITY SECTION:
+38.168.192.in-addr.arpa. 86400	IN	NS	dnsserver.taobao.com.
+
+;; ADDITIONAL SECTION:
+dnsserver.taobao.com.	21600	IN	A	192.168.38.128
+
+;; Query time: 0 msec
+;; SERVER: 127.0.0.1#53(127.0.0.1)
+;; WHEN: Mon Sep 09 16:14:35 CST 2019
+;; MSG SIZE  rcvd: 128
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/N4D_upAhB/" class="tag">
+                    DNS
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190908-bian-yi-busybox/">
+                  <h3 class="post-title">
+                    20190908编译busybox
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

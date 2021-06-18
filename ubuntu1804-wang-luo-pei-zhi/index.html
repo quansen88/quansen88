@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> ubuntu18.04网络配置 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="ubuntu18.04网络配置
+YAML文件格式：常量值，对象，数组
+https://www.jianshu.com/p/97222440cd08
+官方文档：
+https://help.ubuntu.com/lts/serverguide/..." />
+    <meta name="keywords" content="ubuntu" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> ubuntu18.04网络配置</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="ubuntu1804网络配置">ubuntu18.04网络配置</h1>
+<p><strong>YAML文件格式：常量值，对象，数组</strong></p>
+<p><a href="https://www.jianshu.com/p/97222440cd08">https://www.jianshu.com/p/97222440cd08</a></p>
+<h3 id="官方文档">官方文档：</h3>
+<p>https://help.ubuntu.com/lts/serverguide/network-configuration.html</p>
+<h3 id="dhcp自动获取">dhcp自动获取：</h3>
+<pre><code>root@ubuntu:~# grep -Ev &quot;^$|#&quot; /etc/netplan/01-netcfg.yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens33:
+      dhcp4: yes
+root@ubuntu:~# netplan apply   #应用
+</code></pre>
+<h3 id="静态ip单个ip">静态IP(单个IP)：</h3>
+<pre><code>root@ubuntu:~# grep -Ev &quot;^$|#&quot; /etc/netplan/01-netcfg.yaml
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens33:
+      dhcp4: no
+      addresses: [192.168.38.130/24]
+      gateway4: 192.168.38.2
+      nameservers:
+              addresses: [8.8.8.8]
+root@ubuntu:~# netplan apply
+</code></pre>
+<h3 id="静态ip多个ip采用数组格式">静态IP（多个IP），采用数组格式</h3>
+<pre><code>root@ubuntu:~# grep -Ev &quot;^$|#&quot; /etc/netplan/01-netcfg.yaml 
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    ens33:
+      dhcp4: no
+      addresses:
+        - 192.168.38.130/24
+        - 192.168.38.103/24
+      gateway4: 192.168.38.2
+      nameservers:
+              addresses:
+                - 192.168.38.2
+                - 8.8.8.8
+root@ubuntu:~# netplan apply
+</code></pre>
+<h3 id="dns查看">DNS查看</h3>
+<pre><code>root@ubuntu:~# ll /etc/resolv.conf 
+lrwxrwxrwx 1 root root 39 Jul 18 01:36 /etc/resolv.conf -&gt; ../run/systemd/resolve/stub-resolv.conf
+
+root@ubuntu:~# systemd-resolve --status 
+Global
+       LLMNR setting: no
+MulticastDNS setting: no
+  DNSOverTLS setting: no
+      DNSSEC setting: no
+    DNSSEC supported: no
+          DNSSEC NTA: 10.in-addr.arpa
+                      16.172.in-addr.arpa
+                      168.192.in-addr.arpa
+                      17.172.in-addr.arpa
+                      18.172.in-addr.arpa
+                      19.172.in-addr.arpa
+                      20.172.in-addr.arpa
+                      21.172.in-addr.arpa
+                      22.172.in-addr.arpa
+                      23.172.in-addr.arpa
+                      24.172.in-addr.arpa
+                      25.172.in-addr.arpa
+                      26.172.in-addr.arpa
+                      27.172.in-addr.arpa
+                      28.172.in-addr.arpa
+                      29.172.in-addr.arpa
+                      30.172.in-addr.arpa
+                      31.172.in-addr.arpa
+                      corp
+                      d.f.ip6.arpa
+                      home
+                      internal
+                      intranet
+                      lan
+                      local
+                      private
+                      test
+
+Link 3 (docker0)
+      Current Scopes: none
+DefaultRoute setting: no
+       LLMNR setting: yes
+MulticastDNS setting: no
+  DNSOverTLS setting: no
+      DNSSEC setting: no
+    DNSSEC supported: no
+
+Link 2 (ens33)
+      Current Scopes: DNS
+DefaultRoute setting: yes
+       LLMNR setting: yes
+MulticastDNS setting: no
+  DNSOverTLS setting: no
+      DNSSEC setting: no
+    DNSSEC supported: no
+         DNS Servers: 192.168.38.2
+                      8.8.8.8
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/EygRD_8J4/" class="tag">
+                    ubuntu
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/bash-huan-jing-pei-zhi-wen-jian-jia-zai-shun-xu/">
+                  <h3 class="post-title">
+                     bash环境配置文件加载顺序
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>小的网站结构【haproxy nginx】 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="小的网站结构
+
+说明：如果部署在云上，比如阿里云上，不需要自己部署keepalived，直接买阿里云的slb即可，slb然后分发流量到两台haproxy机器
+一、先部署两个web服务器
+编译安装nginx（脚本很粗糙）
+[root@007-..." />
+    <meta name="keywords" content="haproxy,nginx,mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">小的网站结构【haproxy nginx】</h2>
+            <div class="post-date">2021-05-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.haproxy.org/img/HAProxyCommunityEdition_60px.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="小的网站结构">小的网站结构</h1>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191112093918.png" alt="" loading="lazy"></figure>
+<p><strong><font color=red>说明：如果部署在云上，比如阿里云上，不需要自己部署keepalived，直接买阿里云的slb即可，slb然后分发流量到两台haproxy机器</font></strong></p>
+<h3 id="一-先部署两个web服务器">一、先部署两个web服务器</h3>
+<p><strong>编译安装nginx</strong>（脚本很粗糙）</p>
+<pre><code class="language-bash">[root@007-web2 ~]# cat nginx.sh 
+
+
+yum install -y vim lrzsz tree screen psmisc lsof tcpdump wget ntpdate gcc gcc-c++ glibc glibc-devel pcre pcre-devel openssl openssl-devel systemd-devel net-tools iotop bc zip unzip zlib-devel bash-completion nfs-utils automake libxml2 libxml2-devel libxslt libxslt-devel perl perl-ExtUtils-Embed
+
+wget https://mirrors.huaweicloud.com/nginx/nginx-1.17.5.tar.gz
+tar xf nginx-1.17.5.tar.gz
+cd nginx-1.17.5/
+./configure --prefix=/apps/nginx --user=nginx --group=nginx --with-http_ssl_module --with-http_v2_module --with-http_realip_module --with-http_stub_status_module --with-http_gzip_static_module --with-pcre --with-stream --with-stream_ssl_module --with-stream_realip_module --with-debug
+
+make -j 4 
+make install
+
+/usr/sbin/groupadd -g 995 -r nginx 2&gt; /dev/null
+/usr/sbin/useradd -c &quot;Nginx web server&quot; -u 997 -g nginx -s /sbin/nologin -r -d /var/lib/nginx nginx 2&gt; /dev/null
+
+cat &gt; /usr/lib/systemd/system/nginx.service &lt;&lt;'EOF'
+[Unit]
+Description=The nginx HTTP and reverse proxy server
+After=network.target remote-fs.target nss-lookup.target
+[Service]
+Type=forking
+PIDFile=/run/nginx.pid
+ExecStartPre=/usr/bin/rm -f /run/nginx.pid
+ExecStartPre=/apps/nginx/sbin/nginx -t
+ExecStart=/apps/nginx/sbin/nginx
+ExecReload=/bin/kill -s HUP $MAINPID
+KillSignal=SIGQUIT
+TimeoutStopSec=5
+KillMode=process
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target
+EOF
+
+mkdir /apps/nginx/conf.d 
+cat &gt; /apps/nginx/conf/nginx.conf &lt;&lt;'EOF'
+user nginx;
+worker_processes auto;
+error_log /var/log/nginx/error.log;
+pid /run/nginx.pid;
+events {
+    worker_connections 1024;
+}
+http {
+    log_format  main  '$remote_addr - $remote_user [$time_local] &quot;$request&quot; '
+                      '$status $body_bytes_sent &quot;$http_referer&quot; '
+                      '&quot;$http_user_agent&quot; &quot;$http_x_forwarded_for&quot;';
+    access_log  /var/log/nginx/access.log  main;
+    sendfile            on;
+    tcp_nopush          on;
+    tcp_nodelay         on;
+    keepalive_timeout   65;
+    types_hash_max_size 2048;
+    include             /apps/nginx/conf/mime.types;
+    default_type        application/octet-stream;
+    include /apps/nginx/conf.d/*.conf;
+    server {
+        server_name  _;
+        root         /apps/nginx/html;
+        location / {
+        }
+        error_page 500 502 503 504 /50x.html;
+            location = /50x.html {
+        }
+    }
+}
+EOF
+
+systemctl daemon-reload  &amp;&amp; systemctl enable nginx
+systemctl start nginx 
+</code></pre>
+<p><strong>编译php</strong>脚本</p>
+<pre><code class="language-bash">[root@007-web2 ~]# cat php.sh 
+#!/bin/bash
+RED=&quot;\033[0;31m&quot;
+GREEN=&quot;\033[0;32m&quot;
+NO_COLOR=&quot;\033[0m&quot;
+PREFIX=/usr/local/php    #这个还是别改了，好多地方要改
+SYSCONFDIR=
+SRC=/usr/src
+FLAG=$1
+CPUS=`cat /proc/cpuinfo| grep &quot;physical id&quot;| sort| uniq| wc -l`
+CORE=`cat /proc/cpuinfo| grep &quot;cpu cores&quot;| uniq | awk '{print $4}'`
+J=$((${CPUS}*${CORE}))
+FILEURL='http://ftp.ntu.edu.tw/pub/php/distributions/php-7.3.10.tar.gz'
+# 判断是不是root
+judge_root() {
+    [ $(id -u) != &quot;0&quot; ] &amp;&amp; { echo -e &quot;${RED}Error:${NO_COLOR} You must be root to run this script.&quot;; exit 1; }   
+}
+# download 
+download_source() {
+    cd
+    yum install wget -y
+    wget ${FILEURL}
+    if [ ! &quot;$?&quot; -eq 0 ];then
+        echo &quot;download failed!&quot;
+        exit 1
+    fi
+}
+# install
+install(){
+    # Add the &quot;apache&quot; group and user,需要的话改为nginx
+    #/usr/sbin/groupadd -g 48 -r apache 2&gt; /dev/null || :
+    #/usr/sbin/useradd -c &quot;Apache&quot; -u 48 -g apache \
+    #-s /sbin/nologin -r -d /usr/share/httpd apache 2&gt; /dev/null || : 
+    /usr/sbin/groupadd -g 995 -r nginx 2&gt; /dev/null
+    /usr/sbin/useradd -c &quot;Nginx web server&quot; -u 997 -g nginx -s /sbin/nologin -r -d /var/lib/nginx nginx 2&gt; /dev/null
+    # epel
+    wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+    yum install gcc openssl-devel pcre-devel libnghttp2-devel ncurses-devel  lbzip2  bzip2 expat-devel libxml2-devel libxml2  autoconf libtool -y
+    tar xf php-7.3.10.tar.gz -C ${SRC}/
+    cd ${SRC}/php-7.3.10/
+    ./configure --prefix=/usr/local/php --enable-mysqlnd --with-mysqli=mysqlnd --with-pdo-mysql=mysqlnd --with-openssl --with-freetype-dir --with-jpeg-dir --with-png-dir --with-zlib --with-config-file-path=/usr/loca/php/etc --with-config-file-scan-dir=/usr/local/php/etc/php.d --enable-mbstring --enable-xml --enable-sockets --enable-fpm --enable-maintainer-zts --disable-fileinfo
+    make -j ${J}
+    make install
+    # config
+    cd ${PREFIX}/etc/
+    cp php-fpm.conf.default php-fpm.conf
+    cd ${PREFIX}/etc/php-fpm.d
+    cp www.conf.default www.conf
+    # init file
+    cp ${SRC}/php-7.3.10/sapi/fpm/init.d.php-fpm /etc/init.d/php-fpm
+    chmod +x /etc/init.d/php-fpm
+    # modify config file
+    sed -i 's@user = nobody@user = nginx@' ${PREFIX}/etc/php-fpm.d/www.conf
+    sed -i 's@group = nobody@group = nginx@' ${PREFIX}/etc/php-fpm.d/www.conf
+    sed -i 's@listen = 127.0.0.1:9000@listen = /var/run/php-fpm.sock@' ${PREFIX}/etc/php-fpm.d/www.conf
+    sed -i 's@;listen.mode = 0660@listen.mode = 0666@' ${PREFIX}/etc/php-fpm.d/www.conf
+    #reload
+    systemctl daemon-reload &amp;&amp; systemctl enable php-fpm
+}
+test_php(){
+    systemctl start php-fpm
+    sleep 3
+    if  ps -ef |  grep php-fpm | grep -v grep;then
+        echo -e &quot;${GREEN}Maybe php installed successfully...${NO_COLOR}&quot;
+    else
+        echo -e &quot;${RED}Maybe php installed failed...${NO_COLOR}&quot;
+    fi
+}
+remove_php() {
+    systemctl stop php-fpm
+    sleep 3
+    if  ps -ef |  grep php-fpm | grep -v grep;then
+        echo -e &quot;${RED}Php uninstall failed...Killing php process failed...${NO_COLOR}&quot;
+        exit 2
+    fi
+    rm -rf ${PREFIX}  ${SRC}/php-7.3.10 /etc/init.d/php-fpm
+}
+judge_uninstall(){
+if [ &quot;$FLAG&quot; = &quot;uninstall&quot; ];then
+    remove_php
+    exit 0
+fi
+}
+main() {
+    judge_uninstall
+    judge_root
+    download_source
+    install
+    test_php   
+}
+main
+</code></pre>
+<p><strong>nginx配置wordpress</strong></p>
+<pre><code class="language-bash\">[root@007-web1 ~]# mkdir /var/www/wordpress -p
+#下载wordpress
+[root@007-web1 ~]# unzip wordpress-5.2.3-zh_CN.zip -d /var/www/
+[root@007-web1 ~]# chown nginx.nginx -R /var/www/wordpress/
+[root@007-web1 ~]# cat /apps/nginx/conf.d/blog.jd.com.conf 
+server {
+    listen       80;
+    server_name  blog.jd.com;
+
+    charset utf-8;
+    access_log  /var/log/nginx/blog.jd.com-access.log  main;
+    error_log  /var/log/nginx/blog.jd.com-error.log;
+    root /var/www/wordpress;
+    location / {
+        root /var/www/wordpress;
+        index  index.php index.html index.htm;
+    }
+    
+    location ~ \.php$ {
+        #fastcgi_pass             127.0.0.1:9000;
+        fastcgi_pass             unix:/var/run/php-fpm.sock;
+        fastcgi_split_path_info ^(.+\.php)(/.+)$;
+        fastcgi_index index.php;
+        fastcgi_buffer_size       128k;
+        fastcgi_buffers           64 128k;
+        fastcgi_intercept_errors  on;
+        fastcgi_param   PATH_INFO $fastcgi_path_info;
+        fastcgi_param             HTTP_AUTHORIZATION  $http_authorization;
+        fastcgi_param  SCRIPT_FILENAME  $document_root$fastcgi_script_name;
+        include                   fastcgi_params;
+        fastcgi_connect_timeout 300;
+        fastcgi_read_timeout 300;
+        fastcgi_send_timeout 300;
+        client_max_body_size 100m;
+     }
+     location ~ /.git
+     {
+         deny all;
+     }
+}
+</code></pre>
+<p><strong>测试当前服务器是否正常</strong></p>
+<pre><code class="language-bash">[root@007-web1 ~]# /apps/nginx/sbin/nginx -t
+nginx: the configuration file /apps/nginx/conf/nginx.conf syntax is ok
+nginx: configuration file /apps/nginx/conf/nginx.conf test is successful
+[root@007-web1 ~]# systemctl restart nginx
+[root@007-web1 ~]# curl -vLH 'blog.jd.com' 127.0.0.1
+* About to connect() to 127.0.0.1 port 80 (#0)
+*   Trying 127.0.0.1...
+* Connected to 127.0.0.1 (127.0.0.1) port 80 (#0)
+&gt; GET / HTTP/1.1
+&gt; User-Agent: curl/7.29.0
+&gt; Host: 127.0.0.1
+&gt; Accept: */*
+&gt; 
+&lt; HTTP/1.1 302 Found
+&lt; Server: nginx/1.17.5
+... 显示了中文的配置wordpress即为ok
+</code></pre>
+<p><strong>同步代码到web2</strong></p>
+<pre><code class="language-bash">[root@007-web1 ~]# scp -p /apps/nginx/conf.d/blog.jd.com.conf 192.168.38.136:/apps/nginx/conf.d/ 
+[root@007-web1 ~]# ssh 192.168.38.136 'mkdir -p /var/www/wordpress/'
+[root@007-web1 ~]# scp -p -r /var/www/wordpress 192.168.38.136:/var/www/
+[root@007-web1 ~]# ssh 192.168.38.136 'chown nginx.nginx -R /var/www/wordpress'
+[root@007-web1 ~]# ssh 192.168.38.136 'systemctl restart nginx'
+#测试
+[root@007-web1 ~]# curl -vLH 'blog.jd.com' 192.168.38.136
+</code></pre>
+<h3 id="二-部署数据库主从">二、部署数据库主从</h3>
+<p><strong>二进制安装脚本</strong></p>
+<pre><code class="language-bash">[root@007-mysql-master mysql-5.7-onekey-install]# cat mysql-install.sh 
+#!/bin/bash
+CURRENTDIR=`pwd`
+NAME=&quot;mysql-5.7.28-linux-glibc2.12-x86_64.tar.gz&quot;
+FULL_NAME=${CURRENTDIR}/${NAME}
+DATA_DIR=&quot;/data/mysql/&quot;
+
+StandardOutput(){
+    echo -e &quot;\033[1;32m$1 ... \033[0m&quot;
+}
+ErrorOutput(){
+    echo -e &quot;\033[1;31m$1 ... \033[0m&quot;
+}
+
+is_empty_dir(){ 
+    return `ls -A $1 2&gt;/dev/null | wc -l`
+}
+
+judge_mysql(){
+    if [ -e /usr/local/mysql ];then
+        ErrorOutput &quot;/usr/local/mysql目录存在...Mysql 似乎已经安装...终止安装...&quot;
+        exit 10
+    fi
+    which mysqld &amp;&gt;/dev/null
+    if [ &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;mysqld命令存在...Mysql 似乎已经安装...终止安装...&quot;
+        exit 20
+    fi
+    if  ss -ltn | grep 3306 -q;then
+        ErrorOutput &quot;3306端口被占用...Mysql 似乎已经安装...终止安装...&quot;
+        exit 30
+    fi
+    is_empty_dir $DATA_DIR
+    if [ ! &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;$DATA_DIR 不为空...终止安装...&quot;
+        exit 40            
+    fi
+}
+
+download_mysql(){
+    if [ -f ${FULL_NAME} ];then
+    StandardOutput &quot;Mysql安装文件存在，开始安装...&quot;
+else
+    StandardOutput &quot;Mysql安装文件不存在...开始下载...&quot;
+    curl -o ${NAME} https://mirrors.huaweicloud.com/mysql/Downloads/MySQL-5.7/${NAME}
+    if [ ! &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;下载失败...终止安装...&quot; &amp;&amp; exit 50
+    fi
+fi
+}
+mysql_install(){
+    # install dependence
+    yum install -y libaio-devel
+    if id  mysql &amp;&gt;/dev/null;then
+        StandardOutput &quot;mysql 用户已经存在，跳过创建用户过程...&quot;
+    else
+        useradd -r    -s /sbin/nologin mysql
+    fi       
+    tar xf ${FULL_NAME}   -C /usr/local/
+    ln -sv /usr/local/mysql-5*  /usr/local/mysql 
+    chown  -R mysql.mysql  /usr/local/mysql/
+    if [ ! -d  $DATA_DIR ];then
+        mkdir -pv $DATA_DIR &amp;&amp; chown  -R mysql.mysql  $DATA_DIR   -R
+    fi
+    /usr/local/mysql/bin/mysqld  --initialize --datadir=$DATA_DIR --user=mysql &amp;&gt;mysql_install.log
+    cp  /usr/local/mysql-5.*-x86_64/support-files/mysql.server /etc/init.d/mysqld
+    chmod a+x /etc/init.d/mysqld
+    cp ${CURRENTDIR}/my.cnf   /etc/my.cnf
+    echo 'export PATH=/usr/local/mysql/bin/:$PATH' &gt; /etc/profile.d/mysql.sh
+    source /etc/profile.d/mysql.sh
+    # /etc/init.d/mysqld start
+
+    mkdir /var/lib/mysql /var/run/mysqld
+    chown mysql.mysql /var/lib/mysql/ /var/run/mysqld
+    systemctl daemon-reload
+}
+
+mysql_check(){
+    systemctl start mysqld
+    if ss -ltn | grep 3306 -q ;then
+        StandardOutput &quot;VERY GOOD...&quot;
+        rm -f ${CURRENTDIR}/${NAME}
+    fi
+    echo -e &quot;请手动执行：\033[1;32msource /etc/profile\033[0m&quot;
+    echo -e &quot;当前mysql数据库密码为：\033[1;32m$( grep &quot;temporary password&quot; ${CURRENTDIR}/mysql_install.log | awk '{print $NF}')\033[0m&quot;    
+}
+
+
+main(){
+    judge_mysql
+    download_mysql
+    mysql_install
+    mysql_check
+}
+main
+</code></pre>
+<p><strong>数据库密码</strong></p>
+<pre><code class="language-bash">[root@007-mysql-master mysql-5.7-onekey-install]# 
+当前mysql数据库密码为：fO:Qd.jsl9GU
+[root@007-mysql-master mysql-5.7-onekey-install]# mysqladmin -uroot -p$(grep &quot; temporary password&quot; mysql_install.log | awk '{print $NF}') password 123456
+[root@007-slave mysql-5.7-onekey-install]#
+当前mysql数据库密码为：le*gu=x4Emoi
+[root@007-slave mysql-5.7-onekey-install]# mysqladmin -uroot -p$(grep &quot; temporary password&quot; mysql_install.log | awk '{print $NF}') password 123456
+</code></pre>
+<p><strong>主数据库配置：</strong></p>
+<pre><code class="language-bash">[root@007-mysql-master mysql-5.7-onekey-install]# cat /etc/my.cnf
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/5.7/en/server-configuration-defaults.html
+
+[mysqld]
+datadir=/data/mysql
+socket=/var/lib/mysql/mysql.sock
+log-bin
+server-id=1
+expire-logs-days=15
+binlog-format=row
+gtid_mode=on
+enforce_gtid_consistency=on
+skip_name_resolve
+
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+[client]
+socket      = /var/lib/mysql/mysql.sock
+port        = 3306
+</code></pre>
+<pre><code class="language-bash">[root@007-mysql-master ~]# systemctl restart mysqld &amp;&amp; systemctl enable mysqld
+mysqld.service is not a native service, redirecting to /sbin/chkconfig.
+Executing /sbin/chkconfig mysqld on
+[root@007-mysql-master ~]# /sbin/chkconfig mysqld on
+</code></pre>
+<pre><code class="language-bash">mysql&gt;  grant replication slave on *.* to 'repluser'@'192.168.38.147' identified by 'WWQD88OYrqSxLg';
+mysql&gt; create database wordpress character set utf8 collate utf8_bin;
+mysql&gt; grant all privileges on wordpress.* to 'wordpress'@'192.168.38.%' identified by 'j9DtO2Bf1DvRANQr';
+</code></pre>
+<p><strong>从数据库配置</strong></p>
+<pre><code class="language-bash">[root@007-slave mysql-5.7-onekey-install]# cat /etc/my.cnf
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/5.7/en/server-configuration-defaults.html
+
+[mysqld]
+datadir=/data/mysql
+socket=/var/lib/mysql/mysql.sock
+server-id=2
+gtid_mode=on
+enforce_gtid_consistency=on
+skip_name_resolve
+
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+[client]
+socket      = /var/lib/mysql/mysql.sock
+port        = 3306
+[root@007-slave mysql-5.7-onekey-install]# systemctl restart mysqld &amp;&amp; systemctl enable mysqld
+[root@007-slave mysql-5.7-onekey-install]# /sbin/chkconfig mysqld on
+</code></pre>
+<pre><code class="language-bash">mysql&gt; CHANGE MASTER TO MASTER_HOST='192.168.38.138',MASTER_USER='repluser',MASTER_PASSWORD='WWQD88OYrqSxLg',MASTER_PORT=3306,MASTER_AUTO_POSITION=1;
+mysql&gt; start slave;
+mysql&gt; show slave status\G
+...两个yes就OK...
+</code></pre>
+<h3 id="三-mysql服务器充当nfs服务器">三、mysql服务器充当NFS服务器</h3>
+<p><strong>配置主NFS</strong></p>
+<pre><code class="language-bash">[root@007-mysql-master ~]# yum install nfs-utils -y
+[root@007-mysql-master ~]# mkdir /data/wordpress -p
+[root@007-mysql-master ~]# cat /etc/exports
+/data/wordpress 192.168.38.*(rw,sync,no_subtree_check,no_root_squash
+[root@007-mysql-master ~]# systemctl restart nfs
+[root@007-mysql-master ~]# systemctl enable nfs
+</code></pre>
+<p><strong>007-web1挂载测试</strong></p>
+<pre><code class="language-bash">[root@007-web1 ~]# yum install nfs-utils autofs -y
+[root@007-web1 ~]# showmount -e 192.168.38.138
+Export list for 192.168.38.138:
+/data/wordpress 192.168.38.*
+[root@007-web1 ~]# grep wordpress /etc/auto.master
+/- /etc/auto.wordpress
+[root@007-web1 ~]# cat /etc/auto.wordpress
+/var/www/wordpress/wp-content/uploads  192.168.38.138:/data/wordpress
+[root@007-web1 ~]# systemctl restart autofs
+</code></pre>
+<p><strong>测试没问题同步到web2</strong></p>
+<pre><code class="language-bash">[root@007-web1 ~]# ssh 192.168.38.136 ' yum install nfs-utils autofs -y'
+[root@007-web1 ~]# scp /etc/auto.{master,wordpress} 192.168.38.136:/etc/
+[root@007-web1 ~]# ssh 192.168.38.136 'systemctl restart autofs'
+#测试没问题
+</code></pre>
+<p><strong>配置自动同步</strong></p>
+<pre><code class="language-bash">[root@007-mysql-master ~]# yum install rsync inotify-tools -y
+[root@007-mysql-master ~]# ssh 192.168.38.147 'yum install rsync -y'
+[root@007-mysql-master ~]# ssh 192.168.38.147 'mkdir /data/wordpress -p'
+#密钥分发
+[root@007-mysql-master ~]# ssh-keygen -f ~/.ssh/id_rsa -P ''
+[root@007-mysql-master ~]# ssh-copy-id 192.168.38.147
+#同步脚本
+[root@007-mysql-master ~]# mkdir /scripts/
+[root@007-mysql-master ~]# cat /scripts/inotify-data2.sh 
+[root@007-mysql-master wordpress]# cat /scripts/inotify-data2.sh 
+#!/bin/bash
+
+SRC=/data/wordpress
+DEST='root@192.168.38.147:/data'
+# BACKDIR=/tmp/backup/
+/usr/bin/inotifywait -mrq --timefmt '%Y-%m-%d %H:%M' --format '%T %w %f %,e' -e delete,moved_to,moved_from,close_write,isdir,attrib ${SRC} | \
+    while read DATE TIME DIR FILE EVENT;do
+        FILEPATH=${DIR}${FILE}
+        # if echo $EVENT | grep -i delete;then
+        #     mkdir $BACKDIR -p &amp;&amp; \cp -a $FILEPATH $BACKDIR
+        #     rsync -avz --delete  ${SRC}  ${DEST} \
+        #         &amp;&amp; echo &quot;At ${TIME} on ${DATE}, file $FILEPATH was deleted via rsync&quot; &gt;&gt; /var/log/deletelist.log
+        # else
+            rsync -avz --delete  ${SRC}  ${DEST} \
+            &amp;&amp; echo &quot;At ${TIME} on ${DATE}, file $FILEPATH was backuped up via rsync&quot; &gt;&gt; /var/log/changelist.log
+        # fi
+    done
+    
+#screen运行
+[root@007-mysql-master ~]# yum install screen -y
+[root@007-mysql-master ~]# screen -S rsync
+[root@007-mysql-master ~]# bash /scripts/inotify-data2.sh 
+</code></pre>
+<h3 id="四-配置haproxy">四、配置haproxy</h3>
+<p><strong>编译安装haproxy</strong>（粗糙的脚本）</p>
+<pre><code class="language-bash">[root@007-lb1 ~]# cat haproxy.sh 
+#!/bin/bash
+
+yum install -y gcc gcc-c++ glibc glibc-devel pcre pcre-devel openssl openssl-devel systemd-devel net-tools vim iotop bc zip unzip zlib-devel lrzsz tree screen lsof tcpdump wget chrony readline-devel
+
+if ! getent passwd haproxy &gt;/dev/null ; then
+    if ! getent passwd 188 &gt;/dev/null ; then
+        useradd -r -u 188 -g haproxy -d /var/lib/haproxy -s /sbin/nologin -c &quot;haproxy&quot; haproxy
+    else
+        useradd -r -g haproxy -d /var/lib/haproxy -s /sbin/nologin -c &quot;haproxy&quot; haproxy
+    fi
+fi
+
+wget https://ftp.osuosl.org/pub/blfs/conglomeration/lua/lua-5.3.5.tar.gz
+tar xf lua-5.3.5.tar.gz 
+cd lua-5.3.5/
+make linux test
+src/lua -v
+
+cd
+wget https://mirrors.huaweicloud.com/haproxy/2.0/src/haproxy-2.0.8.tar.gz
+tar xf haproxy-2.0.8.tar.gz
+cd haproxy-2.0.8/
+make ARCH=x86_64 TARGET=linux-glibc USE_PCRE=1 USE_OPENSSL=1 USE_ZLIB=1 USE_SYSTEMD=1 USE_CPU_AFFINITY=1 USE_LUA=1 LUA_INC=/root/lua-5.3.5/src/   LUA_LIB=/root/lua-5.3.5/src/ PREFIX=/usr/local/haproxy
+make install PREFIX=/usr/local/haproxy
+/usr/local/haproxy/sbin/haproxy -v
+cat &gt;  /usr/lib/systemd/system/haproxy.service &lt;&lt;'EOF'
+[Unit]
+Description=HAProxy Load Balancer
+After=syslog.target network.target
+[Service]
+ExecStartPre=/usr/local/haproxy/sbin/haproxy -f /etc/haproxy/haproxy.cfg -c -q
+ExecStart=/usr/local/haproxy/sbin/haproxy -Ws -f /etc/haproxy/haproxy.cfg -p /var/lib/haproxy/haproxy.pid
+ExecReload=/bin/kill -USR2 $MAINPID
+[Install]
+WantedBy=multi-user.target
+EOF
+
+mkdir /etc/haproxy
+cat &gt; /etc/haproxy/haproxy.cfg &lt;&lt;'EOF'
+global
+    log         127.0.0.1 local2
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    uid haproxy
+    uid haproxy
+    daemon
+    stats socket /var/lib/haproxy/stats
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+listen web_port 
+    bind *:9999
+    stats enable
+    log global
+    stats uri /haproxy-status
+    stats auth haadmin:2NweRqCs
+EOF
+
+mkdir /var/lib/haproxy/
+systemctl daemon-reload
+systemctl enable haproxy
+systemctl start haproxy
+</code></pre>
+<p><strong>配置文件的书写（不写stat就完全一样）</strong></p>
+<pre><code class="language-bash">[root@007-lb1 ~]# cat /etc/haproxy/haproxy.cfg 
+global
+    log         127.0.0.1 local2
+    chroot      /var/lib/haproxy
+    pidfile     /var/run/haproxy.pid
+    maxconn     4000
+    user haproxy
+    group haproxy
+    daemon
+    stats socket /var/lib/haproxy/stats
+defaults
+    mode                    http
+    log                     global
+    option                  httplog
+    option                  dontlognull
+    option http-server-close
+    option forwardfor       except 127.0.0.0/8
+    option                  redispatch
+    retries                 3
+    timeout http-request    10s
+    timeout queue           1m
+    timeout connect         10s
+    timeout client          1m
+    timeout server          1m
+    timeout http-keep-alive 10s
+    timeout check           10s
+    maxconn                 3000
+listen web_port 
+    bind 192.168.38.131:9999
+    stats enable
+    log global
+    stats uri /haproxy-status
+    stats auth haadmin:2NweRqCs
+frontend 007-web
+    bind *:80
+    mode http
+    default_backend bk_web
+backend bk_web
+    mode http
+    balance source
+    cookie  SERVERID insert indirect nocache
+    option forwardfor    #转发客户IP到后端服务器
+    server 007-web1 192.168.38.133:80 cookie 007-web1 check inter 10000 rise 2 fall 5 weight 20
+    server 007-web2 192.168.38.136:80 cookie 007-web2 check inter 10000 rise 2 fall 5 weight 20
+</code></pre>
+<h3 id="五-配置keepalived">五、配置keepalived</h3>
+<p><strong>VIP用192.168.38.188</strong></p>
+<p><strong>邮件配置</strong></p>
+<pre><code class="language-bash">yum install mailx -y
+cat &gt;&gt; /etc/mail.rc &lt;&lt;'EOF'
+set from=m17114517139_2@163.com
+set smtp=smtps://smtp.163.com:465  
+set smtp-auth-user=m17114517139_2@163.com
+set smtp-auth-password=zhj6b266
+set smtp-auth=login
+set nss-config-dir=/root/.certs
+set ssl-verify=ignore
+EOF
+mkdir -p /root/.certs/
+echo -n | openssl s_client -connect smtp.163.com:465 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' &gt; ~/.certs/163.crt
+certutil -A -n &quot;GeoTrust SSL CA&quot; -t &quot;C,,&quot; -d ~/.certs -i ~/.certs/163.crt
+certutil -A -n &quot;GeoTrust Global CA&quot; -t &quot;C,,&quot; -d ~/.certs -i ~/.certs/163.crt
+certutil -L -d /root/.certs
+cd /root/.certs/
+certutil -A -n &quot;GeoTrust SSL CA - G3&quot; -t &quot;Pu,Pu,Pu&quot; -d ./ -i 163.crt
+</code></pre>
+<p><strong>编译安装keepalived</strong></p>
+<pre><code class="language-bash">[root@007-lb1 ~]# cat keepalived.sh 
+#!/bin/bash
+ yum install -y libnfnetlink-devel libnfnetlink ipvsadm  libnl libnl-devel  libnl3 libnl3-devel   lm_sensors-libs net-snmp-agent-libs net-snmp-libs  openssh-server openssh-clients  openssl openssl-devel automake iproute gcc pcre pcre-devel openssl  openssl-devel
+
+wget https://mirrors.sjtug.sjtu.edu.cn/archlinux/sources/community/keepalived-2.0.19-1.src.tar.gz
+tar xf keepalived-2.0.19-1.src.tar.gz
+tar xf keepalived/keepalived-2.0.19.tar.gz -C /usr/local/src/
+cd /usr/local/src/keepalived-2.0.19/
+ ./configure --prefix=/usr/local/keepalived --disable-fwmark
+make &amp;&amp; make install
+
+cat &gt; /usr/lib/systemd/system/keepalived.service &lt;&lt;'EOF'
+[Unit]
+Description=LVS and VRRP High Availability Monitor
+After=network-online.target syslog.target 
+Wants=network-online.target 
+[Service]
+Type=forking
+PIDFile=/run/keepalived.pid
+KillMode=process
+EnvironmentFile=-/usr/local/keepalived/etc/sysconfig/keepalived
+ExecStart=/usr/local/keepalived/sbin/keepalived $KEEPALIVED_OPTIONS
+ExecReload=/bin/kill -HUP $MAINPID
+[Install]
+WantedBy=multi-user.target
+EOF
+
+
+cp bin/keepalived /usr/sbin/
+
+mkdir /etc/keepalived
+
+cat &gt; /etc/keepalived/keepalived.conf &lt;&lt;'EOF'
+global_defs {
+   router_id LVS_DEVEL
+}
+
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id 80
+    priority 100
+    advert_int 1
+    unicast_src_ip 192.168.38.131
+    unicast_peer {
+        192.168.38.130
+    }
+
+    authentication {
+        auth_type PASS
+        auth_pass 1111
+    }
+    virtual_ipaddress {
+        192.168.38.172 dev eth0 label eth0:0
+    }
+}
+EOF
+
+ systemctl deamon-reload
+ systemctl start keepalived
+
+ps -ef | grep keepalived
+</code></pre>
+<p><strong>发邮件脚本</strong></p>
+<pre><code class="language-bash">[root@007-lb1 keepalived]# cat notify.sh 
+#!/bin/bash
+#
+#contact='root@localhost'
+contact='admin@jd.com'
+
+notify() {
+	local mailsubject=&quot;$(hostname) to be $1, vip floating&quot;
+	local mailbody=&quot;$(date +'%F %T'): vrrp transition, $(hostname) changed to be $1&quot;
+	echo &quot;$mailbody&quot; | mail -s &quot;$mailsubject&quot; $contact
+}
+
+case $1 in
+master)
+	notify master
+	;;
+backup)
+	notify backup
+	;;
+fault)
+	notify fault
+	;;
+*)
+	echo &quot;Usage: $(basename $0) {master|backup|fault}&quot;
+	exit 1
+	;;
+esac
+</code></pre>
+<p><strong>nginx检查脚本</strong></p>
+<pre><code class="language-bash">[root@007-lb1 keepalived]# cat check_nginx.sh 
+#!/bin/bash
+GREP_OPTIONS=&quot;&quot;
+Count1=`netstat -antp |grep -v grep |grep haproxy |wc -l`
+
+if [ $Count1 -eq 0 ]; then
+    exit 1
+fi
+
+exit 0
+</code></pre>
+<p><strong>lb1的keepalived.conf</strong></p>
+<pre><code class="language-bash">[root@007-lb1 keepalived]# cat /etc/keepalived/keepalived.conf 
+! Configuration File for keepalived
+
+global_defs {
+   router_id node1
+   vrrp_mcast_group4 224.123.0.18
+}
+vrrp_script chk_nginx {
+    script &quot;/etc/keepalived/check_nginx.sh&quot; 
+    interval 2 
+}
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1dadcvsd
+    }
+    virtual_ipaddress {
+        192.168.38.188/16 dev eth0
+    }
+    track_script {
+       chk_nginx 
+    }
+    notify_master &quot;/etc/keepalived/notify.sh master&quot;
+    notify_backup &quot;/etc/keepalived/notify.sh backup&quot;
+    notify_fault &quot;/etc/keepalived/notify.sh fault&quot;
+}
+</code></pre>
+<p><strong>lb2的keepalived.conf</strong></p>
+<pre><code class="language-bash">[root@007-lb2 keepalived]# cat keepalived.conf 
+! Configuration File for keepalived
+
+global_defs {
+   router_id node1
+   vrrp_mcast_group4 224.123.0.18
+}
+vrrp_script chk_nginx {
+    script &quot;/etc/keepalived/check_nginx.sh&quot; 
+    interval 2 
+}
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id 51
+    priority 99
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1dadcvsd
+    }
+    virtual_ipaddress {
+        192.168.38.188/16 dev eth0
+    }
+    track_script {
+       chk_nginx 
+    }
+    notify_master &quot;/etc/keepalived/notify.sh master&quot;
+    notify_backup &quot;/etc/keepalived/notify.sh backup&quot;
+    notify_fault &quot;/etc/keepalived/notify.sh fault&quot;
+}
+</code></pre>
+<p><strong>测试VIP转移</strong></p>
+<pre><code class="language-bash">[root@007-lb1 ~]# pkill haproxy
+#vip转移
+[root@007-lb2 keepalived]# ip addr show dev eth0
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 00:0c:29:5c:b9:ce brd ff:ff:ff:ff:ff:ff
+    inet 192.168.38.132/24 brd 192.168.38.255 scope global noprefixroute dynamic eth0
+       valid_lft 2586860sec preferred_lft 2586860sec
+    inet6 fe80::20c:29ff:fe5c:b9ce/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191111110702.png" alt="" loading="lazy"></figure>
+<h3 id="六-域名解析后就可以了解析到vip">六、域名解析后就可以了，解析到vip</h3>
+<p>安装wordpress即可</p>
+<h3 id="七-将haproxykeepalived换成keepalivedlvs">七、将haproxy+keepalived换成keepalived+LVS</h3>
+<p>lvs1:192.168.38.134</p>
+<p>lvs2:192.168.38.135</p>
+<p>VIP:192.168.38.189</p>
+<figure data-type="image" tabindex="3"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191112095510.png" alt="" loading="lazy"></figure>
+<p><strong><font color=red>说明：如果部署在云上，比如阿里云上，不需要自己部署lvs，直接买阿里云的slb即可，slb然后分发流量到两台web机器，不过这种不推荐，推荐slb走自己的haproxy，进行7层反代</font></strong></p>
+<p><strong>编译安装keepalived同上</strong></p>
+<p><strong>邮件服务配置同上</strong></p>
+<p><strong>notify脚本同上</strong></p>
+<p><strong>check脚本</strong></p>
+<pre><code class="language-bash">#!/bin/bash
+GREP_OPTIONS=&quot;&quot;
+Count1=`ps -ef  |grep keepalived | grep -v grep  |wc -l`
+
+if [ $Count1 -eq 0 ]; then
+    exit 1
+fi
+
+exit 0
+</code></pre>
+<p><strong>lvs1的keepalived.conf</strong></p>
+<pre><code class="language-bash">[root@lvs1 keepalived]# cat keepalived.conf 
+! Configuration File for keepalived
+
+global_defs {
+   router_id node1
+   vrrp_mcast_group4 224.123.0.19
+}
+vrrp_script chk_nginx {
+    script &quot;/etc/keepalived/check_keepalived.sh&quot; 
+    interval 2 
+}
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0
+    virtual_router_id 52
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1dadcvsd2
+    }
+    virtual_ipaddress {
+        192.168.38.189/16 dev eth0
+    }
+    track_script {
+       chk_nginx 
+    }
+    notify_master &quot;/etc/keepalived/notify.sh master&quot;
+    notify_backup &quot;/etc/keepalived/notify.sh backup&quot;
+    notify_fault &quot;/etc/keepalived/notify.sh fault&quot;
+}
+
+virtual_server 192.168.38.189 80 {
+    delay_loop 3
+    lb_algo sh
+    lb_kind DR
+    protocol TCP
+
+    real_server 192.168.38.133 80 {
+	weight 1
+	HTTP_GET {
+	url {
+		path /
+		status_code 200
+	}
+	connect_timeout 1
+	nb_get_retry 3
+	delay_before_retry 1
+	}
+    }
+    real_server 192.168.38.136 80 {
+	weight 1
+	HTTP_GET {
+	url {
+		path /
+		status_code 200
+	}
+	connect_timeout 1
+	nb_get_retry 3
+	delay_before_retry 1
+	}
+    }
+}
+</code></pre>
+<p><strong>lvs2的keepalivbed.conf</strong></p>
+<pre><code class="language-bash">[root@lvs2 keepalived]# cat keepalived.conf 
+[root@lvs1 keepalived]# cat keepalived.conf 
+! Configuration File for keepalived
+
+global_defs {
+   router_id node1
+   vrrp_mcast_group4 224.123.0.19
+}
+vrrp_script chk_nginx {
+    script &quot;/etc/keepalived/check_keepalived.sh&quot; 
+    interval 2 
+}
+vrrp_instance VI_1 {
+    state BACKUP
+    interface eth0
+    virtual_router_id 52
+    priority 99
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1dadcvsd2
+    }
+    virtual_ipaddress {
+        192.168.38.189/16 dev eth0
+    }
+    track_script {
+       chk_nginx 
+    }
+    notify_master &quot;/etc/keepalived/notify.sh master&quot;
+    notify_backup &quot;/etc/keepalived/notify.sh backup&quot;
+    notify_fault &quot;/etc/keepalived/notify.sh fault&quot;
+}
+
+virtual_server 192.168.38.189 80 {
+    delay_loop 3
+    lb_algo sh
+    lb_kind DR
+    protocol TCP
+
+    real_server 192.168.38.133 80 {
+	weight 1
+	HTTP_GET {
+	url {
+		path /
+		status_code 200
+	}
+	connect_timeout 1
+	nb_get_retry 3
+	delay_before_retry 1
+	}
+    }
+    real_server 192.168.38.136 80 {
+	weight 1
+	HTTP_GET {
+	url {
+		path /
+		status_code 200
+	}
+	connect_timeout 1
+	nb_get_retry 3
+	delay_before_retry 1
+	}
+    }
+}
+</code></pre>
+<p><strong>测试VIP转移</strong></p>
+<pre><code class="language-bash">[root@lvs1 keepalived]# systemctl stop keepalived
+[root@lvs2 keepalived]# ip a show dev eth0
+2: eth0: &lt;BROADCAST,MULTICAST,UP,LOWER_UP&gt; mtu 1500 qdisc pfifo_fast state UP group default qlen 1000
+    link/ether 00:0c:29:d3:0f:22 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.38.135/24 brd 192.168.38.255 scope global noprefixroute dynamic eth0
+       valid_lft 2591783sec preferred_lft 2591783sec
+    inet 192.168.38.189/16 scope global eth0
+       valid_lft forever preferred_lft forever
+    inet6 fe80::20c:29ff:fed3:f22/64 scope link noprefixroute 
+       valid_lft forever preferred_lft forever
+</code></pre>
+<p><strong>web1和web2绑定VIP</strong></p>
+<pre><code class="language-bashj">[root@007-web1 ~]# cat lvs-dr.sh 
+#!/bin/sh   
+#LVS DR模式初始化脚本
+#Zhang Shijie:2017-08-18 
+LVS_VIP=192.168.38.189
+source /etc/rc.d/init.d/functions  
+case &quot;$1&quot; in  
+start)  
+       /sbin/ifconfig lo:0 $LVS_VIP netmask 255.255.255.255 broadcast $LVS_VIP  
+       /sbin/route add -host $LVS_VIP dev lo:0  
+       echo &quot;1&quot; &gt;/proc/sys/net/ipv4/conf/lo/arp_ignore  
+       echo &quot;2&quot; &gt;/proc/sys/net/ipv4/conf/lo/arp_announce  
+       echo &quot;1&quot; &gt;/proc/sys/net/ipv4/conf/all/arp_ignore  
+       echo &quot;2&quot; &gt;/proc/sys/net/ipv4/conf/all/arp_announce  
+       echo &quot;RealServer Start OK&quot;  
+       ;;  
+stop)  
+       /sbin/ifconfig lo:0 down  
+       /sbin/route del $LVS_VIP &gt;/dev/null 2&gt;&amp;1  
+       echo &quot;0&quot; &gt;/proc/sys/net/ipv4/conf/lo/arp_ignore  
+       echo &quot;0&quot; &gt;/proc/sys/net/ipv4/conf/lo/arp_announce  
+       echo &quot;0&quot; &gt;/proc/sys/net/ipv4/conf/all/arp_ignore  
+       echo &quot;0&quot; &gt;/proc/sys/net/ipv4/conf/all/arp_announce  
+       echo &quot;RealServer Stoped&quot;  
+       ;;  
+*)  
+       echo &quot;Usage: $0 {start|stop}&quot;  
+       exit 1  
+esac  
+exit 0
+[root@007-web1 ~]# bash lvs-dr.sh start
+RealServer Start OK
+#web2同理
+</code></pre>
+<h3 id="八-排查-lvs不显示后端服务器">八、排查、lvs不显示后端服务器</h3>
+<pre><code class="language-bash">[root@lvs1 keepalived]# ipvsadm -ln
+IP Virtual Server version 1.2.1 (size=4096)
+Prot LocalAddress:Port Scheduler Flags
+  -&gt; RemoteAddress:Port           Forward Weight ActiveConn InActConn
+TCP  192.168.38.189:80 sh
+</code></pre>
+<p><strong>手动curl发现返回302</strong></p>
+<pre><code class="language-bash">[root@lvs1 keepalived]# curl 192.168.38.133 -I
+HTTP/1.1 302 Found
+Server: nginx/1.17.5
+Date: Mon, 11 Nov 2019 03:39:12 GMT
+Content-Type: text/html; charset=UTF-8
+Connection: keep-alive
+X-Powered-By: PHP/7.3.10
+Location: http://192.168.38.133/wp-admin/setup-config.php
+</code></pre>
+<p><strong>解决：web服务器创建test.html测试页面做健康检查</strong></p>
+<pre><code class="language-bash">[root@007-web1 wordpress]# echo test &gt; test.html
+[root@007-web1 wordpress]# scp test.html 192.168.38.136:/va/www/wordpress/
+</code></pre>
+<p><strong>两个lvs修改健康检查</strong></p>
+<pre><code class="language-bash">[root@lvs2 keepalived]# vim /etc/keepalived/keepalived.conf
+.......
+    real_server 192.168.38.133 80 {
+        weight 1
+        HTTP_GET {
+        url {
+                path /test.html
+                status_code 200
+        }
+        connect_timeout 1
+        nb_get_retry 3
+        delay_before_retry 1
+        }
+    }
+    real_server 192.168.38.136 80 {
+        weight 1
+        HTTP_GET {
+        url {
+                path /test.html
+                status_code 200
+        }
+        connect_timeout 1
+        nb_get_retry 3
+        delay_before_retry 1
+        }
+    }
+......
+</code></pre>
+<p><strong>随后停止并启动keepalived,就好了</strong></p>
+<pre><code class="language-bash">[root@lvs2 keepalived]# ipvsadm -ln
+IP Virtual Server version 1.2.1 (size=4096)
+Prot LocalAddress:Port Scheduler Flags
+  -&gt; RemoteAddress:Port           Forward Weight ActiveConn InActConn
+TCP  192.168.38.189:80 sh
+  -&gt; 192.168.38.133:80            Route   1      0          0         
+  -&gt; 192.168.38.136:80            Route   1      0          0     
+</code></pre>
+<p><strong>另外wordpress的图片目录为uploads不是upload</strong></p>
+<h3 id="九-优化">九、优化</h3>
+<pre><code class="language-bash">各个服务优化
+NFS设置好权限控制，不能777
+wordpress测试好友一些东西可以放到NFS，或者同步web1的网站数据到web2，主要是一些主题什么的
+</code></pre>
+<p><strong>NFS权限限制</strong></p>
+<p>权限改成755还是成功了</p>
+<pre><code class="language-bash">[root@007-mysql-master ~]# chmod 755 -R /data/wordpress/
+[root@007-mysql-master ~]# ll /data/wordpress/2019/11/
+total 292
+-rwxr-xr-x 1 mysql mysql  98728 Nov 11 20:18 89a9f78ed9a0e3a9d0ad9a4836a79c7f.png
+-rw-r--r-- 1 mysql mysql   5101 Nov 11 20:20 9ad3c6f0d10514c88930974484e7a143.png
+-rwxr-xr-x 1 mysql mysql 186355 Nov 11 20:17 da7999e9b9174995d894cab24e20565a.png
+</code></pre>
+<p><strong>问什么呢？为啥能上传成功，且用户为mysql</strong></p>
+<p>原因：web客户端的nginx用户ID为995</p>
+<pre><code class="language-bash">[root@007-web2 ~]# id nginx
+uid=997(nginx) gid=995(nginx) groups=995(nginx)
+</code></pre>
+<p>NFS这边mysql用户的id也是995</p>
+<pre><code class="language-bash">[root@007-mysql-master ~]# id mysql
+uid=997(mysql) gid=995(mysql) groups=995(mysql)
+</code></pre>
+<p>/data/wordpress/2019是已经生成的，属主为mysql（id995）</p>
+<pre><code class="language-bash">[root@007-mysql-master ~]# ls -l /data/wordpress/
+total 0
+drwxr-xr-x 3 mysql mysql 16 Nov 11 20:17 2019
+</code></pre>
+<p>但是wordpress无法在/data/wordpress目录下生成新目录，可以设置acl权限给id为995用户(最好手动创建一个id为995的用户)</p>
+<pre><code class="language-bsh">[root@007-mysql-master ~]# setfacl -m u:mysql:rwx /data/wordpress/
+[root@007-mysql-master ~]# getfacl /data/wordpress/
+getfacl: Removing leading '/' from absolute path names
+# file: data/wordpress/
+# owner: root
+# group: root
+user::rwx
+user:mysql:rwx
+group::r-x
+mask::rwx
+other::r-x
+</code></pre>
+<p>或者NFS设置权限,类似于下面这样：</p>
+<figure data-type="image" tabindex="4"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191112093034.png" alt="" loading="lazy"></figure>
+<p><strong>web1和web2的网站数据同步是比较困难的，wordpress变化的数据比较多，主题，图片等等，不只是uploads目录，最好都放NFS吧</strong></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/6B0agT6cd/" class="tag">
+                    haproxy
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/ycg_qQA4v/" class="tag">
+                    nginx
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/lnmpanalyzer/">
+                  <h3 class="post-title">
+                    lnmp+analyzer
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

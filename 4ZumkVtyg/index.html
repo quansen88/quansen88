@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> 关于docker的scratch镜像与helloworld | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="关于docker的scratch镜像与helloworld
+参考：https://hub.docker.com/_/scratch?tab=description
+参考：https://segmentfault.com/a/11900000..." />
+    <meta name="keywords" content="scratch,helloworld,dockerfile,docker" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> 关于docker的scratch镜像与helloworld</h2>
+            <div class="post-date">2021-05-07</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.docker.com/sites/default/files/social/docker_facebook_share.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="关于docker的scratch镜像与helloworld">关于docker的scratch镜像与helloworld</h1>
+<p>参考：https://hub.docker.com/_/scratch?tab=description</p>
+<p>参考：https://segmentfault.com/a/1190000000628247</p>
+<p><strong>FROM scratch</strong></p>
+<p><strong>官方说明：该镜像是一个空的镜像，可以用于构建busybox等超小镜像，可以说是真正的从零开始构建属于自己的镜像。要知道，一个官方的ubuntu镜像有60MB+，CentOS镜像有70MB+</strong></p>
+<p><strong>可以把一个可执行文件扔进来直接执行</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191121131913.png" alt="" loading="lazy"></figure>
+<h3 id="一-注意scratch不可用被pull">一、注意：scratch不可用被pull</h3>
+<p><strong>FROM scratch专门用于构建最小镜像，直接pull会报以下错误，scratch是一个保留名称</strong></p>
+<pre><code class="language-bash">[root@es-master1 ~]# docker pull scratch
+Using default tag: latest
+Error response from daemon: 'scratch' is a reserved name
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191121131832.png" alt="" loading="lazy"></figure>
+<h3 id="二-如何制作大小为0-的镜像">二、如何制作大小为0 的镜像</h3>
+<p><strong>既然scratch不能被拉取，如何做到<code>docker image ls</code>看到一个0字节的镜像</strong></p>
+<p>官方给出了下面方法：</p>
+<pre><code class="language-bash">$ tar cv --files-from /dev/null | docker import - scratch
+$ docker image ls
+REPOSITORY              TAG                 IMAGE ID            CREATED             SIZE
+scratch                 latest              775bfce21429        9 minutes ago       0B
+</code></pre>
+<h3 id="三-如何跑一个helloworld">三、如何跑一个helloworld</h3>
+<p>可以参考：https://github.com/docker-library/hello-world/</p>
+<h4 id="31c语言不行docker是go语言写的跑的话报错">3.1C语言不行，docker是go语言写的，跑的话报错</h4>
+<pre><code class="language-c">[root@es-master1 ~]# cat hello.c 
+#include &lt;stdio.h&gt;
+
+main() {
+  printf(&quot;hello world\n&quot;);
+}
+</code></pre>
+<pre><code class="language-bash">[root@es-master1 ~]# gcc hello.c -o hello
+[root@es-master1 ~]# ll hello
+-rwxr-xr-x 1 root root 8440 Nov 21 03:36 hello
+</code></pre>
+<p><strong>Dockerfile</strong></p>
+<pre><code class="language-dockerfile">FROM scratch
+COPY hello /
+CMD [&quot;/hello&quot;]
+</code></pre>
+<pre><code class="language-bash">[root@es-master1 ~]# docker build -t hello .
+[root@es-master1 ~]# docker image ls hello 
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+hello               latest              3b89b5056a03        5 minutes ago       8.44kB
+</code></pre>
+<p><strong>果然报错</strong></p>
+<pre><code class="language-bash">[root@es-master1 ~]# docker run --rm hello
+standard_init_linux.go:211: exec user process caused &quot;no such file or directory&quot;
+</code></pre>
+<p><strong>ubuntu当然可以</strong></p>
+<pre><code class="language-bash">[root@es-master1 ~]# cat Dockerfile 
+FROM ubuntu
+COPY hello /
+CMD [&quot;/hello&quot;]
+[root@es-master1 ~]# docker build -t hello .
+Sending build context to Docker daemon  24.63MB
+Step 1/3 : FROM ubuntu
+ ---&gt; 775349758637
+Step 2/3 : COPY hello /
+ ---&gt; 33de2082f11a
+Step 3/3 : CMD [&quot;/hello&quot;]
+ ---&gt; Running in 3d347f62b926
+Removing intermediate container 3d347f62b926
+ ---&gt; 1829a7bd40fe
+Successfully built 1829a7bd40fe
+Successfully tagged hello:latest
+[root@es-master1 ~]# docker run --rm hello
+hello world
+</code></pre>
+<p><strong>官方的这个竟然有点看不懂了，c语言：https://github.com/docker-library/hello-world</strong></p>
+<pre><code class="language-bash">[root@es-master1 tmp]# git clone https://github.com/docker-library/hello-world.git
+[root@es-master1 tmp]# cd hello-world/
+[root@es-master1 hello-world]# make all
+[root@es-master1 hello-world]# amd64/hello-world/hello 
+
+Hello from Docker!
+......
+</code></pre>
+<h4 id="32go语言">3.2go语言</h4>
+<p><strong><s>使用go语言写：https://github.com/adriaandejonge/helloworld</s></strong></p>
+<pre><code class="language-bash">[root@es-master1 hello-world]# tree -C .
+.
+├── Dockerfile
+└── hello.go
+0 directories, 2 files
+</code></pre>
+<pre><code class="language-go">[root@es-master1 hello-world]# cat hello.go 
+package main
+import &quot;fmt&quot;
+
+func main(){
+    fmt.Printf(&quot;hello world\n&quot;)
+}
+</code></pre>
+<pre><code class="language-dockerfile">[root@es-master1 hello-world]# cat Dockerfile 
+FROM google/golang as builder
+WORKDIR /go/src/app
+COPY hello.go .
+RUN go build hello.go
+
+FROM scratch
+COPY --from=builder /go/src/app/hello /
+CMD [&quot;/hello&quot;]
+</code></pre>
+<p><strong>一个helloworld都这么大...</strong></p>
+<pre><code class="language-bash">[root@es-master1 hello-world]# docker build -t hello .
+[root@es-master1 hello-world]# docker image ls hello
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+hello               latest              27eca431407a        2 minutes ago       2.36MB
+[root@es-master1 hello-world]# docker run --rm hello
+hello world
+</code></pre>
+<pre><code class="language-bash">[root@es-master1 hello-world]# docker image history hello
+IMAGE               CREATED             CREATED BY                                      SIZE                COMMENT
+27eca431407a        3 minutes ago       /bin/sh -c #(nop)  CMD [&quot;/hello&quot;]               0B                  
+1a35249e8575        3 minutes ago       /bin/sh -c #(nop) COPY file:7b1994197d7b5310…   2.36MB       
+</code></pre>
+<p><strong>也没用过go，网上了解到加个选项就能变小：https://www.jianshu.com/p/1405b0c2c5a3</strong></p>
+<pre><code class="language-bash">[root@es-master1 hello-world]# cat Dockerfile 
+FROM google/golang as builder
+WORKDIR /go/src/app
+COPY hello.go .
+RUN go build -ldflags=&quot;-w -s&quot;  hello.go
+
+FROM scratch
+COPY --from=builder /go/src/app/hello /
+CMD [&quot;/hello&quot;]
+[root@es-master1 hello-world]# docker build -t hello .
+[root@es-master1 hello-world]# docker image ls hello
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+hello               latest              df8b3c8897f9        8 seconds ago       1.65MB
+</code></pre>
+<h4 id="33改写官方的helloword">3.3改写官方的helloword</h4>
+<p><strong>hello.c</strong></p>
+<pre><code class="language-bash">[root@es-master1 ~]# cat hello.c 
+//#include &lt;unistd.h&gt;
+#include &lt;sys/syscall.h&gt;
+
+#ifndef DOCKER_GREETING
+	#define DOCKER_GREETING &quot;Hello from Docker!&quot;
+#endif
+
+const char message[] =
+	DOCKER_GREETING &quot;\n&quot;;
+
+void _start() {
+	//write(1, message, sizeof(message) - 1);
+	syscall(SYS_write, 1, message, sizeof(message) - 1);
+
+	//_exit(0);
+	syscall(SYS_exit, 0);
+}
+</code></pre>
+<p><strong>编译</strong></p>
+<pre><code class="language-bash">[root@es-master1 ~]# gcc -static -Os -nostartfiles -fno-asynchronous-unwind-tables -o './hello'  'hello.c'
+[root@es-master1 ~]# strip -R .comment -s 'hello'
+[root@es-master1 ~]# ./hello 
+Hello from Docker!
+</code></pre>
+<p><strong>dockerfile</strong></p>
+<pre><code class="language-bash">FROM scratch
+COPY hello /
+CMD [&quot;/hello&quot;]
+</code></pre>
+<pre><code class="language-bash">[root@es-master1 ~]# docker build -t hello .
+#才1.06kB
+[root@es-master1 ~]# docker image ls hello
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+hello               latest              3b204a40c8cb        14 seconds ago      1.06kB
+[root@es-master1 ~]# docker run --rm hello
+Hello from Docker!
+</code></pre>
+<h3 id="四-补充">四、补充</h3>
+<ul>
+<li>gcc -D可以定义宏，起到替换、条件编译的功能；即hello.c中定义了一个宏，我可以在gcc编译时使用-D替换该宏。就好像我docker镜像定义了一些变量，但是docker run仍可以-e传递变量，覆盖原有的变量</li>
+<li>gcc -static指定强制使用静态库，</li>
+<li>-O 对程序进行<strong>优化编译、链接</strong>。采用这个选项，整个源代码会在编译、链接过程中进行优化处理，这样产生的可执行文件的执行效率可以提高，但是编译、链接的速度就相应地要慢一些，而且对执行文件的调试会产生一定的影响，造成一些执行效果与对应源文件代码不一致等一些令人“困惑”的情况。因此，<strong>一般在编译输出软件发行版时使用此选项</strong>。</li>
+<li>-Os     使用了所有-O2的优化选项，但又不缩减代码尺寸的方法 https://www.cnblogs.com/luolizhi/p/5737091.html</li>
+<li>-nostartfiles 连接的使用不使用标准系统库。只有你指定的库才能够传递给连接器。不链接系统标准启动文件,而标准库文件仍然正常使用</li>
+<li>-fno-asynchronous-unwind-tables   用来不生成CFI指令</li>
+<li>-o 输出文件名</li>
+<li>stribe   给文件脱裤子。具体就是从特定文件中<strong>剥掉</strong>一些<strong>符号信息</strong>和<strong>调试信息</strong>。 在strip之后， 文件变小了， 仍然可以执行， 这就就节省了很多空间。</li>
+</ul>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/fDebPcX4s/" class="tag">
+                    scratch
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/9SKFsjkSEO/" class="tag">
+                    helloworld
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/kNjQz_ZLc/" class="tag">
+                    dockerfile
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/pw00jdDde/" class="tag">
+                    docker
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/UcUw5zbco/">
+                  <h3 class="post-title">
+                    WDS部署
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

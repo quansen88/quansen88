@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> CentOS删除fstab的恢复 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="CentOS删除fstab的恢复
+需要光盘进入救援模式
+CentOS6怎么进入救援模式：https://blog.51cto.com/14012942/2433449
+一、先拿CentOS6开刀
+由于这个CentOS6使用了逻辑卷，所以进去..." />
+    <meta name="keywords" content="centos,linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> CentOS删除fstab的恢复</h2>
+            <div class="post-date">2021-04-22</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.centos.org/assets/img/centos-logo-white.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="centos删除fstab的恢复">CentOS删除fstab的恢复</h1>
+<p>需要光盘进入救援模式</p>
+<p>CentOS6怎么进入救援模式：<a href="https://blog.51cto.com/14012942/2433449">https://blog.51cto.com/14012942/2433449</a></p>
+<h3 id="一-先拿centos6开刀">一、先拿CentOS6开刀</h3>
+<p><strong>由于这个CentOS6使用了逻辑卷，所以进去之后要先激活逻辑卷，不懂的百度“救援模式 逻辑卷”</strong></p>
+<pre><code class="language-bash">vgchange -ay
+</code></pre>
+<p><strong>然后查看lvs，lvdisplay</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567001670038.png" alt="1567001670038" loading="lazy"></figure>
+<p><strong>这样就知道我的root分区设备在/dev/VolGroup/lv_root</strong></p>
+<p><strong>我的swap分区在/dev/VolGroup/lv_swap</strong></p>
+<p><strong>然后就可以挂载root到某个临时目录下</strong></p>
+<p><strong>然后就可以chroot切根了</strong></p>
+<p><strong>然后就可以手动编写fstab文件就可以了</strong></p>
+<figure data-type="image" tabindex="2"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567225047329.png" alt="1567225047329" loading="lazy"></figure>
+<p>比较简单，fstab误删了就这么来吧，，可以参考这篇大哥的文章：</p>
+<p>https://blog.51cto.com/11886307/2377515</p>
+<h2 id="centos7误删fstab">CentOS7误删fstab</h2>
+<p>重复性的操作不写了</p>
+<p>同样参考：https://blog.51cto.com/11886307/2377515</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/WsfqvhG9O/" class="tag">
+                    centos
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190828centos7-wang-ji-mi-ma-yu-fang-mi-ma-po-jie/">
+                  <h3 class="post-title">
+                    20190828CentOS7忘记密码与防密码破解
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> EFK教程 - EFK快速入门指南 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="EFK教程 - EFK快速入门指南
+参考：https://mp.weixin.qq.com/s/Kzqllh5VQedss2u-DSrDhQ
+通过部署elasticsearch（三节点）+filebeat+kibana快速入门EFK，并搭建..." />
+    <meta name="keywords" content="elasticsearch,filebeat,kibana,EFK,nginx" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> EFK教程 - EFK快速入门指南</h2>
+            <div class="post-date">2021-05-04</div>
+            
+              <div class="feature-container" style="background-image: url('https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191117204629.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="efk教程-efk快速入门指南">EFK教程 - EFK快速入门指南</h1>
+<p>参考：https://mp.weixin.qq.com/s/Kzqllh5VQedss2u-DSrDhQ</p>
+<p><strong>通过部署elasticsearch（三节点）+filebeat+kibana快速入门EFK，并搭建起可用的demo环境测试效果</strong></p>
+<h3 id="用途">用途：</h3>
+<p>▷ 通过filebeat实时收集nginx访问日志、传输至elasticsearch集群<br>
+▷ filebeat将收集的日志传输至elasticsearch集群<br>
+▷ 通过kibana展示日志</p>
+<h3 id="实验架构">实验架构：</h3>
+<p><strong>▷ 服务器配置：</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">名称</th>
+<th style="text-align:center">IP</th>
+<th style="text-align:center">CPU</th>
+<th style="text-align:center">内存</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><strong>filebeat</strong></td>
+<td style="text-align:center"><strong>172.18.1.237</strong></td>
+<td style="text-align:center"><strong>2</strong></td>
+<td style="text-align:center"><strong>2G</strong></td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>kibana</strong></td>
+<td style="text-align:center"><strong>172.18.4.4</strong></td>
+<td style="text-align:center"><strong>2</strong></td>
+<td style="text-align:center"><strong>2G</strong></td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-1</strong></td>
+<td style="text-align:center"><strong>172.18.3.138</strong></td>
+<td style="text-align:center"><strong>4</strong></td>
+<td style="text-align:center"><strong>4G</strong></td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-2</strong></td>
+<td style="text-align:center"><strong>172.18.3.139</strong></td>
+<td style="text-align:center"><strong>4</strong></td>
+<td style="text-align:center"><strong>4G</strong></td>
+</tr>
+<tr>
+<td style="text-align:center"><strong>elasticsearch-3</strong></td>
+<td style="text-align:center"><strong>172.18.3.253</strong></td>
+<td style="text-align:center"><strong>4</strong></td>
+<td style="text-align:center"><strong>4G</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>▷ 架构图</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191117204629.png" alt="" loading="lazy"></figure>
+<h3 id="一-安装elasticsearch">一、安装elasticsearch</h3>
+<p>三个机器都执行脚本</p>
+<pre><code class="language-bash">[root@es-1 ~]# cat install_elasticsearch.sh 
+mkdir -p /opt/software &amp;&amp; cd /opt/software
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-7.3.2-linux-x86_64.tar.gz
+tar -zxvf elasticsearch-7.3.2-linux-x86_64.tar.gz
+mv elasticsearch-7.3.2 /opt/elasticsearch
+useradd elasticsearch -d /opt/elasticsearch -s /sbin/nologin
+mkdir -p /opt/logs/elasticsearch
+chown elasticsearch.elasticsearch /opt/elasticsearch -R
+chown elasticsearch.elasticsearch /opt/logs/elasticsearch -R
+
+# 限制一个进程可以拥有的VMA(虚拟内存区域)的数量要超过262144，不然elasticsearch会报max virtual memory areas vm.max_map_count [65535] is too low, increase to at least [262144]
+echo &quot;vm.max_map_count = 655350&quot; &gt;&gt; /etc/sysctl.conf
+sysctl -p
+</code></pre>
+<h3 id="二-安装filebeat">二、安装filebeat</h3>
+<pre><code class="language-bash">[root@nginx-1 ~]# cat install_filebeat.sh 
+mkdir -p /opt/software &amp;&amp; cd /opt/software
+wget https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-7.3.2-linux-x86_64.tar.gz
+mkdir -p /opt/logs/filebeat/
+tar -zxvf filebeat-7.3.2-linux-x86_64.tar.gz
+mv filebeat-7.3.2-linux-x86_64 /opt/filebeat
+[root@nginx-1 ~]# bash install_filebeat.sh 
+</code></pre>
+<h3 id="三-安装kibana">三、安装kibana</h3>
+<pre><code class="language-bash">[root@kibana ~]# cat install_kibana.sh 
+mkdir -p /opt/software &amp;&amp; cd /opt/software
+wget https://artifacts.elastic.co/downloads/kibana/kibana-7.3.2-linux-x86_64.tar.gz
+tar -zxvf kibana-7.3.2-linux-x86_64.tar.gz
+mv kibana-7.3.2-linux-x86_64 /opt/kibana
+useradd kibana -d /opt/kibana -s /sbin/nologin
+chown kibana.kibana /opt/kibana -R
+[root@kibana ~]# bash install_kibana.sh 
+</code></pre>
+<h3 id="四-nginx安装用于生成日志被filebeat收集">四、<strong>nginx安装</strong>（用于生成日志，被filebeat收集）</h3>
+<pre><code class="language-bash">[root@nginx-1 ~]# yum install nginx -y
+[root@nginx-1 ~]# nginx -c /etc/nginx/nginx.conf
+</code></pre>
+<h3 id="五-elasticsearch配置">五、elasticsearch配置</h3>
+<h4 id="es-1172183138">es-1(172.18.3.138)</h4>
+<p><strong><code>vim /opt/elasticsearch/config/elasticsearch.yml</code></strong></p>
+<pre><code class="language-yaml">#集群名字
+cluster.name: 007-project
+
+#节点名字
+node.name: es-1
+
+#日志位置
+path.logs: /opt/logs/elasticsearch
+
+#本节点访问IP
+network.host: 172.18.3.138
+
+#本结点访问端口
+http.port: 9200
+
+#节点运输端口
+transport.port: 9300
+
+#集群中其他主机的列表
+discovery.seed_hosts: [&quot;es-1&quot;, &quot;es-2&quot;, &quot;es-3&quot;]
+
+#首次启动全新的Elasticsearch集群时，在第一次选举中便对其票数进行计数的master节点的集合
+cluster.initial_master_nodes: [&quot;es-1&quot;, &quot;es-2&quot;,&quot;es-3&quot;]
+
+#启用跨域资源共享
+http.cors.enabled: true
+http.cors.allow-origin: &quot;*&quot;
+
+#只要有2台数据或主节点已加入集群，就可以恢复
+gateway.recover_after_nodes: 2
+</code></pre>
+<h4 id="es-1172183139">es-1(172.18.3.139)</h4>
+<p><strong><code>vim /opt/elasticsearch/config/elasticsearch.yml</code></strong></p>
+<pre><code class="language-bash">#集群名字
+cluster.name: 007-project
+
+#节点名字
+node.name: es-2
+
+#日志位置
+path.logs: /opt/logs/elasticsearch
+
+#本节点访问IP
+network.host: 172.18.3.139
+
+#本结点访问端口
+http.port: 9200
+
+#节点运输端口
+transport.port: 9300
+
+#集群中其他主机的列表
+discovery.seed_hosts: [&quot;es-1&quot;, &quot;es-2&quot;, &quot;es-3&quot;]
+
+#首次启动全新的Elasticsearch集群时，在第一次选举中便对其票数进行计数的master节点的集合
+cluster.initial_master_nodes: [&quot;es-1&quot;, &quot;es-2&quot;,&quot;es-3&quot;]
+
+#启用跨域资源共享
+http.cors.enabled: true
+http.cors.allow-origin: &quot;*&quot;
+
+#只要有2台数据或主节点已加入集群，就可以恢复
+gateway.recover_after_nodes: 2
+</code></pre>
+<h4 id="es-1172183253">es-1(172.18.3.253)</h4>
+<p><strong><code>vim /opt/elasticsearch/config/elasticsearch.yml</code></strong></p>
+<pre><code class="language-bash">#集群名字
+cluster.name: 007-project
+
+#节点名字
+node.name: es-3
+
+#日志位置
+path.logs: /opt/logs/elasticsearch
+
+#本节点访问IP
+network.host: 172.18.3.253
+
+#本结点访问端口
+http.port: 9200
+
+#节点运输端口
+transport.port: 9300
+
+#集群中其他主机的列表
+discovery.seed_hosts: [&quot;es-1&quot;, &quot;es-2&quot;, &quot;es-3&quot;]
+
+#首次启动全新的Elasticsearch集群时，在第一次选举中便对其票数进行计数的master节点的集合
+cluster.initial_master_nodes: [&quot;es-1&quot;, &quot;es-2&quot;,&quot;es-3&quot;]
+
+#启用跨域资源共享
+http.cors.enabled: true
+http.cors.allow-origin: &quot;*&quot;
+
+#只要有2台数据或主节点已加入集群，就可以恢复
+gateway.recover_after_nodes: 2
+</code></pre>
+<h3 id="六-filebeat配置">六、filebeat配置</h3>
+<h4 id="nginx172181237">nginx(172.18.1.237)</h4>
+<p><strong><code>vim /opt/filebeat/filebeat.yml</code></strong></p>
+<pre><code class="language-yaml"># 文件输入
+filebeat.inputs:
+# 文件输入类型
+- type: log
+  # 开启加载
+  enabled: true
+  # 文件位置
+  paths:
+    - /var/log/nginx/*.log
+  # 自定义参数
+  fields:
+    type: nginx_access
+filebeat.config.modules:
+  path: ${path.config}/modules.d/*.yml
+  reload.enabled: false
+setup.template.settings:
+  index.number_of_shards: 1
+setup.kibana:
+# 输出至elasticsearch
+output.elasticsearch:
+  # elasticsearch集群
+  hosts: [&quot;http://172.18.3.138:9200&quot;,
+          &quot;http://172.18.3.139:9200&quot;,
+          &quot;http://172.18.3.253:9200&quot;]
+  # 索引配置
+  indices:
+    - index: &quot;nginx_access_%{+yyy.MM}&quot;
+      # 当类型是nginx_access时使用此索引
+      when.equals:
+        fields.type: &quot;nginx_access&quot;
+# 关闭自带模板
+setup.template.enabled: false
+# 开启日志记录
+logging.to_files: true
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+# 日志等级
+logging.level: info
+# 日志文件
+logging.files:
+  # 日志位置
+  path: /opt/logs/filebeat/
+  # 日志名字
+  name: filebeat
+  # 日志轮转期限，必须要2~1024
+  keepfiles: 7
+  # 日志轮转权限
+  permissions: 0600
+</code></pre>
+<h3 id="七-kibana配置">七、kibana配置</h3>
+<h4 id="kibana1721844">kibana(172.18.4.4)</h4>
+<p><strong><code>vim /opt/kibana/config/kibana.yml</code></strong></p>
+<pre><code class="language-bash"># 本节点访问端口
+server.port: 5601
+# 本节点IP
+server.host: &quot;kibana&quot;
+# elasticsearch集群IP
+elasticsearch.hosts: [&quot;http://172.18.3.138:9200&quot;,
+                      &quot;http://172.18.3.139:9200&quot;,
+                      &quot;http://172.18.3.253:9200&quot;]
+</code></pre>
+<h3 id="八-启动服务">八、启动服务</h3>
+<pre><code class="language-bash">#elasticsearch启动（3台es均启动）
+sudo -u elasticsearch /opt/elasticsearch/bin/elasticsearch
+
+#filebeat启动
+/opt/filebeat/filebeat -e -c /opt/filebeat/filebeat.yml -d &quot;publish&quot;
+
+# kibana启动
+sudo -u kibana /opt/kibana/bin/kibana -c /opt/kibana/config/kibana.yml
+</code></pre>
+<p><strong>kibana启动会报错：</strong></p>
+<pre><code class="language-bash">sudo -u kibana /opt/kibana/bin/kibana -c /opt/kibana/config/kibana.yml
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118202551.png" alt="" loading="lazy"></figure>
+<p>暂时解决：用root启动：/opt/kibana/bin/kibana -c /opt/kibana/config/kibana.yml  --allow-root</p>
+<h3 id="九-kibana界面配置">九、kibana界面配置</h3>
+<h4 id="1-访问到下面界面表示kibana成功了"><strong>1、访问到下面界面表示kibana成功了：</strong></h4>
+<figure data-type="image" tabindex="3"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118202739.png" alt="" loading="lazy"></figure>
+<h4 id="2-点try-ouer-sample-data">2、点‘try ouer sample data’</h4>
+<figure data-type="image" tabindex="4"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118202919.png" alt="" loading="lazy"></figure>
+<h4 id="3-选no不让kibana统计信息">3、选no，不让kibana统计信息</h4>
+<figure data-type="image" tabindex="5"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118203055.png" alt="" loading="lazy"></figure>
+<h4 id="4-选web-log那个模版点击添加data到kibana">4、选web log那个模版，点击添加data到kibana</h4>
+<figure data-type="image" tabindex="6"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118203206.png" alt="" loading="lazy"></figure>
+<h4 id="5-进入视图dashboard">5、进入视图（dashboard）</h4>
+<figure data-type="image" tabindex="7"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118203352.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="8"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118203436.png" alt="" loading="lazy"></figure>
+<h3 id="十-测试">十、测试</h3>
+<h4 id="1-访问nginx产生日志">1、访问nginx，产生日志</h4>
+<pre><code class="language-bash">[root@node1 ~]# curl http://172.18.1.237/
+</code></pre>
+<h4 id="2-在kibana上看数据">2、在kibana上看数据</h4>
+<h5 id="1创建索引模版">（1）创建索引模版</h5>
+<figure data-type="image" tabindex="9"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118204028.png" alt="" loading="lazy"></figure>
+<h5 id="2输入你要创建的索引模板的名字">（2）输入你要创建的索引模板的名字</h5>
+<figure data-type="image" tabindex="10"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118204310.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="11"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118204358.png" alt="" loading="lazy"></figure>
+<h5 id="3查看之前curl的数据">（3）查看之前curl的数据</h5>
+<figure data-type="image" tabindex="12"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118204730.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="13"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118205002.png" alt="" loading="lazy"></figure>
+<p><strong>还可以转换成json查看</strong></p>
+<figure data-type="image" tabindex="14"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118205222.png" alt="" loading="lazy"></figure>
+<h3 id="十一-获取集群的一些信息">十一、获取集群的一些信息</h3>
+<h4 id="1-查看集群的健康状态">1、查看集群的健康状态</h4>
+<pre><code class="language-bash">[root@node1 ~]# curl http://172.18.3.138:9200/_cat/health?v
+epoch      timestamp cluster     status node.total node.data shards pri relo init unassign pending_tasks max_task_wait_time active_shards_percent
+1573846170 19:29:30  007-project green           3         3     10   5    0    0        0             0                  -                100.0%
+</code></pre>
+<figure data-type="image" tabindex="15"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118210053.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="16"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118210114.png" alt="" loading="lazy"></figure>
+<p><strong>关于这些参数参考：https://blog.csdn.net/weixin_44723434/article/details/90452083</strong></p>
+<pre><code class="language-bash">前两个是时间戳，不过多介绍。其余如下：
+    cluster ，集群名称
+    status，集群状态 green代表健康；yellow代表分配了所有主分片，但至少缺少一个副本，此时集群数据仍旧完整；red代表部分主分片不可用，可能已经丢失数据。
+    node.total，代表在线的节点总数量，上图为有3个机子组成集群
+    node.data，代表在线的数据节点的数量,上图为有3个节点的存储
+    shards， active_shards 存活的分片数量
+    pri，active_primary_shards 存活的主分片数量 正常情况下 shards的数量是pri的两倍。
+    relo， relocating_shards 迁移中的分片数量，正常情况为 0
+    init， initializing_shards 初始化中的分片数量 正常情况为 0
+    unassign， unassigned_shards 未分配的分片 正常情况为 0
+    pending_tasks，准备中的任务，任务指迁移分片等 正常情况为 0
+    max_task_wait_time，任务最长等待时间
+    active_shards_percent，正常分片百分比 正常情况为 100%
+</code></pre>
+<p><strong>停掉一个节点：</strong></p>
+<figure data-type="image" tabindex="17"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118205918.png" alt="" loading="lazy"></figure>
+<h4 id="2-获取集群节点的列表">2、获取集群节点的列表</h4>
+<p>可以看到，有三个节点，以及机器的cpu负载情况，此时es-3是master</p>
+<pre><code class="language-bash">[root@node1 ~]# curl http://172.18.3.138:9200/_cat/nodes?v
+ip           heap.percent ram.percent cpu load_1m load_5m load_15m node.role master name
+172.18.3.139           24          97   0    0.10    0.10     0.17 dim       -      es-2
+172.18.3.138           18          92   0    0.04    0.04     0.05 dim       -      es-1
+172.18.3.253           11          73   0    0.08    0.03     0.05 dim       *      es-3
+</code></pre>
+<pre><code class="language-bash">node.role: d  # 只拥有data角色
+node.role: i  # 只拥有ingest角色
+node.role: m  # 只拥有master角色
+node.role: mid  # 拥master、ingest、data角色
+</code></pre>
+<h4 id="3-列出所有的索引">3、列出所有的索引</h4>
+<pre><code class="language-bash">[root@node1 ~]# curl http://172.18.3.138:9200/_cat/indices?v
+health status index                            uuid                   pri rep docs.count docs.deleted store.size pri.store.size
+green  open   nginx_access_2019.11             72E1PXcaQGeKSCI069MZYg   1   1          5            0    109.7kb         54.8kb
+green  open   .kibana_task_manager             E6p_8T5vT0KvFyeRUtZzxQ   1   1          2            0     12.9kb          6.4kb
+green  open   filebeat-7.3.2-2019.11.17-000001 _R_qikMqTNGa0Tc0PZ7Odg   1   1          0            0       566b           283b
+green  open   kibana_sample_data_logs          Qr7_g9vGRgydtmQpswGp2A   1   1      14074            0     22.8mb         11.4mb
+green  open   .kibana_1                        QEcc56yJSHabLauYqIBm3g   1   1         42            0    203.2kb        101.6kb
+</code></pre>
+<figure data-type="image" tabindex="18"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118215227.png" alt="" loading="lazy"></figure>
+<h4 id="4-查询节点状态">4、查询节点状态</h4>
+<p>http://172.18.3.253:9200/_nodes/stats?pretty</p>
+<figure data-type="image" tabindex="19"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118215525.png" alt="" loading="lazy"></figure>
+<h4 id="5-查看es哪些进程在消耗资源">5、查看ES哪些进程在消耗资源</h4>
+<figure data-type="image" tabindex="20"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191118215639.png" alt="" loading="lazy"></figure>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/ZT9ZsbaBh/" class="tag">
+                    elasticsearch
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/frzMs1qKsP/" class="tag">
+                    filebeat
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/BtfoFSmpxP/" class="tag">
+                    kibana
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/lFS6w7ux1/" class="tag">
+                    EFK
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/ycg_qQA4v/" class="tag">
+                    nginx
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/KM2XU8UXT/">
+                  <h3 class="post-title">
+                    vsphere6.7（EXSI）服务器版的vmware
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

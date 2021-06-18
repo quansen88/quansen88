@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> SHELL脚本PPT脚本 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="SHELL脚本PPT脚本
+
+在能用的前提上再往好里写
+
+**1、判断/var/目录下所有文件的类型 **
+[root@linux1 scripts]# cat filetype.sh 
+#!/bin/bash
+for i in $(find..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> SHELL脚本PPT脚本</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="shell脚本ppt脚本">SHELL脚本PPT脚本</h1>
+<blockquote>
+<p>在能用的前提上再往好里写</p>
+</blockquote>
+<p>**1、判断/var/目录下所有文件的类型 **</p>
+<pre><code class="language-bash">[root@linux1 scripts]# cat filetype.sh 
+#!/bin/bash
+for i in $(find /var);do
+    if [ -b $i ];then
+	echo &quot;$i 是块设备&quot;
+    elif [ -c $i ];then
+	echo &quot;$i是字符设备&quot;
+    elif [ -f $i ];then
+	echo &quot;$i 是普通文件&quot;
+    elif [ -d $i ];then
+        echo &quot;$i 是目录文件&quot;
+    elif [ -S $i ];then
+        echo &quot;$i 是socket文件&quot;
+    elif [ -L $i ];then
+        echo &quot;$i 是软链接文件&quot;
+    else
+        echo &quot;文件不存在&quot;
+    fi
+done 
+</code></pre>
+<p><strong>2、九九乘法表</strong></p>
+<pre><code class="language-bash">[root@linux1 scripts]# cat 9x9.sh 
+RED=&quot;\033[0;31m&quot;
+GREEN=&quot;\033[0;32m&quot;
+NO_COLOR=&quot;\033[0m&quot;
+for i in {1..9};do
+    RANDOM_NUMBER=$[${RANDOM}%7+31]
+    for j in `seq $i`;do
+        echo -e &quot;\033[0;${RANDOM_NUMBER}m${j}x${i}=$[$i*$j]\t\c&quot;
+    done
+    echo -e &quot;\033[0m&quot;
+done
+</code></pre>
+<figure data-type="image" tabindex="1"><img src="%E5%9B%BE%E7%89%87/1566891190518.png" alt="1566891190518" loading="lazy"></figure>
+<p><strong>3、判断网络中的主机状态</strong></p>
+<pre><code class="language-bash">[root@linux1 scripts]# cat online.sh 
+#!/bin/bash
+read -p &quot;请输入网络地址(192.168.0.0):&quot; NETID
+net=`echo ${NETID} | cut -d. -f1-2`
+for i in {1..254};do
+    for j in {1..254};do
+    { 
+	ping -c2 -W1 ${net}.${i}.${j} &amp;&gt;/dev/null
+	[ &quot;$?&quot; = &quot;0&quot; ] &amp;&amp; echo &quot;${net}.${i}.${j} is up&quot; &gt;&gt;/tmp/online.txt
+    } &amp;
+    done
+done
+</code></pre>
+<p>耗费CPU</p>
+<p><strong>4、国际象棋棋盘</strong></p>
+<p>用到了背景色</p>
+<pre><code class="language-bash">[root@linux1 ~]# cat chess.sh 
+#!/bin/bash
+for i in {1..8};do
+    if [ $[${i}%2] -eq 1 ];then
+    {
+        for j in {1..4};do
+            echo -en &quot;\033[0;43m  \033[0m&quot;
+            echo -en &quot;\033[0;42m  \033[0m&quot;
+        done
+    }
+    else
+    {
+        for j in {1..4};do
+            echo -en &quot;\033[0;42m  \033[0m&quot;
+            echo -en &quot;\033[0;43m  \033[0m&quot;
+        done
+    }
+    fi
+    echo
+done
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="%E5%9B%BE%E7%89%87/1566891489852.png" alt="1566891489852" loading="lazy"></figure>
+<p>**5、后续六个字符串：efbaf275cd、4be9c40b8b、44b2395c46、 f8c8873ce0、b902c16c8b、ad865d2f63是通过对随机数变量RANDOM随机 执行命令：   echo $RANDOM|md5sum|cut –c1-10    后的结果，请破解这些 字符串对应的RANDOM值 **</p>
+<pre><code class="language-bash">#!/bin/bash
+passwd='efbaf275cd 4be9c40b8b 44b2395c46 f8c8873ce0 b902c16c8b ad865d2f63'
+for j in $(seq 32767);do
+{
+    random_passwd=$(echo $j|md5sum|cut -c1-10)
+    echo $passwd | grep -q $random_passwd
+    if [ &quot;$?&quot; = &quot;0&quot; ];then
+        echo  `echo $passwd | grep -o $random_passwd`:$j
+    fi
+}&amp; 
+done
+</code></pre>
+<figure data-type="image" tabindex="3"><img src="%E5%9B%BE%E7%89%87/1566892920402.png" alt="1566892920402" loading="lazy"></figure>
+<p><strong>6、打印绿色OK和和红色Failed</strong></p>
+<pre><code class="language-bash">[root@linux1 ~]# cat rgb.sh 
+#!/bin/bash
+. /etc/rc.d/init.d/functions
+action OK true
+action Failed false
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="%E5%9B%BE%E7%89%87/1566893038505.png" alt="1566893038505" loading="lazy"></figure>
+<p><strong>7、判断当前什么操作系统</strong></p>
+<pre><code class="language-bash">if [ -f /etc/redhat-release ]; then
+    release=&quot;centos&quot;
+elif cat /etc/issue | grep -Eqi &quot;debian&quot;; then
+    release=&quot;debian&quot;
+elif cat /etc/issue | grep -Eqi &quot;ubuntu&quot;; then
+    release=&quot;ubuntu&quot;
+elif cat /etc/issue | grep -Eqi &quot;centos|red hat|redhat&quot;; then
+    release=&quot;centos&quot;
+elif cat /proc/version | grep -Eqi &quot;debian&quot;; then
+    release=&quot;debian&quot;
+elif cat /proc/version | grep -Eqi &quot;ubuntu&quot;; then
+    release=&quot;ubuntu&quot;
+elif cat /proc/version | grep -Eqi &quot;centos|red hat|redhat&quot;; then
+    release=&quot;centos&quot;
+fi
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/copycmd-kao-bei-ming-ling-ji-qi-yi-lai-ku/">
+                  <h3 class="post-title">
+                    copycmd-拷贝命令及其依赖库
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

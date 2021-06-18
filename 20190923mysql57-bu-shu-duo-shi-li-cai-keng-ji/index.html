@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190923mysql5.7部署多实例踩坑记 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="mysql5.7部署多实例踩坑记
+参考：https://www.cnblogs.com/qizhelongdeyang/p/6292966.html
+参考：https://blog.csdn.net/zougen/article/detai..." />
+    <meta name="keywords" content="mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190923mysql5.7部署多实例踩坑记</h2>
+            <div class="post-date">2021-04-26</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="mysql57部署多实例踩坑记">mysql5.7部署多实例踩坑记</h1>
+<p>参考：https://www.cnblogs.com/qizhelongdeyang/p/6292966.html</p>
+<p>参考：https://blog.csdn.net/zougen/article/details/79567744</p>
+<p>参考：https://blog.csdn.net/zhengwei125/article/details/52413835</p>
+<h4 id="初始化略">初始化：略（）</h4>
+<h4 id="建账号">建账号：</h4>
+<pre><code class="language-bash">[root@mysql ~]# /usr/sbin/groupadd -g 27 -o -r mysql &gt;/dev/null 2&gt;&amp;1 || :
+[root@mysql ~]# /usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/false -c &quot;MySQL Server&quot; -u 27 mysql &gt;/dev/null 2&gt;&amp;1 || :
+</code></pre>
+<h4 id="下载安装">下载安装：</h4>
+<pre><code class="language-bash">[root@mysql ~]# curl -o mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz https://mirrors.huaweicloud.com/mysql/Downloads/MySQL-5.7/mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz
+[root@mysql ~]# tar xf mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz -C /usr/local/
+[root@mysql ~]# ln -s /usr/local/mysql-5.7.27-linux-glibc2.12-x86_64/ /usr/local/mysql
+</code></pre>
+<h4 id="初始化数据库">初始化数据库</h4>
+<pre><code class="language-bash">[root@mysql ~]# mkdir /data/mysql/330{6,7,8}/{data,log,pid,sock} -pv
+[root@mysql ~]# chown -R mysql.mysql /data/mysql/
+</code></pre>
+<pre><code class="language-bash">[root@mysql ~]# /usr/local/mysql/bin/mysqld  --initialize --datadir=/data/mysql/3306/data/ --user=mysql
+2019-09-23T20:35:03.653698Z 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2019-09-23T20:35:04.036622Z 0 [Warning] InnoDB: New log files created, LSN=45790
+2019-09-23T20:35:04.110056Z 0 [Warning] InnoDB: Creating foreign key constraint system tables.
+2019-09-23T20:35:04.171825Z 0 [Warning] No existing UUID has been found, so we assume that this is the first time that this server has been started. Generating a new UUID: 9f800328-de41-11e9-bc25-000c29898e48.
+2019-09-23T20:35:04.173353Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
+2019-09-23T20:35:04.176876Z 1 [Note] A temporary password is generated for root@localhost: ES&lt;p=_&gt;&amp;+3+V
+[root@mysql ~]# /usr/local/mysql/bin/mysqld  --initialize --datadir=/data/mysql/3307/data/ --user=mysql
+2019-09-23T20:35:39.071153Z 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2019-09-23T20:35:39.416325Z 0 [Warning] InnoDB: New log files created, LSN=45790
+2019-09-23T20:35:39.481798Z 0 [Warning] InnoDB: Creating foreign key constraint system tables.
+2019-09-23T20:35:39.496506Z 0 [Warning] No existing UUID has been found, so we assume that this is the first time that this server has been started. Generating a new UUID: b48e21a4-de41-11e9-bd61-000c29898e48.
+2019-09-23T20:35:39.497827Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
+2019-09-23T20:35:39.499392Z 1 [Note] A temporary password is generated for root@localhost: u5z1h&amp;*GLOKM
+[root@mysql ~]# /usr/local/mysql/bin/mysqld  --initialize --datadir=/data/mysql/3308/data/ --user=mysql
+2019-09-23T20:35:53.402078Z 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2019-09-23T20:35:53.807753Z 0 [Warning] InnoDB: New log files created, LSN=45790
+2019-09-23T20:35:53.872190Z 0 [Warning] InnoDB: Creating foreign key constraint system tables.
+2019-09-23T20:35:53.932751Z 0 [Warning] No existing UUID has been found, so we assume that this is the first time that this server has been started. Generating a new UUID: bd28ed2e-de41-11e9-be9a-000c29898e48.
+2019-09-23T20:35:53.934001Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
+2019-09-23T20:35:53.936244Z 1 [Note] A temporary password is generated for root@localhost: 6%2gih4B4jup
+</code></pre>
+<h4 id="导入环境变量">导入环境变量</h4>
+<pre><code class="language-bash">[root@mysql ~]# echo 'export PATH=/usr/local/mysql/bin/:$PATH' &gt; /etc/profile.d/mysql.sh
+[root@mysql ~]# . /etc/profile.d/mysql.sh
+</code></pre>
+<h4 id="生成配置文件">生成配置文件：</h4>
+<p>这个配置文件来自：https://blog.csdn.net/zougen/article/details/79567744</p>
+<pre><code class="language-bash">#配置文件很多选项可以使用默认，我直接copy了，就不改了，3306,3307,3308全在里面，并且没有mysqld段
+[root@mysql ~]# cp -a /etc/my.cnf{,.bak}
+[root@mysql ~]# cat /etc/my.cnf
+[mysqld_multi]
+mysqld     = /usr/local/mysql/bin/mysqld
+mysqladmin = /usr/local/mysql/bin/mysqladmin
+#password=123456
+
+[mysqld3306]
+port        = 3306
+socket      =  /data/mysql/3306/sock/mysql.sock
+datadir =  /data/mysql/3306/data
+skip-external-locking
+key_buffer_size = 256M
+max_allowed_packet = 1M
+table_open_cache = 1024
+sort_buffer_size = 4M
+net_buffer_length = 8K
+read_buffer_size = 4M
+read_rnd_buffer_size = 512K
+myisam_sort_buffer_size = 64M
+thread_cache_size = 128
+query_cache_size = 128M
+tmp_table_size = 128M
+explicit_defaults_for_timestamp = true
+max_connections = 500
+max_connect_errors = 100
+open_files_limit = 65535
+log-bin= /data/mysql/3306/data/mysql3306-bin
+binlog_format=mixed
+server-id   = 3306
+expire_logs_days = 10
+early-plugin-load = &quot;&quot;
+default_storage_engine = InnoDB
+innodb_data_home_dir =  /data/mysql/3306/data
+innodb_data_file_path = ibdata1:10M:autoextend
+innodb_log_group_home_dir =  /data/mysql/3306/data
+innodb_buffer_pool_size = 1024M
+innodb_log_file_size = 256M
+innodb_log_buffer_size = 8M
+innodb_flush_log_at_trx_commit = 1
+innodb_lock_wait_timeout = 50
+transaction-isolation=READ-COMMITTED
+user       = mysql
+log-error=/data/mysql/3306/log/mysqld.log
+pid-file=/data/mysql/3306/pid/mysqld.pid
+
+[mysqld3307]
+port        = 3307
+socket      = /data/mysql/3307/sock/mysql.sock
+datadir = /data/mysql/3307/data
+skip-external-locking
+key_buffer_size = 256M
+max_allowed_packet = 1M
+table_open_cache = 1024
+sort_buffer_size = 4M
+net_buffer_length = 8K
+read_buffer_size = 4M
+read_rnd_buffer_size = 512K
+myisam_sort_buffer_size = 64M
+thread_cache_size = 128
+query_cache_size = 128M
+tmp_table_size = 128M
+explicit_defaults_for_timestamp = true
+max_connections = 500
+max_connect_errors = 100
+open_files_limit = 65535
+log-bin=/data/mysql/3307/data/mysql3307-bin
+binlog_format=mixed
+server-id   = 3307
+expire_logs_days = 10
+early-plugin-load = &quot;&quot;
+default_storage_engine = InnoDB
+innodb_data_home_dir = /data/mysql/3307/data
+innodb_data_file_path = ibdata1:10M:autoextend
+innodb_log_group_home_dir = /data/mysql/3307/data
+innodb_buffer_pool_size = 1024M
+innodb_log_file_size = 256M
+innodb_log_buffer_size = 8M
+innodb_flush_log_at_trx_commit = 1
+innodb_lock_wait_timeout = 50
+transaction-isolation=READ-COMMITTED
+user       = mysql
+log-error=/data/mysql/3307/log/mysqld.log
+pid-file=/data/mysql/3307/pid/mysqld.pid
+
+[mysqld3308]
+port        = 3308
+socket      = /data/mysql/3308/sock/mysql.sock
+datadir = /data/mysql/3308/data
+skip-external-locking
+key_buffer_size = 256M
+max_allowed_packet = 1M
+table_open_cache = 1024
+sort_buffer_size = 4M
+net_buffer_length = 8K
+read_buffer_size = 4M
+read_rnd_buffer_size = 512K
+myisam_sort_buffer_size = 64M
+thread_cache_size = 128
+query_cache_size = 128M
+tmp_table_size = 128M
+explicit_defaults_for_timestamp = true
+max_connections = 500
+max_connect_errors = 100
+open_files_limit = 65535
+log-bin=/data/mysql/3308/data/mysql-bin
+binlog_format=mixed
+server-id   = 3308
+expire_logs_days = 10
+early-plugin-load = &quot;&quot;
+default_storage_engine = InnoDB
+innodb_data_home_dir = /data/mysql/3308/data 
+innodb_data_file_path = ibdata1:10M:autoextend
+innodb_log_group_home_dir = /data/mysql/3308/data
+innodb_buffer_pool_size = 1024M
+innodb_log_file_size = 256M
+innodb_log_buffer_size = 8M
+innodb_flush_log_at_trx_commit = 1
+innodb_lock_wait_timeout = 50
+transaction-isolation=READ-COMMITTED
+user       = mysql
+log-error=/data/mysql/3308/log/mysqld.log
+pid-file=/data/mysql/3308/pid/mysqld.pid
+
+[mysqldump]
+quick
+max_allowed_packet = 16M
+
+[mysql]
+no-auto-rehash
+
+[myisamchk]
+key_buffer_size = 256M
+sort_buffer_size = 4M
+read_buffer = 2M
+write_buffer = 2M
+
+[mysqlhotcopy]
+interactive-timeout
+</code></pre>
+<h4 id="生成启动脚本">生成启动脚本：</h4>
+<pre><code class="language-bash">[root@mysql ~]# cp /usr/local/mysql/support-files/mysqld_multi.server /etc/init.d/mysqld_multi
+</code></pre>
+<h4 id="启动测试">启动测试</h4>
+<pre><code class="language-bash">[root@mysql ~]# /etc/init.d/mysqld_multi start 3306
+[root@mysql ~]# /etc/init.d/mysqld_multi start 3307
+[root@mysql ~]# /etc/init.d/mysqld_multi start 3308
+[root@mysql ~]# ss -ltn
+State      Recv-Q Send-Q                      Local Address:Port                                     Peer Address:Port              
+LISTEN     0      128                                     *:22                                                  *:*                  
+LISTEN     0      100                             127.0.0.1:25                                                  *:*                  
+LISTEN     0      128                                    :::3306                                               :::*                  
+LISTEN     0      128                                    :::3307                                               :::*                  
+LISTEN     0      128                                    :::3308                                               :::*                  
+LISTEN     0      128                                    :::22                                                 :::*                  
+LISTEN     0      100                                   ::1:25                                                 :::*        
+</code></pre>
+<h4 id="统一改密码方便管理">统一改密码，方便管理</h4>
+<pre><code class="language-bash">[root@mysql ~]# mysqladmin -uroot -p'ES&lt;p=_&gt;&amp;+3+V' -S /data/mysql/3306/sock/mysql.sock password 123456
+[root@mysql ~]# mysqladmin -uroot -p'u5z1h&amp;*GLOKM' -S /data/mysql/3308/sock/mysql.sock password 123456
+[root@mysql ~]# mysqladmin -uroot -p'6%2gih4B4jup' -S /data/mysql/3308/sock/mysql.sock password 123456
+</code></pre>
+<h4 id="修改mycnf加入pass字段">修改my.cnf，加入pass字段</h4>
+<p>参考：https://www.cnblogs.com/qizhelongdeyang/p/6292966.html</p>
+<pre><code class="language-bash">#mysqld_multi管理数据库需要密码，,不然不能stop mysql进程，我也是后面才知道的
+[root@mysql ~]# vim /etc/my.cnf
+[mysqld_multi]
+mysqld     = /usr/local/mysql/bin/mysqld
+mysqladmin = /usr/local/mysql/bin/mysqladmin
+pass=123456
+</code></pre>
+<h4 id="测试效果">测试效果</h4>
+<pre><code class="language-bash">[root@mysql ~]# /etc/init.d/mysqld_multi 
+[root@mysql ~]# /etc/init.d/mysqld_multi report
+Reporting MySQL servers
+MySQL server from group: mysqld3306 is running
+MySQL server from group: mysqld3307 is running
+MySQL server from group: mysqld3308 is running
+[root@mysql ~]# /etc/init.d/mysqld_multi stop 3308
+[root@mysql ~]# /etc/init.d/mysqld_multi report
+Reporting MySQL servers
+MySQL server from group: mysqld3306 is running
+MySQL server from group: mysqld3307 is running
+MySQL server from group: mysqld3308 is not running
+[root@mysql ~]# /etc/init.d/mysqld_multi stop
+[root@mysql ~]# /etc/init.d/mysqld_multi report
+Reporting MySQL servers
+MySQL server from group: mysqld3306 is not running
+MySQL server from group: mysqld3307 is not running
+MySQL server from group: mysqld3308 is not running
+</code></pre>
+<h3 id="踩到的坑">踩到的坑：</h3>
+<blockquote>
+<p><a href="https://blog.csdn.net/zougen/article/details/79567744">第一篇文章</a>的作者遇到了不能关闭mysql实例的问题，我也遇到了；</p>
+<p>不过碰巧我的mysql密码忘了，我就skip-grant-table改密码，完事后发现可以使用stop关闭mysql实例</p>
+<p>于是在网上搜”<strong>mysqld_multi stop无效</strong>“的问题，然后搜到了<a href="https://www.cnblogs.com/qizhelongdeyang/p/6292966.html">这篇文章</a></p>
+</blockquote>
+<pre><code class="language-bash">刚开始还尝试yum安装mysql5.7.27，然后生成多实例，可是搞得那个启动脚本老是报错，就没搞了
+</code></pre>
+<h3 id="实验中的不足">实验中的不足：</h3>
+<pre><code class="language-bash"># 密码暴露在my.cnf文件中，介意的话可以去掉，使用kill关闭mysql，或者自行修改脚本
+</code></pre>
+<h3 id="实验后续">实验后续：</h3>
+<p>在<a href="https://blog.csdn.net/zhengwei125/article/details/52413835">这篇文章</a>中的作者遇到的是：它在my.cnf中写的是password字段，发现无法关闭mysql.然后用my_print_defaults打印密码是加密的，没错，我测试了下，确实如此</p>
+<pre><code class="language-bash">#使用password字段
+[root@localhost ~]# my_print_defaults mysqld_multi
+--mysqld=/usr/local/mysql/bin/mysqld
+--mysqladmin=/usr/local/mysql/bin/mysqladmin
+--password=*****
+#-s可以show密码
+[root@localhost ~]# my_print_defaults mysqld_multi -s
+--mysqld=/usr/local/mysql/bin/mysqld
+--mysqladmin=/usr/local/mysql/bin/mysqladmin
+--password=123456
+</code></pre>
+<p>所以这位博主改了启动脚本：</p>
+<pre><code class="language-bash">#该脚本是perl语言写的，果真大佬
+#原第216行
+216   my $com= join ' ', 'my_print_defaults', @defaults_options, $group;
+#修改后
+216   my $com= join ' ', 'my_print_defaults -s', @defaults_options, $group;
+</code></pre>
+<h3 id="mysql5727多实例部署脚本">mysql5.7.27多实例部署脚本</h3>
+<pre><code class="language-bash">[root@localhost ~]# cat mysql_mutil_instance_deploy.sh 
+#!/bin/bash
+#脚本使用方法，一般只需改DATA_DIR和要使用的端口，注意DATA_DIR后面要有斜杠
+
+CURRENTDIR=`pwd`
+NAME=&quot;mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz&quot;
+FULL_NAME=${CURRENTDIR}/${NAME}
+DATA_DIR=&quot;/data/mysql/&quot;
+PORTS=&quot;13306 13307 13308&quot;
+
+StandardOutput(){
+    echo -e &quot;\033[1;32m$1\033[0m&quot;
+}
+ErrorOutput(){
+    echo -e &quot;\033[1;31m$1 ... \033[0m&quot;
+}
+
+is_empty_dir(){ 
+    return `ls -A $1 2&gt;/dev/null | wc -l`
+}
+
+judge_mysql(){
+    if [ -e /usr/local/mysql ];then
+        ErrorOutput &quot;/usr/local/mysql目录存在...Mysql 似乎已经安装...终止安装...&quot;
+        exit 10
+    fi
+    which mysqld &amp;&gt;/dev/null
+    if [ &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;mysqld命令存在...Mysql 似乎已经安装...终止安装...&quot;
+        exit 20
+    fi
+    for i in ${PORTS};do
+        if  ss -ltn | grep $i -q;then
+            ErrorOutput &quot;$i端口被占用...Mysql 似乎已经安装...终止安装...&quot;
+            exit 30
+        fi
+    done
+    is_empty_dir $DATA_DIR
+    if [ ! &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;$DATA_DIR 不为空...终止安装...&quot;
+        exit 40            
+    fi
+}
+
+download_mysql(){
+    if [ -f ${FULL_NAME} ];then
+    StandardOutput &quot;Mysql安装文件存在，开始安装...&quot;
+else
+    StandardOutput &quot;Mysql安装文件不存在...开始下载...&quot;
+    curl -o mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz https://mirrors.huaweicloud.com/mysql/Downloads/MySQL-5.7/mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz
+    if [ ! &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;下载失败...终止安装...&quot; &amp;&amp; exit 50
+    fi
+fi
+}
+mysql_install(){
+    if id  mysql &amp;&gt;/dev/null;then
+        StandardOutput &quot;mysql 用户已经存在，跳过创建用户过程...&quot;
+    else
+        #useradd -r    -s /sbin/nologin mysql
+        /usr/sbin/groupadd -g 27 -o -r mysql &gt;/dev/null 2&gt;&amp;1 || :
+        /usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/false -c &quot;MySQL Server&quot; -u 27 mysql &gt;/dev/null 2&gt;&amp;1 || :
+    fi       
+    tar xf ${FULL_NAME}   -C /usr/local/
+    ln -sv /usr/local/mysql-5*  /usr/local/mysql 
+    chown  -R mysql.mysql  /usr/local/mysql/
+    if [ ! -d  $DATA_DIR ];then
+        mkdir -pv $DATA_DIR &amp;&amp; chown  -R mysql.mysql  $DATA_DIR   -R
+    fi
+
+    #生成配置文件前面部分
+    \cp -a /etc/my.cnf{,.bak}
+    cat &gt; /etc/my.cnf &lt;&lt;EOF
+[mysqld_multi]
+mysqld     = /usr/local/mysql/bin/mysqld
+mysqladmin = /usr/local/mysql/bin/mysqladmin
+EOF
+    
+    for i in ${PORTS};do
+        mkdir ${DATA_DIR}${i}/{data,log,pid,sock} -p
+        /usr/local/mysql/bin/mysqld  --initialize --datadir=${DATA_DIR}${i}/data/ --user=mysql &amp;&gt;  ${DATA_DIR}${i}/log/mysql_install.log
+        #PASSWORD${i}=&quot;$(grep &quot;temporary password&quot; ${DATA_DIR}${i}/log/mysql_install.log | awk '{print $NF}')&quot;
+        chown -R mysql.mysql ${DATA_DIR}
+        #生成配置文件
+        cat &gt;&gt; /etc/my.cnf &lt;&lt;EOF
+[mysqld${i}]
+port        = $i
+socket      =  ${DATA_DIR}${i}/sock/mysql.sock
+datadir =  ${DATA_DIR}${i}/data
+skip-external-locking
+key_buffer_size = 256M
+max_allowed_packet = 1M
+table_open_cache = 1024
+sort_buffer_size = 4M
+net_buffer_length = 8K
+read_buffer_size = 4M
+read_rnd_buffer_size = 512K
+myisam_sort_buffer_size = 64M
+thread_cache_size = 128
+query_cache_size = 128M
+tmp_table_size = 128M
+explicit_defaults_for_timestamp = true
+max_connections = 500
+max_connect_errors = 100
+open_files_limit = 65535
+log-bin= ${DATA_DIR}${i}/data/mysql${i}-bin
+binlog_format=mixed
+server-id   = $i
+expire_logs_days = 10
+early-plugin-load = &quot;&quot;
+default_storage_engine = InnoDB
+innodb_data_home_dir =  ${DATA_DIR}${i}/data
+innodb_data_file_path = ibdata1:10M:autoextend
+innodb_log_group_home_dir =  ${DATA_DIR}${i}/data
+innodb_buffer_pool_size = 1024M
+innodb_log_file_size = 256M
+innodb_log_buffer_size = 8M
+innodb_flush_log_at_trx_commit = 1
+innodb_lock_wait_timeout = 50
+transaction-isolation=READ-COMMITTED
+user       = mysql
+log-error=${DATA_DIR}${i}/log/mysqld.log
+pid-file=${DATA_DIR}${i}/pid/mysqld.pid
+EOF
+        
+    done 
+    echo 'export PATH=/usr/local/mysql/bin/:$PATH' &gt; /etc/profile.d/mysql.sh
+    source /etc/profile.d/mysql.sh
+
+    cp /usr/local/mysql/support-files/mysqld_multi.server /etc/init.d/mysqld_multi   
+
+    #生成后面配置文件
+    cat &gt;&gt; /etc/my.cnf &lt;&lt;EOF
+[mysqldump]
+quick
+max_allowed_packet = 16M
+
+[mysql]
+no-auto-rehash
+EOF
+}
+
+change_default_pass(){
+    for i in ${PORTS};do
+        /etc/init.d/mysqld_multi start $i
+        mysql_check $i
+        #mysqladmin -uroot -p&quot;$((PASSWORD$i))&quot; -S ${DATA_DIR}${i}/sock/mysql.sock password 123456 &amp;&gt; /dev/null
+	#which mysqladmin
+	sleep 8
+	ls -l ${DATA_DIR}${i}/sock/mysql.sock
+	mysqladmin -uroot -p$(grep &quot;temporary password&quot; ${DATA_DIR}${i}/log/mysql_install.log | awk '{print $NF}') -S ${DATA_DIR}${i}/sock/mysql.sock password 123456 
+        if [ &quot;$?&quot; -eq 0 ];then
+            StandardOutput &quot;change passwd successful...&quot;
+	else
+            ErrorOutput &quot;change passwd failed...&quot;
+            exit 200
+        fi
+    done
+    #修改my.cnf
+    sed -i '3a pass=123456' /etc/my.cnf
+}
+
+mysql_stop(){
+    for i in ${PORTS};do
+        StandardOutput &quot;MySQL 停止服务测试...&quot;
+        /etc/init.d/mysqld_multi stop $i
+        if ss -ltn | grep :$i -q;then
+            StandardOutput &quot;$i stop successful...&quot;
+        else 
+            ErrorOutput &quot;$i stop failed...&quot;
+            exit 200
+        fi
+    done
+}
+
+mysql_check(){
+    if ss -ltn | grep $1 -q ;then
+        ErrorOutput &quot;$1 start failed...&quot;
+        exit 100
+    else
+        StandardOutput &quot;$1 start successful...&quot; 
+    fi
+}
+
+usage_print(){
+    StandardOutput &quot;------------------------------------------------------------&quot;
+    StandardOutput &quot;请手动运行命令：source /etc/profile.d/mysql.sh&quot;
+    StandardOutput &quot;MySQL默认密码：123456&quot;
+    StandardOutput &quot;如何食用：&quot;
+    for i in ${PORTS};do
+        StandardOutput &quot;启动关闭服务：/etc/init.d/mysqld_multi {start|stop|report|restart} $i&quot;
+        StandardOutput &quot;连接数据库：mysql -uroot -p'123456' -S ${DATA_DIR}${i}/sock/mysql.sock&quot;
+        StandardOutput &quot;修改密码：mysqladmin -uroot -p'123456' -S ${DATA_DIR}${i}/sock/mysql.sock&quot;
+    done
+}
+
+
+main(){
+    judge_mysql
+    download_mysql
+    mysql_install
+    change_default_pass
+    mysql_stop 
+    usage_print
+}
+main
+</code></pre>
+<p><strong>执行效果：</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20190925141026.png" alt="" loading="lazy"></figure>
+<figure data-type="image" tabindex="2"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20190925141124.png" alt="" loading="lazy"></figure>
+<h3 id="如果失败或某些报错">如果失败或某些报错：</h3>
+<pre><code class="language-bash">rm -rf /usr/local/mysql
+rm -rf /usr/local/mysql-5.7.27-linux-glibc2.12-x86_64/
+rm -rf /etc/init.d/mysqld_multi /etc/profile.d/mysql.sh /data/mysql/
+pkill mysql
+bash mysql_mutil_instance_deploy.sh
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190923mariadb102-kuai-su-bu-shu-yi-zhu-yi-cong/">
+                  <h3 class="post-title">
+                    20190923mariadb10.2快速部署一主一从
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

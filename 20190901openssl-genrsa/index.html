@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190901openssl genrsa | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="openssl genrsa
+genrsa用于生成RSA私钥，不会生成公钥，因为公钥提取自私钥,如果需要生成公钥或查看公钥，可以使用openssl rsa命令
+man genrsa查看用法
+openssl genrsa [-out file..." />
+    <meta name="keywords" content="openssl,证书" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190901openssl genrsa</h2>
+            <div class="post-date">2021-04-23</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.linux.org/images/logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h3 id="openssl-genrsa">openssl genrsa</h3>
+<h4 id="genrsa用于生成rsa私钥font-colorred不会生成公钥因为公钥提取自私钥font如果需要生成公钥或查看公钥可以使用openssl-rsa命令">genrsa用于生成RSA私钥，<font color=red>不会生成公钥，因为公钥提取自私钥</font>,如果需要生成公钥或查看公钥，可以使用openssl rsa命令</h4>
+<p><strong>man genrsa查看用法</strong></p>
+<pre><code class="language-bash">openssl genrsa [-out filename] [-passout arg] [-des] [-des3] [-idea] [numbits]
+
+选项说明：
+
+-out filename     ：将生成的私钥保存至filename文件，若未指定输出文件，则为标准输出。
+
+-numbits            ：指定要生成的私钥的长度，默认为1024。该项必须为命令行的最后一项参数。
+
+-des|-des3|-idea：指定加密私钥文件用的算法，这样每次使用私钥文件都将输入密码，太麻烦所以很少使用。
+
+-passout args    ：加密私钥文件时，传递密码的格式，如果要加密私钥文件时单未指定该项，则提示输入密码。传递密码的args的格式见openssl密码格式。
+</code></pre>
+<p><strong>1、生成512位的rsa密钥，显示到屏幕</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl genrsa 512
+Generating RSA private key, 512 bit long modulus (2 primes)
+.....................+++++++++++++++++++++++++++
+.....+++++++++++++++++++++++++++
+e is 65537 (0x010001)
+-----BEGIN RSA PRIVATE KEY-----
+MIIBOgIBAAJBAJfCAn3mTyl1KhVlpKliCt8jtJGgNgj0S+77PgBbnW46feMB0dyQ
+jiayuzEZj1tryGRfsaE5IILk+xTz302qa8MCAwEAAQJAR8w0HZh+z2BtPp5OHw0R
+k6xy24ruxaG+4xveo5C0lNdA+0eQ7zPB6g6B///Dr3GqLqKSMFheV04ulC0H6gvM
+YQIhAMiKqniuoCJeRLpI9sJiBjzw3D6Gp8zn6ZZzFUX1EDUrAiEAwbmyali368rv
+qaG6C5TOJAc7YWC5/gWE5bHGUwI1h8kCIH7d2oKGVp/nays+RX0rbi7XYT3dCgLD
+JC8dlvOu2RYJAiAtl8alwLuIgvpksetXTm41jH4tLNaZMjNU28IRRzPSAQIhALda
+U8VFdErIX/LTdOw2ecxrYv6UDU0l1ECu4I3XNpRv
+-----END RSA PRIVATE KEY-----
+</code></pre>
+<p><strong>2、生成512位的rsa密钥，输出到genrsa.txt</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl genrsa  -out genrsa.txt 512
+Generating RSA private key, 512 bit long modulus (2 primes)
+...........+++++++++++++++++++++++++++
+.......+++++++++++++++++++++++++++
+e is 65537 (0x010001)
+root@qqq:~# cat genrsa.txt 
+-----BEGIN RSA PRIVATE KEY-----
+MIIBOgIBAAJBAOC4KrhyavRmrMuGkyr0rD+6irvgifMNQr+XS1lCfetdB05gaRX8
+wCeJi697mfKrU/6CFSImRH6bGdpxaLKlCkUCAwEAAQJAFVWmyKgkO1vcH96A7l0Y
+VVySe0/QCQFDSwlEIA9OASBARm2g+BqMazN+sYgqz+jv+0wUMTXYRTDv2w8QCqDj
+aQIhAP8EMFF6Ki7l8sDYJesATI8ybgO9s0y+BLVMCyPJkInDAiEA4ZYP3B//ebth
+Og2cG7qry54TmGABBPVI6oW4rVj0U1cCIBoLLngTtt0lRL5nFLBETo1NRCkDpZ0P
+xuFRC84y1p0LAiEAwYeb050f769xmfxTEPb0q5rR9MdoGHjWNVzDMvQ9p8ECIDRH
+5jF3mzDWzk6z0MXBG/Kir2OmoMgGIU9UlsziXuMq
+-----END RSA PRIVATE KEY-----
+</code></pre>
+<p><strong>3、加密私钥文件，密码123456</strong></p>
+<pre><code class="language-bash">root@qqq:~# openssl genrsa  -out genrsa.txt -des3  -passout pass:123456 512
+Generating RSA private key, 512 bit long modulus (2 primes)
+.......+++++++++++++++++++++++++++
+............+++++++++++++++++++++++++++
+e is 65537 (0x010001)
+root@qqq:~# cat genrsa.txt 
+-----BEGIN RSA PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+DEK-Info: DES-EDE3-CBC,26DDFA11C12E698B
+
+kvtv3m0k92aAs4oarfL0WQCz6BVKDhSSiWcvKGd6ZzI9xiYh5ddo2X3AdHf2kbKZ
+ipJiYxKQ7HObxBhtkvqmlMc5uOhBNQf9hokJCpx6rOpMU3bLzuxxkKdUdli+jOXx
+Mwtkip7u5ej0iOyeGs1Kc8Xa5WId8EM72n2FxRW0Oq/efC3J6eQSvLKmOnVOwjMg
+1at4SCNGHPnPaLqB6lkVciSx/ZHkUHSmq3ratNjlME04tqd2XB/iLbw6jrSuVMaH
+x6vF3VwG67I/A5yZVWshSYcghbpt6cahky80ur3uAUk2+e6D2XTUk6ty+zkKd1Za
+j9S7N2bNtRI8VeAv0rudfTQTH6Xk7H7hHtLH69qP4vtMhqLJ9XNke8SaI73lk2Y/
+prvGVNIWUjk3GY6GVwbjbNAyw+SlQG2Te2dSvrpMPbs=
+-----END RSA PRIVATE KEY-----
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/mOBYR1mf-/" class="tag">
+                    openssl
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/cx2hRHr8nL/" class="tag">
+                    证书
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190901openssl-enc-dui-cheng-jia-mi/">
+                  <h3 class="post-title">
+                    20190901openssl enc对称加密
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

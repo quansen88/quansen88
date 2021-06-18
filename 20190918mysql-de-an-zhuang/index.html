@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190918mysql的安装 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="mysql的安装
+一、yum安装
+[root@localhost ~]# cat &gt; /etc/yum.repos.d/mysql.repo &lt;&lt;'EOF'
+[mysql56]
+name=MySQL
+baseurl=htt..." />
+    <meta name="keywords" content="mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190918mysql的安装</h2>
+            <div class="post-date">2021-04-26</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="mysql的安装">mysql的安装</h1>
+<h4 id="一-yum安装">一、yum安装</h4>
+<pre><code class="language-bash">[root@localhost ~]# cat &gt; /etc/yum.repos.d/mysql.repo &lt;&lt;'EOF'
+[mysql56]
+name=MySQL
+baseurl=http://mirrors.ustc.edu.cn/mysql-repo/yum/mysql-5.6-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=0
+
+[mysql57]
+name=MySQL
+baseurl=http://mirrors.ustc.edu.cn/mysql-repo/yum/mysql-5.7-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=0
+EOF
+[root@localhost ~]# yum install mysql-community-server -y
+[root@localhost ~]# systemctl start mysqld &amp;&amp; systemctl enable mysqld
+[root@localhost ~]# grep -i password /var/log/mysqld.log 
+2019-09-18T09:36:19.467209Z 1 [Note] A temporary password is generated for root@localhost: OTsz9hK9%Y)u
+[root@localhost ~]# mysql_secure_installation 
+# mysql默认的密码策略要求密码不能太简单
+
+</code></pre>
+<h4 id="二-通用二进制安装">二、通用二进制安装</h4>
+<p><strong>下载地址：</strong></p>
+<p>https://mirrors.huaweicloud.com/mysql/Downloads/MySQL-5.6/mysql-5.6.45-linux-glibc2.12-x86_64.tar.gz</p>
+<p>https://mirrors.huaweicloud.com/mysql/Downloads/MySQL-5.7/mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz</p>
+<p><strong>安装到/data/mysql目录下面</strong></p>
+<p><strong>初始化数据库</strong></p>
+<pre><code class="language-bash\">[root@localhost ~]# curl -o mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz https://mirrors.huaweicloud.com/mysql/Downloads/MySQL-5.7/mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz
+[root@localhost ~]# tar xf mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz -C /usr/local/
+[root@localhost ~]# ln -s /usr/local/mysql-5.7.27-linux-glibc2.12-x86_64/ /usr/local/mysql
+[root@localhost ~]# mkdir /data/mysql -p
+[root@localhost ~]# useradd -r -s /sbin/nologin mysql
+[root@localhost ~]# chown -R mysql.mysql /usr/local/mysql/
+[root@localhost ~]# chown -R mysql.mysql /data/mysql
+#mysql5.7已经废弃mysql_install_db，当然也能用
+</code></pre>
+<p><strong>所以用mysqld --initialize来替代mysql_install_db</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# /usr/local/mysql/bin/mysqld  --initialize --datadir=/data/mysql --user=mysql
+2019-09-18T09:58:55.672316Z 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2019-09-18T09:58:55.984017Z 0 [Warning] InnoDB: New log files created, LSN=45790
+2019-09-18T09:58:56.038469Z 0 [Warning] InnoDB: Creating foreign key constraint system tables.
+2019-09-18T09:58:56.114256Z 0 [Warning] No existing UUID has been found, so we assume that this is the first time that this server has been started. Generating a new UUID: ed7fde9d-d9fa-11e9-8b3b-000c29cd1583.
+2019-09-18T09:58:56.115092Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
+2019-09-18T09:58:56.116309Z 1 [Note] A temporary password is generated for root@localhost: _OrL;J7Wgb3Z
+</code></pre>
+<p><strong>配置文件可以放到/etc，也可以放到mysql安装目录</strong></p>
+<p><strong>官网说：从5.7.18开始不在二进制包中提供my-default.cnf文件。参考：https://dev.mysql.com/doc/refman/5.7/en/binary-installation.html</strong></p>
+<pre><code class="language-bash"># 如果不是多实例安装除了data文件，其余都默认吧
+[root@localhost ~]# cat &gt; /etc/my.cnf &lt;&lt;EOF
+[mysqld]
+datadir=/data/mysql
+socket=/var/lib/mysql/mysql.sock
+
+symbolic-links=0
+
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+[client]
+socket      = /var/lib/mysql/mysql.sock
+port        = 3306
+EOF
+</code></pre>
+<p><strong>配置service文件，centos7还可以使用sys init文件，两种方法都行</strong></p>
+<pre><code class="language-bash"># systemd不太会弄，失败了
+[root@localhost ~]# cp /usr/local/mysql/support-files/mysql.server /etc/init.d/mysqld
+[root@localhost ~]# mkdir /var/lib/mysql /var/run/mysqld
+[root@localhost ~]# chown mysql.mysql /var/lib/mysql/ /var/run/mysqld
+[root@localhost ~]# systemctl daemon-reload
+</code></pre>
+<p><strong>PATH变量</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# echo 'export PATH=/usr/local/mysql/bin/:$PATH' &gt; /etc/profile.d/mysql.sh
+[root@localhost ~]# . /etc/profile.d/mysql.sh
+</code></pre>
+<p><strong>启动mysql</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# systemctl restart mysqld
+</code></pre>
+<p><strong>修改密码：</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# mysql -uroot -p
+mysql&gt; ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';
+</code></pre>
+<h4 id="三-centos7二进制安装mysql57脚本">三、CentOS7二进制安装mysql5.7脚本</h4>
+<p><strong>共2个文件</strong></p>
+<pre><code class="language-bash">[root@localhost mysql-5.7-onekey-install]# ls
+ my.cnf  mysql-install.sh
+</code></pre>
+<p><strong>my.cnf</strong></p>
+<pre><code class="language-bash"># For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/5.7/en/server-configuration-defaults.html
+
+[mysqld]
+datadir=/data/mysql
+socket=/var/lib/mysql/mysql.sock
+
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+[client]
+socket      = /var/lib/mysql/mysql.sock
+port        = 3306
+</code></pre>
+<p><strong>mysql-install.sh</strong></p>
+<pre><code class="language-bash">[root@localhost mysql-5.7-onekey-install]# cat mysql-install.sh 
+#!/bin/bash
+#**************************************************************
+#Author:                     锤子
+#QQ:                         599503252
+#Date:                       2019-08-01
+#FileName:                   mysql5.7-install.sh 
+#URL:                        https://blog.51cto.com/14012942
+#Description:                CentOS7二进制安装mysql5.7.27
+#Copyright (C):              2019 Copyright ©  站点名称  版权所有
+#************************************************************
+#set -e
+CURRENTDIR=`pwd`
+NAME=&quot;mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz&quot;
+FULL_NAME=${CURRENTDIR}/${NAME}
+DATA_DIR=&quot;/data/mysql/&quot;
+
+StandardOutput(){
+    echo -e &quot;\033[1;32m$1 ... \033[0m&quot;
+}
+ErrorOutput(){
+    echo -e &quot;\033[1;31m$1 ... \033[0m&quot;
+}
+
+is_empty_dir(){ 
+    return `ls -A $1 2&gt;/dev/null | wc -l`
+}
+
+judge_mysql(){
+    if [ -e /usr/local/mysql ];then
+        ErrorOutput &quot;/usr/local/mysql目录存在...Mysql 似乎已经安装...终止安装...&quot;
+        exit 10
+    fi
+    which mysqld &amp;&gt;/dev/null
+    if [ &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;mysqld命令存在...Mysql 似乎已经安装...终止安装...&quot;
+        exit 20
+    fi
+    if  ss -ltn | grep 3306 -q;then
+        ErrorOutput &quot;3306端口被占用...Mysql 似乎已经安装...终止安装...&quot;
+        exit 30
+    fi
+    is_empty_dir $DATA_DIR
+    if [ ! &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;$DATA_DIR 不为空...终止安装...&quot;
+        exit 40            
+    fi
+}
+
+download_mysql(){
+    if [ -f ${FULL_NAME} ];then
+    StandardOutput &quot;Mysql安装文件存在，开始安装...&quot;
+else
+    StandardOutput &quot;Mysql安装文件不存在...开始下载...&quot;
+    curl -o mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz https://mirrors.huaweicloud.com/mysql/Downloads/MySQL-5.7/mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz
+    if [ ! &quot;$?&quot; -eq 0 ];then
+        ErrorOutput &quot;下载失败...终止安装...&quot; &amp;&amp; exit 50
+    fi
+fi
+}
+mysql_install(){
+    if id  mysql &amp;&gt;/dev/null;then
+        StandardOutput &quot;mysql 用户已经存在，跳过创建用户过程...&quot;
+    else
+        useradd -r    -s /sbin/nologin mysql
+    fi       
+    tar xf ${FULL_NAME}   -C /usr/local/
+    ln -sv /usr/local/mysql-5*  /usr/local/mysql 
+    chown  -R mysql.mysql  /usr/local/mysql/
+    if [ ! -d  $DATA_DIR ];then
+        mkdir -pv $DATA_DIR &amp;&amp; chown  -R mysql.mysql  $DATA_DIR   -R
+    fi
+    /usr/local/mysql/bin/mysqld  --initialize --datadir=$DATA_DIR --user=mysql &amp;&gt;mysql_install.log
+    cp  /usr/local/mysql-5.*-x86_64/support-files/mysql.server /etc/init.d/mysqld
+    chmod a+x /etc/init.d/mysqld
+    cp ${CURRENTDIR}/my.cnf   /etc/my.cnf
+    echo 'export PATH=/usr/local/mysql/bin/:$PATH' &gt; /etc/profile.d/mysql.sh
+    source /etc/profile.d/mysql.sh
+    # /etc/init.d/mysqld start
+
+    mkdir /var/lib/mysql /var/run/mysqld
+    chown mysql.mysql /var/lib/mysql/ /var/run/mysqld
+    systemctl daemon-reload
+}
+
+mysql_check(){
+    systemctl start mysqld
+    if ss -ltn | grep 3306 -q ;then
+        StandardOutput &quot;VERY GOOD...&quot;
+        rm -f ${CURRENTDIR}/mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz
+    fi
+    echo -e &quot;请手动执行：\033[1;32msource /etc/profile\033[0m&quot;
+    echo -e &quot;当前mysql数据库密码为：\033[1;32m$( grep &quot;temporary password&quot; ${CURRENTDIR}/mysql_install.log | awk '{print $NF}')\033[0m&quot;    
+}
+
+
+main(){
+    judge_mysql
+    download_mysql
+    mysql_install
+    mysql_check
+}
+main
+</code></pre>
+<h4 id="四-mysql多实例部署">四、mysql多实例部署</h4>
+<p><strong>参考另一篇文章：另一篇文章完成了！</strong></p>
+<p><strong>意思就是：一个服务器上跑多个mysql数据库，每个数据库使用不一样的端口</strong></p>
+<p>mysql二进制安装可以发现，就那几个目录和文件：</p>
+<p>etc文件目录；mysql相关命令目录；mysql的数据目录；pid文件目录；log目录；sock文件目录；启动脚本目录</p>
+<pre><code class="language-bash">[root@mysql ~]# mkdir /data/mysql/330{6,7,8}/{etc,data,log,pid,sock,lock} -pv
+[root@mysql ~]# tree -C /data/mysql/3306
+/data/mysql/3306
+├── data
+├── etc
+├── log
+├── pid
+└── sock
+</code></pre>
+<p>安装mysql数据</p>
+<p>通过yum或二进制包安装，由于启动脚本不适合5.7.27，所以此处用二进制的安装程序</p>
+<pre><code class="language-bash">[root@mysql ~]# curl -o mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz https://mirrors.huaweicloud.com/mysql/Downloads/MySQL-5.7/mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz
+[root@mysql ~]# tar xf mysql-5.7.27-linux-glibc2.12-x86_64.tar.gz -C /usr/local/
+[root@mysql ~]# ln -s /usr/local/mysql-5.7.27-linux-glibc2.12-x86_64/ /usr/local/mysql
+[root@mysql ~]# useradd -r -s /sbin/nologin mysql
+[root@mysql ~]# chown -R mysql.mysql /usr/local/mysql/
+[root@mysql ~]# chown -R mysql.mysql /data/mysql
+</code></pre>
+<p><s>创建MySQL用户，刚才yum安装mysql已经创建了</s></p>
+<p>安装db</p>
+<pre><code class="language-bash">[root@mysql ~]# /usr/local/mysql/bin/mysqld  --initialize --datadir=/data/mysql/3306/data/ --user=mysql
+2019-09-20T16:01:12.824211Z 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2019-09-20T16:01:13.179779Z 0 [Warning] InnoDB: New log files created, LSN=45790
+2019-09-20T16:01:13.259721Z 0 [Warning] InnoDB: Creating foreign key constraint system tables.
+2019-09-20T16:01:13.319216Z 0 [Warning] No existing UUID has been found, so we assume that this is the first time that this server has been started. Generating a new UUID: deb59f9c-dbbf-11e9-ae8a-000c29898e48.
+2019-09-20T16:01:13.320333Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
+2019-09-20T16:01:13.321672Z 1 [Note] A temporary password is generated for root@localhost: *GJti!awH6#H
+[root@mysql ~]# /usr/local/mysql/bin/mysqld  --initialize --datadir=/data/mysql/3307/data/ --user=mysql
+2019-09-20T16:01:21.110879Z 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2019-09-20T16:01:21.424044Z 0 [Warning] InnoDB: New log files created, LSN=45790
+2019-09-20T16:01:21.497478Z 0 [Warning] InnoDB: Creating foreign key constraint system tables.
+2019-09-20T16:01:21.559234Z 0 [Warning] No existing UUID has been found, so we assume that this is the first time that this server has been started. Generating a new UUID: e39ef33c-dbbf-11e9-af83-000c29898e48.
+2019-09-20T16:01:21.560251Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
+2019-09-20T16:01:21.561822Z 1 [Note] A temporary password is generated for root@localhost: 8Q!uoKFdC)9p
+[root@mysql ~]# /usr/local/mysql/bin/mysqld  --initialize --datadir=/data/mysql/3308/data/ --user=mysql
+2019-09-20T16:01:27.643715Z 0 [Warning] TIMESTAMP with implicit DEFAULT value is deprecated. Please use --explicit_defaults_for_timestamp server option (see documentation for more details).
+2019-09-20T16:01:27.996396Z 0 [Warning] InnoDB: New log files created, LSN=45790
+2019-09-20T16:01:28.054927Z 0 [Warning] InnoDB: Creating foreign key constraint system tables.
+2019-09-20T16:01:28.116203Z 0 [Warning] No existing UUID has been found, so we assume that this is the first time that this server has been started. Generating a new UUID: e7877412-dbbf-11e9-b01f-000c29898e48.
+2019-09-20T16:01:28.117259Z 0 [Warning] Gtid table is not ready to be used. Table 'mysql.gtid_executed' cannot be opened.
+2019-09-20T16:01:28.118567Z 1 [Note] A temporary password is generated for root@localhost: Chgq57XdrQ/e
+</code></pre>
+<p>生成配置文件</p>
+<pre><code class="language-bash">[root@mysql ~]# cat my.cnf 
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/5.7/en/server-configuration-defaults.html
+[mysqld]
+skip-networking
+port=3306
+datadir=/data/mysql/3306/data
+socket=/data/mysql/3306/sock/mysql.sock
+server_id=1
+[mysqld_safe]
+log-error=/data/mysql/3306/log/mysqld.log
+pid-file=/data/mysql/3306/pid/mysqld.pid
+[client]
+socket      = /data/mysql/3306/sock/mysql.sock
+port        = 3306
+#复制到每个实例下面
+[root@mysql ~]# for i in {3306..3308};do \cp my.cnf /data/mysql/$i/etc/ -f;done
+[root@mysql ~]# for i in {3306..3308};do sed -i &quot;s/3306/$i/&quot; /data/mysql/$i/etc/my.cnf;done
+[root@mysql ~]# for i in {3306..3308};do sed -i &quot;s/server_id=1/server_id=$i/&quot; /data/mysql/$i/etc/my.cnf;done
+[root@mysql ~]# chown -R mysql.mysql /data/mysql
+</code></pre>
+<p>提供sysV服务管理脚本</p>
+<p><s>yum安装的mysql，mysql命令在/usr/bin/mysql，所以basedir=/usr</s></p>
+<p>上面二进制安装安装mysql命令在/usr/local/mysql/bin/mysql，所以basedir=/usr/local/mysql</p>
+<p>脚本只需该端口和datadir目录即可</p>
+<p>我使用的<strong>官方的mysql.service那个脚本，脚本会调用masqld_safe</strong>,为了方便，我把所有选项都写到</p>
+<pre><code class="language-bash">[root@mysql ~]# cat mysql-init.sh 
+#!/bin/sh
+#
+# mysqld    This shell script takes care of starting and stopping
+#        the MySQL subsystem (mysqld).
+#
+# chkconfig: 345 64 36
+# description:    MySQL database server.
+# processname: mysqld
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+basedir=/usr
+exec=&quot;$basedir/bin/mysqld_safe&quot;
+prog=&quot;mysqld&quot;
+port=3306
+datadir=&quot;/data/mysql/$port/data&quot;
+socketfile=&quot;/data/mysql/$port/sock/mysql.sock&quot;
+errlogfile=&quot;/data/mysql/$port/log/mysqld.log&quot;
+mypidfile=&quot;/data/mysql/$port/pid/mysqld.pid&quot;
+cnf=&quot;/data/mysql/$port/etc/my.cnf&quot;
+
+# Set timeouts here so they can be overridden from /etc/sysconfig/mysqld
+STARTTIMEOUT=120
+STOPTIMEOUT=60
+
+# Set in /etc/sysconfig/mysqld, will be passed to mysqld_safe
+MYSQLD_OPTS=
+
+[ -e /etc/sysconfig/$prog ] &amp;&amp; . /etc/sysconfig/$prog
+
+lockfile=/var/lock/subsys/$prog
+
+case $socketfile in
+    /*) adminsocket=&quot;$socketfile&quot; ;;
+     *) adminsocket=&quot;$datadir/$socketfile&quot; ;;
+esac
+
+start(){
+    [ -x $exec ] || exit 5
+    # check to see if it's already running
+    RESPONSE=$(/usr/bin/mysqladmin --no-defaults --socket=&quot;$adminsocket&quot; --user=UNKNOWN_MYSQL_USER ping 2&gt;&amp;1)
+    if [ $? = 0 ]; then
+    # already running, do nothing
+    action $&quot;Starting $prog: &quot; /bin/true
+    ret=0
+    elif echo &quot;$RESPONSE&quot; | grep -q &quot;Access denied for user&quot;
+    then
+    # already running, do nothing
+    action $&quot;Starting $prog: &quot; /bin/true
+    ret=0
+    else
+    # Now start service
+    $exec $MYSQLD_OPTS --defaults-file=&quot;$cnf&quot; --datadir=&quot;$datadir&quot; --socket=&quot;$socketfile&quot; \
+        --pid-file=&quot;$mypidfile&quot; \
+        --basedir=&quot;$basedir&quot; --user=mysql &gt;/dev/null &amp;
+    safe_pid=$!
+    # Spin for a maximum of N seconds waiting for the server to come up;
+    # exit the loop immediately if mysqld_safe process disappears.
+    # Rather than assuming we know a valid username, accept an &quot;access
+    # denied&quot; response as meaning the server is functioning.
+    ret=0
+    TIMEOUT=&quot;$STARTTIMEOUT&quot;
+    while [ $TIMEOUT -gt 0 ]; do
+        RESPONSE=$(/usr/bin/mysqladmin --no-defaults --socket=&quot;$adminsocket&quot; --user=UNKNOWN_MYSQL_USER ping 2&gt;&amp;1) &amp;&amp; break
+        echo &quot;$RESPONSE&quot; | grep -q &quot;Access denied for user&quot; &amp;&amp; break
+        if ! /bin/kill -0 $safe_pid 2&gt;/dev/null; then
+        echo &quot;MySQL Daemon failed to start.&quot;
+        ret=1
+        break
+        fi
+        sleep 1
+        let TIMEOUT=${TIMEOUT}-1
+    done
+    if [ $TIMEOUT -eq 0 ]; then
+        echo &quot;Timeout error occurred trying to start MySQL Daemon.&quot;
+        ret=1
+    fi
+    if [ $ret -eq 0 ]; then
+        action $&quot;Starting $prog: &quot; /bin/true
+        touch $lockfile
+    else
+        action $&quot;Starting $prog: &quot; /bin/false
+    fi
+    fi
+    return $ret
+}
+
+stop(){
+    if [ ! -f &quot;$mypidfile&quot; ]; then
+        # not running; per LSB standards this is &quot;ok&quot;
+        action $&quot;Stopping $prog: &quot; /bin/true
+        return 0
+    fi
+    MYSQLPID=`cat &quot;$mypidfile&quot;`
+    if [ -n &quot;$MYSQLPID&quot; ]; then
+        /bin/kill &quot;$MYSQLPID&quot; &gt;/dev/null 2&gt;&amp;1
+        ret=$?
+        if [ $ret -eq 0 ]; then
+        TIMEOUT=&quot;$STOPTIMEOUT&quot;
+        while [ $TIMEOUT -gt 0 ]; do
+            /bin/kill -0 &quot;$MYSQLPID&quot; &gt;/dev/null 2&gt;&amp;1 || break
+            sleep 1
+            let TIMEOUT=${TIMEOUT}-1
+        done
+        if [ $TIMEOUT -eq 0 ]; then
+            echo &quot;Timeout error occurred trying to stop MySQL Daemon.&quot;
+            ret=1
+            action $&quot;Stopping $prog: &quot; /bin/false
+        else
+            rm -f $lockfile
+            rm -f &quot;$socketfile&quot;
+            action $&quot;Stopping $prog: &quot; /bin/true
+        fi
+        else
+        action $&quot;Stopping $prog: &quot; /bin/false
+        fi
+    else
+        # failed to read pidfile, probably insufficient permissions
+        action $&quot;Stopping $prog: &quot; /bin/false
+        ret=4
+    fi
+    return $ret
+}
+
+restart(){
+    stop
+    start
+}
+
+condrestart(){
+    [ -e $lockfile ] &amp;&amp; restart || :
+}
+
+
+# See how we were called.
+case &quot;$1&quot; in
+  start)
+    start
+    ;;
+  stop)
+    stop
+    ;;
+  status)
+    status -p &quot;$mypidfile&quot; $prog
+    ;;
+  restart)
+    restart
+    ;;
+  condrestart|try-restart)
+    condrestart
+    ;;
+  reload)
+    exit 3
+    ;;
+  force-reload)
+    restart
+    ;;
+  *)
+    echo $&quot;Usage: $0 {start|stop|status|restart|condrestart|try-restart|reload|force-reload}&quot;
+    exit 2
+esac
+
+exit $?
+</code></pre>
+<p>脚本复制到相关目录下面</p>
+<pre><code class="language-bash">[root@mysql ~]# chmod +x mysql-init.sh 
+[root@mysql ~]#  for i in {3306..3308};do \cp mysql-init.sh /etc/init.d/mysql$i;done
+[root@mysql ~]# for i in {3306..3308};do sed -i &quot;s/port=3306/port=$i/&quot; /etc/init.d/mysql$i;done
+</code></pre>
+<p>启动试试</p>
+<p><strong>问题很大，暂时不高了</strong></p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190918mysql57-wang-ji-mi-ma/">
+                  <h3 class="post-title">
+                    20190918mysql5.7忘记密码
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

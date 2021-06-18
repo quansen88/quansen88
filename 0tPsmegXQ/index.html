@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> JS实现网站内容的禁止复制和粘贴、另存为 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="JS实现网站内容的禁止复制和粘贴、另存为
+参考：https://www.cnblogs.com/lxg0/p/7251386.html
+google搜索“document.oncontextmenu=true;document.onsele..." />
+    <meta name="keywords" content="js,web" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> JS实现网站内容的禁止复制和粘贴、另存为</h2>
+            <div class="post-date">2021-05-08</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.javascript.com/etc/clientlibs/pluralsight/main/images/js-logo.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="js实现网站内容的禁止复制和粘贴-另存为">JS实现网站内容的禁止复制和粘贴、另存为</h1>
+<p>参考：https://www.cnblogs.com/lxg0/p/7251386.html</p>
+<p><strong>google搜索“document.oncontextmenu=true;document.onselectstart=true”会有更多详细文章</strong></p>
+<p>使右键和复制失效</p>
+<ul>
+<li>使菜单&quot;文件&quot;－&quot;另存为&quot;失效”</li>
+</ul>
+<h2 id="使右键和复制失效">使右键和复制失效</h2>
+<p><strong>方法一</strong></p>
+<p>在网页中加入以下代码：</p>
+<pre><code>`&lt;script language=``&quot;Javascript&quot;``&gt; ``document.oncontextmenu=``new` `Function(``&quot;event.returnValue=false&quot;``); ``document.onselectstart=``new` `Function(``&quot;event.returnValue=false&quot;``); ``&lt;/script&gt;`
+</code></pre>
+<h2 id="方法二">方法二</h2>
+<p>在网页中加入以下代码：</p>
+<pre><code>`&lt;``body` `oncontextmenu``=``&quot;return false&quot;` `onselectstart``=``&quot;return false&quot;``&gt;`
+</code></pre>
+<p>或者加入在<body>加入：</p>
+<pre><code>`&lt;``body` `oncontextmenu``=``&quot;event.returnValue=false&quot;` `onselectstart``=``&quot;event.returnValue=false&quot;``&gt;`
+</code></pre>
+<h2 id="方法三">方法三</h2>
+<p>如果只限制复制，可以在<body>加入以下代码：</p>
+<pre><code>`&lt;``body` `oncopy``=``&quot;alert('对不起，禁止复制！');return false;&quot;``&gt;`
+</code></pre>
+<h2 id="使菜单文件-另存为失效">使菜单&quot;文件&quot;－&quot;另存为&quot;失效</h2>
+<p>如果只是禁止了右键和选择复制，别人还可以通过浏览器菜单中的&quot;文件&quot;－&quot;另存为&quot;拷贝文件。为了使拷贝失效，可以在<body>与</body>之间加入以下代码：</p>
+<pre><code>`&lt;``noscript``&gt;``&lt;``iframe` `src``=``&quot;*.htm&quot;``&gt;&lt;/``iframe``&gt;``&lt;/``noscript``&gt;`
+</code></pre>
+<p>这样，用户在另存网页时，就会出现&quot;无法保存Web页&quot;的错误。<br>
+另外，也可以使用event.preventDefault() 方法来阻止oncontextmenu() 还有onselectstart()</p>
+<pre><code>`document.oncontextmenu=function(evt){ ``evt.preventDefault(); ``}` `document.onselectstart=function(evt){ ``evt.preventDefault(); ``};`
+</code></pre>
+<p>既然可以禁止，那么当然也可以启用它，将事件重新赋值即可，可以赋值为null，或字符串、布尔值都行。如：</p>
+<pre><code>`document.oncontextmenu=&quot;&quot;; ``document.onselectstart=true;`
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/sDlWuiIeS/" class="tag">
+                    js
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/eNj_Qx9RXP/" class="tag">
+                    web
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/4ZumkVtyg/">
+                  <h3 class="post-title">
+                     关于docker的scratch镜像与helloworld
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

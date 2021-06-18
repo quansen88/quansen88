@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190926快速yum安装mysql5.7 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="快速yum安装mysql5.7
+2019年10月10日测试，不可用，ustc源的rpm包缺失5.26和5.27，azure也去掉了mysql源，官网正常
+[root@localhost ~]# cat &gt; /etc/yum.repos..." />
+    <meta name="keywords" content="mysql" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190926快速yum安装mysql5.7</h2>
+            <div class="post-date">2021-04-27</div>
+            
+              <div class="feature-container" style="background-image: url('https://www.runoob.com/wp-content/uploads/2014/03/mysql.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="快速yum安装mysql57">快速yum安装mysql5.7</h1>
+<p><strong>2019年10月10日测试，不可用，ustc源的rpm包缺失5.26和5.27，azure也去掉了mysql源，官网正常</strong></p>
+<pre><code class="language-bash">[root@localhost ~]# cat &gt; /etc/yum.repos.d/mysql.repo &lt;&lt;'EOF'
+[mysql56]
+name=MySQL
+baseurl=http://mirrors.ustc.edu.cn/mysql-repo/yum/mysql-5.6-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=0
+
+[mysql57]
+name=MySQL
+baseurl=http://mirrors.ustc.edu.cn/mysql-repo/yum/mysql-5.7-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=0
+EOF
+[root@localhost ~]# yum install mysql-community-server -y
+[root@localhost ~]# cp /etc/my.cnf{,.bak}
+[root@localhost ~]# cat &gt; /etc/my.cnf &lt;&lt;EOF
+[mysqld]
+socket=/var/lib/mysql/mysql.sock
+datadir=/data/mysql
+log-bin
+expire-logs-days=15
+binlog-format=row
+symbolic-links=0
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+EOF
+</code></pre>
+<pre><code class="language-bash">#脚本
+[root@localhost ~]# cat mysql5.7.27-yum.sh 
+#!/bin/bash
+#**************************************************************
+#Author:                     Linus
+#QQ:                         599503252
+#Date:                       2019-09-25
+#FileName:                   mysql5.7.27-yum.sh
+#URL:                        https://blog.51cto.com/14012942
+#Description:                Initialize the new server
+#Copyright (C):              2019 Copyright ©  站点名称  版权所有
+#************************************************************
+cat &gt; /etc/yum.repos.d/mysql.repo &lt;&lt;'EOF'
+[mysql56]
+name=MySQL
+baseurl=http://mirrors.ustc.edu.cn/mysql-repo/yum/mysql-5.6-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=0
+
+[mysql57]
+name=MySQL
+baseurl=http://mirrors.ustc.edu.cn/mysql-repo/yum/mysql-5.7-community/el/$releasever/$basearch/
+enabled=1
+gpgcheck=0
+EOF
+
+yum install mysql-community-server -y
+cp /etc/my.cnf{,.bak}
+
+cat &gt; /etc/my.cnf &lt;&lt;EOF
+[mysqld]
+socket=/var/lib/mysql/mysql.sock
+datadir=/data/mysql
+log-bin
+server-id=1
+expire-logs-days=15
+binlog-format=row
+symbolic-links=0
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld/mysqld.pid
+EOF
+
+mkdir /data/mysql -p
+mysqld --initialize --datadir=/data/mysql --user=mysql
+systemctl start mysqld
+mysqladmin -uroot -p$(grep &quot; temporary password&quot; /var/log/mysqld.log | awk '{print $NF}') password 123456
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/0aHXx4YXw/" class="tag">
+                    mysql
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190925mysql-ji-qun-jie-gou-shuo-ming/">
+                  <h3 class="post-title">
+                    20190925MySQL集群结构说明
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

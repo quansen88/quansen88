@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20190903inotify+rsync | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="inotify+rsync
+​		之前公司多台web服务器在拉代码时，是在web1上拉好代码，rsync加入定时任务，每5分钟同步一次代码到其他web机器上，但定时任务的同步时间粒度并不能达到实时同步的要求，有时候开发嫌慢。那么就可以考虑通..." />
+    <meta name="keywords" content="rsync,inotify,linux" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20190903inotify+rsync</h2>
+            <div class="post-date">2021-04-25</div>
+            
+              <div class="feature-container" style="background-image: url('https://res.cloudinary.com/canonical/image/fetch/f_auto,q_auto,fl_sanitize,w_266,h_200/https://assets.ubuntu.com/v1/f129afea-Save+Money-Yen-Euro-Dollar-2020.svg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="inotifyrsync">inotify+rsync</h1>
+<p>​		之前公司多台web服务器在拉代码时，是在web1上拉好代码，rsync加入定时任务，每5分钟同步一次代码到其他web机器上，但定时任务的同步时间粒度并不能达到实时同步的要求，有时候开发嫌慢。那么就可以考虑通过rsync+inotify实现实时同步</p>
+<p>​		inotify实现工具有几款：inotify本身、sersync、lsyncd。其中sersync是金山的周洋开发的工具，克服了inotify的缺陷，且提供了几个插件作为可选工具。此处先介绍inotify的用法以及它的缺陷，通过其缺陷引出sersync，并介绍其用法。</p>
+<h4 id="一-安装inotify-tools">一、安装inotify-tools</h4>
+<p>​		请确保内核版本高于2.6.13，且在/proc/sys/fs/inotify目录下有以下三项，这表示系统支持inotify监控，关于这3项的意义，下文会简单解释。</p>
+<pre><code class="language-bash">[root@testbox ~]# ls /proc/sys/fs/inotify/ -l
+total 0
+-rw-r--r--. 1 root root 0 Sep  4 00:35 max_queued_events
+-rw-r--r--. 1 root root 0 Sep  4 00:35 max_user_instances
+-rw-r--r--. 1 root root 0 Sep  4 00:35 max_user_watches
+</code></pre>
+<p>​		安装就从epel源安装即可</p>
+<pre><code class="language-bash">[root@testbox ~]# yum install inotify-tools -y
+</code></pre>
+<p>​		inotify-tools工具只提供了两个命令</p>
+<pre><code class="language-bash">[root@testbox ~]# rpm -ql inotify-tools | grep bin
+/usr/bin/inotifywait
+/usr/bin/inotifywatch
+</code></pre>
+<p>​		其中inotifywait命令用于等待文件发生变化，所以可以可以实现监控(watch)的功能，该命令是inotify的核心命令。inotifywatch用于收集文件系统的统计数据，例如发生了多少次inotify事件，某文件被访问了多少次等等，一般用不上.</p>
+<p>​		以下是inotify相关的内核参数</p>
+<pre><code class="language-bash">(1)./proc/sys/fs/inotify/max_queued_events：调用inotify_init时分配到inotify instance中可排队的event数的最大值，超出值时的事件被丢弃，但会触发队列溢出Q_OVERFLOW事件。
+
+(2)./proc/sys/fs/inotify/max_user_instances：每一个real user可创建的inotify instances数量的上限。
+
+(3)./proc/sys/fs/inotify/max_user_watches：每个inotify实例相关联的watches的上限，即每个inotify实例可监控的最大目录、文件数量。如果监控的文件数目巨大，需要根据情况适当增加此值。
+</code></pre>
+<pre><code class="language-bash">#永久生效应当写入/etc/sysctl.conf并sysctl -p
+echo 30000000 &gt; /proc/sys/fs/inotify/max_user_watches
+</code></pre>
+<h4 id="二-inotifywait命令以及事件分析">二、inotifywait命令以及事件分析</h4>
+<p>inotifywait命令的选项：</p>
+<pre><code class="language-bash">-m：表示始终监控，否则应该是监控到了一次就退出监控了
+-r：递归监控，监控目录中的任何文件，包括子目录。递归监控可能会超出max_user_watches的值，需要适当调整该值
+@&lt;file&gt;：如果是对目录进行递归监控，则该选项用于排除递归目录中不被监控的文件。file是相对路径还是绝对路径由监控目录是相对还是绝对来决定
+-q：--quiet的意思，静默监控，这样就不会输出一些无关的信息
+-e：指定监控的事件。一般监控的就delete、create、attrib、modify、close_write
+--exclude &lt;pattern&gt; ：通过模式匹配来指定不被监控的文件，区分大小写
+--excludei &lt;pattern&gt;：通过模式匹配来指定不被监控的文件，不区分大小写
+--timefmt：监控到事件触发后，输出的时间格式，可指定可不指定该选项，一般设置为[--timefmt '%Y/%m/%d %H:%M:%S']
+--format：用户自定义的输出格式，如[--format '%w%f %e%T']
+  %w：产生事件的监控路径，不一定就是发生事件的具体文件，例如递归监控一个目录，该目录下的某文件产生事件，将输出该目录而非其内具体的文件
+  %f：如果监控的是一个目录，则输出产生事件的具体文件名。其他所有情况都输出空字符串
+  %e：产生的事件名称
+  %T：以&quot;--timefmt&quot;定义的时间格式输出当前时间，要求同时定义&quot;--timefmt&quot;
+</code></pre>
+<p>inotifywait -e可监控的事件：</p>
+<pre><code class="language-bash">access：文件被访问
+modify：文件被写入
+attrib：元数据被修改。包括权限、时间戳、扩展属性等等
+close_write：打开的文件被关闭，是为了写文件而打开文件，之后被关闭的事件
+close_nowrite：read only模式下文件被关闭，即只能是为了读取而打开文件，读取结束后关闭文件的事件
+close：是close_write和close_nowrite的结合，无论是何种方式打开文件，只要关闭都属于该事件
+open：文件被打开
+moved_to：向监控目录下移入了文件或目录，也可以是监控目录内部的移动
+moved_from：将监控目录下文件或目录移动到其他地方，也可以是在监控目录内部的移动
+move：是moved_to和moved_from的结合
+moved_self：被监控的文件或目录发生了移动，移动结束后将不再监控此文件或目录
+create：在被监控的目录中创建了文件或目录
+delete：删除了被监控目录中的某文件或目录
+delete_self：被监控的文件或目录被删除，删除之后不再监控此文件或目录
+umount：挂载在被监控目录上的文件系统被umount，umount后不再监控此目录
+isdir ：监控目录相关操作
+</code></pre>
+<h4 id="三-玩一下inotifywait">三、玩一下inotifywait</h4>
+<p><strong>1、首先创建一个目录，并使用inotifywait进行前台监控</strong></p>
+<pre><code class="language-bash">[root@testbox tmp]# mkdir /wang
+[root@testbox tmp]# inotifywait -m /wang
+Setting up watches.
+Watches established.
+</code></pre>
+<p><strong>2、新开终端，进入目录</strong></p>
+<p>没有触发任何事件</p>
+<pre><code class="language-bash">[root@testbox ~]# cd /wang/
+</code></pre>
+<p><strong>3、创建文件a.txt，触发了如下事件</strong></p>
+<pre><code class="language-bash">[root@testbox wang]# touch a.log
+</code></pre>
+<p>/wang/ CREATE a.log<br>
+/wang/ OPEN a.log<br>
+/wang/ ATTRIB a.log<br>
+/wang/ CLOSE_WRITE,CLOSE a.log</p>
+<p><strong>4、创建目录,触发实践</strong></p>
+<pre><code class="language-bash">[root@testbox wang]# mkdir b
+</code></pre>
+<p>/wang/ CREATE,ISDIR b</p>
+<p><strong>5、ls命令，触发如下事件</strong></p>
+<pre><code class="language-bash">[root@testbox wang]# ls
+</code></pre>
+<p>/wang/ OPEN,ISDIR<br>
+/wang/ CLOSE_NOWRITE,CLOSE,ISDIR</p>
+<p><strong>6、修改文件属性</strong></p>
+<pre><code class="language-bash">[root@testbox wang]# chown qqq.qqq a.log
+</code></pre>
+<p>/wang/ ATTRIB a.log</p>
+<p><strong>7、cat查看文件，触发open、access、close_nowrite和close事件</strong></p>
+<p><strong>8、向文件中追加或写入或清除数据，触发open、modify、close_write和close事件</strong></p>
+<p><strong>9、vim打开文件并修改文件，中间涉及到临时文件，所以有非常多的事件</strong></p>
+<p><strong>10、向目录中拷入一个文件，触发create、open、modify和close_write、close事件。其实和新建文件基本类似</strong></p>
+<p><strong>11、删除一个文件，触发delete事件</strong></p>
+<p>综合以上考虑，建议对监控对象的close_write、moved_to、moved_from、delete和isdir(主要是create,isdir，但无法定义这两个事件的整体，所以仅监控isdir)事件定义对应的操作，因为它们互不重复。如有需要，可以将它们分开定义，再添加需要监控的其他事件。</p>
+<p><strong>大佬推荐写法</strong></p>
+<pre><code class="language-bash">#!/bin/bash
+watch_dir=/www
+push_to=172.16.10.5
+ 
+# First to do is initial sync
+rsync -az --delete --exclude=&quot;*.swp&quot; --exclude=&quot;*.swx&quot; $watch_dir $push_to:/tmp
+ 
+inotifywait -mrq -e delete,close_write,moved_to,moved_from,isdir --timefmt '%Y-%m-%d %H:%M:%S' --format '%w%f:%e:%T' $watch_dir \
+--exclude=&quot;.*.swp&quot; &gt;&gt;/etc/inotifywait.log &amp;
+ 
+while true;do
+     if [ -s &quot;/etc/inotifywait.log&quot; ];then
+        grep -i -E &quot;delete|moved_from&quot; /etc/inotifywait.log &gt;&gt; /etc/inotify_away.log
+        rsync -az --delete --exclude=&quot;*.swp&quot; --exclude=&quot;*.swx&quot; $watch_dir $push_to:/tmp
+        if [ $? -ne 0 ];then
+           echo &quot;$watch_dir sync to $push_to failed at `date +&quot;%F %T&quot;`,please check it by manual&quot; |\
+           mail -s &quot;inotify+Rsync error has occurred&quot; root@localhost
+        fi
+        cat /dev/null &gt; /etc/inotifywait.log
+        rsync -az --delete --exclude=&quot;*.swp&quot; --exclude=&quot;*.swx&quot; $watch_dir $push_to:/tmp
+    else
+        sleep 1
+    fi
+done
+</code></pre>
+<h4 id="四-不足">四、不足：</h4>
+<blockquote>
+<p>1、会消耗一部分CPU资源，在测试的时候明显能感觉到</p>
+<p>2、日志量挺大</p>
+</blockquote>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/x8JEpfXOB/" class="tag">
+                    rsync
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/yWrcibAHSC/" class="tag">
+                    inotify
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/AC8O9n6Cj/" class="tag">
+                    linux
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20190902-jia-mi-he-an-quan-ssh-deng/">
+                  <h3 class="post-title">
+                    20190902加密和安全（ssh等）
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

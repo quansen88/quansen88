@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>copycmd-拷贝命令及其依赖库 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="copycmd-拷贝命令及其依赖库
+题目：
+编写脚本/root/bin/copycmd.sh 
+(1) 提示用户输入一个可执行命令名称 
+(2) 获取此命令所依赖到的所有库文件列表 
+(3) 复制命令至某目标目录(例如/mnt/sysroo..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">copycmd-拷贝命令及其依赖库</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="copycmd-拷贝命令及其依赖库">copycmd-拷贝命令及其依赖库</h1>
+<h3 id="题目">题目：</h3>
+<pre><code class="language-bash">编写脚本/root/bin/copycmd.sh 
+(1) 提示用户输入一个可执行命令名称 
+(2) 获取此命令所依赖到的所有库文件列表 
+(3) 复制命令至某目标目录(例如/mnt/sysroot)下的对应路径下       如：/bin/bash ==&gt; /mnt/sysroot/bin/bash  /usr/bin/passwd ==&gt; /mnt/sysroot/usr/bin/passwd 
+(4) 复制此命令依赖到的所有库文件至目标目录下的对应路径下：  如：/lib64/ldlinux-x86-64.so.2 ==&gt; /mnt/sysroot/lib64/ld-linux-x86-64.so.2 
+(5)每次复制完成一个命令后，不要退出，而是提示用户键入新的要复制的命令， 并重复完成上述功能；直到用户输入quit退出 
+</code></pre>
+<pre><code class="language-shell">[root@imooc-nginx scripts]# cat copycmd1.0.2.sh 
+#!/bin/bash
+GREEN=&quot;\033[1;32m&quot;
+RED=&quot;\033[1;31m&quot;
+END_COLOR=&quot;\033[0m&quot;
+
+. /etc/init.d/functions #CentOS7 CentOS6可以运行
+# PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin
+#目标目录即要放文件的目录,最后面不要加斜杠/
+TARGET_PATH=/tmp/haha
+
+while true;do   #做了个大循环
+    while true;do
+        read -e -p &quot;请输入要查询的命令：&quot; CMD
+        if [ &quot;$CMD&quot; = &quot;quit&quot; ];then break 2;fi
+        CMD_PATH=`which --skip-alias $CMD`
+        ldd ${CMD_PATH} &amp;&gt;/dev/null
+        [ ! &quot;$?&quot; = &quot;0&quot; ] &amp;&amp; echo -e &quot;${RED}你输入的命令有误（不可查，不存在，不是动态可执行文件）! \n请重新输入! ${END_COLOR}&quot; || break
+    done
+    
+    #取命令的目录名和基名
+    CMD_DIRNAME=$(dirname ${CMD_PATH})
+    #CMD_BASENAME=$(basename ${CMD_PATH})
+    mkdir -p ${TARGET_PATH}  #创建目标目录，防止不存在
+    mkdir -p ${TARGET_PATH}${CMD_DIRNAME}  #创建目标命令的目录
+    cp -L ${CMD_PATH} ${TARGET_PATH}${CMD_DIRNAME} #复制命令
+    echo -e &quot;${GREEN}目标目录(如果需要，自己修改脚本第9行)：${TARGET_PATH}${END_COLOR}&quot;
+    
+    #搜索带/的行，并将文件名过滤出来
+    #ldd_files=$(ldd ${CMD_PATH} | sed -rn '/\//s#.* (/.*) .*#\1#p')  #这条命令有点问题ldd /usr/bin/who发现第二个文件前面是个tab，而不是空格,这样就少了一个文件
+    ldd_files=$(ldd ${CMD_PATH} | sed -rn '/\//s#[^/]*(/.*) .*#\1#p')
+    
+    for i in ${ldd_files};do
+        #动态库文件取目录名和基名
+        ldd_files_dirname=$(dirname ${i})
+        ldd_files_basename=$(basename ${i})
+        #创建库文件目录
+        mkdir -p ${TARGET_PATH}${ldd_files_dirname}
+       #这里使用-L，有些文件是软链接
+        action &quot;copying $basename ${i} -&gt; ${TARGET_PATH}${ldd_files_dirname}${ldd_files_basename}&quot; cp -L $i ${TARGET_PATH}${ldd_files_dirname}
+    done
+done
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/jiao-ben-jin-jie-yi/">
+                  <h3 class="post-title">
+                     脚本进阶一
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

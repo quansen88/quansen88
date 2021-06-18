@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191030nginx全站https | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="全站https
+方法一：
+server {
+    listen 80;
+    server_name www.uscwifi.cn;
+    rewrite ^ https://$server_name$request_uri? per..." />
+    <meta name="keywords" content="https,nginx" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191030nginx全站https</h2>
+            <div class="post-date">2021-04-29</div>
+            
+              <div class="feature-container" style="background-image: url('https://nginx.org/nginx.png')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="全站https">全站https</h1>
+<h3 id="方法一">方法一：</h3>
+<pre><code class="language-nginx">server {
+    listen 80;
+    server_name www.uscwifi.cn;
+    rewrite ^ https://$server_name$request_uri? permanent; 
+}
+
+server {
+    listen 443 ssl;
+    server_name www.uscwifi.cn;
+    root /var/www/html;
+    index index.html;
+    access_log /var/log/nginx/www.uscwifi.cn-access.log;
+    error_log /var/log/nginx/www.uscwifi.cn-error.log;
+    ssl_certificate /etc/nginx/ssl/www.uscwifi.cn.crt;
+    ssl_certificate_key /etc/nginx/ssl/www.uscwifi.cn.key;
+    ssl_protocols       SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers         ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS;
+}
+</code></pre>
+<h3 id="方法二rerurn-301">方法二：rerurn  301</h3>
+<pre><code class="language-nginx">server {
+    listen 80;
+    server_name www.uscwifi.cn;
+    return 301  https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name www.uscwifi.cn;
+    root /var/www/html;
+    index index.html;
+    access_log /var/log/nginx/www.uscwifi.cn-access.log;
+    error_log /var/log/nginx/www.uscwifi.cn-error.log;
+    ssl_certificate /etc/nginx/ssl/www.uscwifi.cn.crt;
+    ssl_certificate_key /etc/nginx/ssl/www.uscwifi.cn.key;
+    ssl_protocols       SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers         ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS;
+}
+</code></pre>
+<h3 id="方法三if判断">方法三：if判断</h3>
+<pre><code class="language-nginx">server {
+    listen 80;
+    server_name www.uscwifi.cn;
+    if ($host ~ www.uscwifi.cn){
+        rewrite ^/(.*)$ https://www.uscwifi.cn$request_uri? permanent;
+    }
+}
+
+server {
+    listen 443 ssl;
+    server_name www.uscwifi.cn;
+    root /var/www/html;
+    index index.html;
+    access_log /var/log/nginx/www.uscwifi.cn-access.log;
+    error_log /var/log/nginx/www.uscwifi.cn-error.log;
+    ssl_certificate /etc/nginx/ssl/www.uscwifi.cn.crt;
+    ssl_certificate_key /etc/nginx/ssl/www.uscwifi.cn.key;
+    ssl_protocols       SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers         ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS;
+}
+</code></pre>
+<h3 id="方法四这个不推荐写一块但是还是要知道">方法四：这个不推荐写一块，但是还是要知道</h3>
+<blockquote>
+<p>$scheme是nginx内置的变量</p>
+<p>表示请求的协议，如ftp；https，http</p>
+</blockquote>
+<pre><code class="language-nginx">server {
+    listen 80;
+    listen 443 ssl;
+    server_name www.uscwifi.cn;
+    if ($scheme = http){
+        return 301  https://$server_name$request_uri;
+    }
+    root /var/www/html;
+    index index.html;
+    access_log /var/log/nginx/www.uscwifi.cn-access.log;
+    error_log /var/log/nginx/www.uscwifi.cn-error.log;
+    ssl_certificate /etc/nginx/ssl/www.uscwifi.cn.crt;
+    ssl_certificate_key /etc/nginx/ssl/www.uscwifi.cn.key;
+    ssl_protocols       SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers         ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS;
+}
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/3fs5bVEDs/" class="tag">
+                    https
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/ycg_qQA4v/" class="tag">
+                    nginx
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191030dockerfile-zhong-ji-ben-jing-xiang-apline-tian-jia-glibc/">
+                  <h3 class="post-title">
+                    20191030dockerfile中基本镜像apline添加glibc
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

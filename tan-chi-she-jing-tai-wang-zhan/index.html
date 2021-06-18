@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>贪吃蛇静态网站 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="贪吃蛇静态网站
+2021年3月25日
+19:31
+宝塔面板 搭建贪吃蛇 静态网站
+一、准备
+1. 工具：
+宝塔面板
+2. 环境：[宝塔环境]
+LNMP
+二、创建站点
+1. 在宝塔页面添加站点
+进入宝塔页面后，
+点击：
+网站——添加站点——输..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">贪吃蛇静态网站</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content" v-pre>
+              <p>贪吃蛇静态网站</p>
+<p>2021年3月25日<br>
+19:31</p>
+<p>宝塔面板 搭建贪吃蛇 静态网站</p>
+<p>一、准备<br>
+1. 工具：<br>
+宝塔面板<br>
+2. 环境：[宝塔环境]<br>
+LNMP</p>
+<p>二、创建站点<br>
+1. 在宝塔页面添加站点<br>
+进入宝塔页面后，<br>
+点击：<br>
+网站——添加站点——输入域名——点击创建即可</p>
+<pre><code>2. 域名解析
+	a. 进入阿里云，域名控制台
+	b. 或在阿里云服务器控制台
+		i. 添加解析
+</code></pre>
+<p>三、下载文件<br>
+1. 切换到，刚才创建的站点的目录<br>
+#<br>
+cd /www/wwwroot/snake.quansen88.cn/</p>
+<pre><code>2. 下载github中，已知可用的，贪吃蛇，静态网站源码
+	【可下载到本地验证】
+	#
+	git clone https://github.com/yanhaijing/snake.git
+	
+3. 配置文件
+方法一：
+	将其中的文件，覆盖当前站点的数据文件。
+	
+或：
+方法二：
+	在宝塔面板中，将该站点的根目录，换为刚才下载的目录文件夹
+</code></pre>
+<p>四、验证是否成功</p>
+<p>五、添加证书<br>
+若需要创建证书，参见相关教程。<br>
+已有证书可直接添加</p>
+<pre><code>可选择打开强制HTTPS
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/docker-sheng-cheng-mian-fei-ssl-zheng-shu/">
+                  <h3 class="post-title">
+                    docker生成免费Ssl 证书
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>制作我的世界服务器docker容器镜像 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="我的世界、开服日志
+
+20200829制作我的世界服务器docker容器镜像
+
+本文原地址：http://quansen88.cn/post/zhi-zuo-wo-de-shi-jie-fu-wu-qi-docker-rong-qi-jin..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">制作我的世界服务器docker容器镜像</h2>
+            <div class="post-date">2021-03-26</div>
+            
+            <div class="post-content" v-pre>
+              <p>我的世界、开服日志</p>
+<!-- more -->
+<h1 id="20200829制作我的世界服务器docker容器镜像">20200829制作我的世界服务器docker容器镜像</h1>
+<blockquote>
+<p>本文原地址：http://quansen88.cn/post/zhi-zuo-wo-de-shi-jie-fu-wu-qi-docker-rong-qi-jing-xiang/</p>
+</blockquote>
+<h2 id="一-vim-一个-dockerfile-文件">一、vim 一个 Dockerfile 文件</h2>
+<pre><code class="language-Dockerfile">FROM centos:7
+RUN yum install wget java -y
+#RUN mkdir /mc-server
+#RUN cd /mc-server
+RUN wget https://launcher.mojang.com/v1/objects/c5f6fb23c3876461d46ec380421e42b289789530/server.jar
+RUN java -Xmx1024M -Xms1024M -jar server.jar nogui
+RUN sed -i 's/eula=false/eula=true/g' eula.txt
+CMD java -Xmx1024M -Xms1024M -jar /server.jar nogui
+</code></pre>
+<blockquote>
+<p>参考：http://quansen88.cn/post/zai-ben-di-da-jian-wo-de-shi-jie-fu-wu-qi-yi/</p>
+</blockquote>
+<h2 id="二-构建镜像">二、构建镜像</h2>
+<pre><code>docker build -t mc-server:v0.2 .
+</code></pre>
+<h2 id="三-运行容器">三、运行容器</h2>
+<pre><code>docker run --name mc-server -d -p 25565:25565 mc-server:v0.2
+</code></pre>
+<h2 id="四-测试游戏">四、测试游戏</h2>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/20200829142840.png" alt="" loading="lazy"></figure>
+<h2 id="五-完成记得点赞">五、完成！记得点赞</h2>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/vmware-minecraft-serverwo-de-shi-jie-fu-wu-qi-yi/">
+                  <h3 class="post-title">
+                    vmware-minecraft-server(我的世界服务器一)
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

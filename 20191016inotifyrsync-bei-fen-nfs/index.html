@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>20191016inotify+rsync备份NFS | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="inotify+rsync备份NFS
+本文应当参考：https://www.cnblogs.com/f-ck-need-u/p/7220193.html#auto_id_1
+错误一：一直连不上，原因：客户端密码文件不用写用户
+#客户端提示
+..." />
+    <meta name="keywords" content="NFS,rsync,inotify" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">20191016inotify+rsync备份NFS</h2>
+            <div class="post-date">2021-04-28</div>
+            
+              <div class="feature-container" style="background-image: url('https://rsync.samba.org/newrsynclogo.jpg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h2 id="inotifyrsync备份nfs">inotify+rsync备份NFS</h2>
+<p>本文应当参考：https://www.cnblogs.com/f-ck-need-u/p/7220193.html#auto_id_1</p>
+<p><strong>错误一：一直连不上，原因：客户端密码文件不用写用户</strong></p>
+<pre><code class="language-bash">#客户端提示
+[root@nfs-backup disk]# rsync -avz --delete --password-file=/etc/rsync.pass  rsyncuser@192.168.38.146::backup /disk/
+@ERROR: auth failed on module backup
+rsync error: error starting client-server protocol (code 5) at main.c(1648) [Receiver=3.1.2]
+#服务端提示
+[root@nfs1 ~]# journalctl -f
+Oct 15 21:29:49 nfs1 rsyncd[20214]: params.c:Parameter() - Ignoring badly formed line in config file: ignore errors
+Oct 15 21:29:49 nfs1 rsyncd[20214]: connect from UNDETERMINED (192.168.38.149)
+Oct 15 21:29:49 nfs1 rsyncd[20214]: auth failed on module backup from UNDETERMINED (192.168.38.149) for rsyncuser: password mismatch
+
+#发现客户端密码文件不用写用户，只写个密码即可，我写成用户名:密码了
+</code></pre>
+<h3 id="缺点">缺点：</h3>
+<pre><code class="language-bash">#消耗CPU资源
+#且那个脚本输出的日志量挺大，生产环境生成日志量更大
+#我拷贝了一个discuz目录，rsync执行了3000多次，生成3000多条日志
+#听大佬说：inotify工具的inotifywait存在缺陷：
+1、当向监控目录下拷贝复杂层次目录(多层次目录中包含文件)，或者向其中拷贝大量文件时，inotify经常会随机性地遗漏某些文件。这些遗漏掉的文件由于未被监控到，所有监控的后续操作都不会执行，例如不会被rsync同步。
+2、另一方面，同步单个文件的性能非常差。
+
+#大佬推荐写法:从脚本上看，只会作用一次监控某个目录，将整个监控到的内容输出到文件，然后判断有内容则触发同步，这样只触发一次，只执行一次
+#!/bin/bash
+watch_dir=/www
+push_to=172.16.10.5
+ 
+# First to do is initial sync
+rsync -az --delete --exclude=&quot;*.swp&quot; --exclude=&quot;*.swx&quot; $watch_dir $push_to:/tmp
+ 
+inotifywait -mrq -e delete,close_write,moved_to,moved_from,isdir --timefmt '%Y-%m-%d %H:%M:%S' --format '%w%f:%e:%T' $watch_dir \
+--exclude=&quot;.*.swp&quot; &gt;&gt;/etc/inotifywait.log &amp;
+ 
+while true;do
+     if [ -s &quot;/etc/inotifywait.log&quot; ];then
+        grep -i -E &quot;delete|moved_from&quot; /etc/inotifywait.log &gt;&gt; /etc/inotify_away.log
+        rsync -az --delete --exclude=&quot;*.swp&quot; --exclude=&quot;*.swx&quot; $watch_dir $push_to:/tmp
+        if [ $? -ne 0 ];then
+           echo &quot;$watch_dir sync to $push_to failed at `date +&quot;%F %T&quot;`,please check it by manual&quot; |\
+           mail -s &quot;inotify+Rsync error has occurred&quot; root@localhost
+        fi
+        cat /dev/null &gt; /etc/inotifywait.log
+        rsync -az --delete --exclude=&quot;*.swp&quot; --exclude=&quot;*.swx&quot; $watch_dir $push_to:/tmp
+    else
+        sleep 1
+    fi
+done
+</code></pre>
+<h3 id="一-inotifyrsync使用方式">一、inotify+rsync使用方式</h3>
+<pre><code class="language-bash">inotify 对同步数据目录信息的监控
+rsync 完成对数据的同步
+利用脚本进行结合
+</code></pre>
+<h3 id="二-查看服务器内核是否支持inotify">二、查看服务器内核是否支持inotify</h3>
+<pre><code class="language-bash">Linux支持inotify的内核最小版本为2.6.13
+ls -l /proc/sys/fs/inotify #列出下面的文件，说明服务器内核支持inotify
+	-rw-r--r-- 1 root root 0 Dec 7 10:10 max_queued_events
+	-rw-r--r-- 1 root root 0 Dec 7 10:10 max_user_instances
+	-rw-r--r-- 1 root root 0 Dec 6 05:54 max_user_watches
+</code></pre>
+<pre><code class="language-bash">#参考https://codeday.me/bug/20190305/738944.html
+[root@mysql-master ~]# grep -i inotify /boot/config-3.10.0-957.el7.x86_64 
+CONFIG_INOTIFY_USER=y
+</code></pre>
+<h3 id="三-inotify内核参数">三、inotify内核参数</h3>
+<pre><code class="language-bash">参数说明：参看man 7 inotify
+	max_queued_events：inotify事件队列最大长度，如值太小会出现 Event Queue Overflow 错误，默认值：16384
+	max_user_watches：可以监视的文件数量（单进程），默认值：8192
+	max_user_instances：每个用户创建inotify实例最大值，默认值：128
+</code></pre>
+<h3 id="四-安装与文档">四、安装与文档</h3>
+<pre><code class="language-bash">https://github.com/rvoicilas/inotify-tools/wiki
+安装：基于epel源
+	yum install inotify-tools
+inotify-tools包主要文件：
+	inotifywait： 在被监控的文件或目录上等待特定文件系统事件（open close delete等）发生，常用于实时同步的目录监控
+	inotifywatch：收集被监控的文件系统使用的统计数据，指文件系统事件发生的次数统计
+</code></pre>
+<h3 id="五-inotifywait-命令常见选项">五、inotifywait 命令常见选项</h3>
+<pre><code class="language-bash"> -m, --monitor 始终保持事件监听
+ -d, --daemon 以守护进程方式执行，和-m相似，配合-o使用
+ -r, --recursive 递归监控目录数据信息变化
+ -q, --quiet 输出少量事件信息
+ --exclude &lt;pattern&gt; 指定排除文件或目录，使用扩展的正则表达式匹配的模式实现
+ --excludei &lt;pattern&gt; 和exclude相似，不区分大小写
+ -o, --outfile &lt;file&gt;打印事件到文件中，相当于标准正确输出
+ -s, --syslogOutput 发送错误到syslog相当于标准错误输出
+ --timefmt &lt;fmt&gt; 指定时间输出格式
+ --format &lt;fmt&gt; 指定的输出格式；即实际监控输出内容
+ -e 指定监听指定的事件，如果省略，表示所有事件都进行监听
+ --timefmt &lt;fmt&gt;时间格式，参考 man 3 strftime
+	%Y 年份信息，包含世纪信息
+	%y 年份信息，不包括世纪信息
+	%m 显示月份，范围 01-12
+	%d 每月的第几天，范围是 01-31
+	%H 小时信息，使用 24小时制，范围 00-23
+	%M 分钟，范围 00-59 
+	示例：
+	--timefmt &quot;%Y-%m-%d %H:%M&quot;
+ --format &lt;fmt&gt; 格式定义
+	 %T 输出时间格式中定义的时间格式信息，通过 --timefmt option 语法格式指
+定时间信息
+	 %w 事件出现时，监控文件或目录的名称信息
+	 %f 事件出现时，将显示监控目录下触发事件的文件或目录信息，否则为空
+	 %e 显示发生的事件信息，不同的事件默认用逗号分隔
+	 %Xe显示发生的事件信息，不同的事件指定用X进行分隔
+	示例：
+	--format &quot;%T %w%f event: %;e&quot;
+	--format '%T %w %f'
+</code></pre>
+<pre><code class="language-bash"> -e 选项指定的事件类型
+	 create 文件或目录创建
+	 delete 文件或目录被删除
+	 modify 文件或目录内容被写入
+	 attrib 文件或目录属性改变
+	 close_write 文件或目录关闭，在写入模式打开之后关闭的
+	 close_nowrite 文件或目录关闭，在只读模式打开之后关闭的
+	 close 文件或目录关闭，不管读或是写模式
+	 open 文件或目录被打开
+	 moved_to 文件或目录被移动到监控的目录中
+	 moved_from 文件或目录从监控的目录中被移动
+	 move 文件或目录不管移动到或是移出监控目录都触发事件
+	 access 文件或目录内容被读取
+	 delete_self 文件或目录被删除，目录本身被删除
+	 unmount 取消挂载
+示例： -e create,delete,moved_to,close_write, attrib
+</code></pre>
+<h3 id="六-inotify监控示例">六、inotify监控示例</h3>
+<pre><code class="language-bash">监控一次性事件
+ inotifywait /data
+持续监控
+ inotifywait -mrq /data
+持续后台监控，并记录日志
+ inotifywait -o /root/inotify.log -drq /data --timefmt &quot;%Y-%m-%d
+%H:%M&quot; --format &quot;%T %w%f event: %e&quot;
+持续后台监控特定事件
+ inotifywait -mrq /data --timefmt “%F %H:%M” --format
+“%T %w%f event: %;e” -e create,delete,moved_to,close_write,attrib
+</code></pre>
+<h3 id="七-实战">七、实战</h3>
+<p><strong>下面是拓扑图，对右下角那一块的NFS备份设置</strong></p>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191015194844.png" alt="" loading="lazy"></figure>
+<table>
+<thead>
+<tr>
+<th>服务器名字</th>
+<th>服务器IP</th>
+<th>服务器系统</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NFS1</td>
+<td>192.168.38.146</td>
+<td>CentOS7（512MB）</td>
+</tr>
+<tr>
+<td>NFS-backup</td>
+<td>192.168.38.149</td>
+<td>CentOS7（512MB）</td>
+</tr>
+</tbody>
+</table>
+<h4 id="方案一nfs-backup服务器rsync以daemon方式运行nfs1服务器实时检测本地是否有改动然后推送到nfs-backup">方案一：NFS-BACKUP服务器rsync以daemon方式运行，NFS1服务器实时检测本地是否有改动然后推送到NFS-BACKUP</h4>
+<p><strong>NFS-BACKUP相当于是服务端,安装相关软件，配置相关软件</strong></p>
+<pre><code class="language-bash">[root@nfs-backup ~]# yum install rsync inotify-tools -y
+</code></pre>
+<pre><code class="language-bash">[root@nfs-backup ~]# cat &gt;&gt; /etc/rsyncd.conf &lt;&lt;EOF
+uid = root
+gid = root
+use chroot = no
+max connections = 0
+ignore errors
+exclude = lost+found/
+log file = /var/log/rsyncd.log
+pid file = /var/run/rsyncd.pid
+lock file = /var/run/rsyncd.lock
+reverse lookup = no
+hosts allow = 192.168.38.0/24
+[backup]
+path = /data/backup/
+comment = backup
+read only = no
+auth users = rsyncuser
+secrets file = /etc/rsync.pass
+EOF
+[root@nfs-backup ~]# systemctl restart rsyncd &amp;&amp; systemctl enable rsyncd
+Created symlink from /etc/systemd/system/multi-user.target.wants/rsyncd.service to /usr/lib/systemd/system/rsyncd.service.
+[root@nfs-backup ~]# ss -ltnp | grep rsync
+LISTEN     0      5            *:873                      *:*                   users:((&quot;rsync&quot;,pid=17989,fd=3))
+LISTEN     0      5           :::873                     :::*                   users:((&quot;rsync&quot;,pid=17989,fd=5))
+[root@nfs-backup ~]# echo &quot;rsyncuser:dFHDSUAFHU&quot; &gt; /etc/rsync.pass
+
+#创建用于备份的目录
+[root@nfs-backup ~]# mkdir /data/backup
+</code></pre>
+<p><strong>NFS1相当于客户端，安装软件创建目录，并写脚本</strong></p>
+<pre><code class="language-bash">#服务端端生成密钥，我要推送到backup服务器
+[root@nfs1 ~]# ssh-keygen -f ~/.ssh/id_rsa -P ''
+[root@nfs1 ~]# ssh-copy-id root@192.168.38.149
+
+[root@nfs1 ~]# yum install rsync  -y
+
+
+#密码文件,客户端只要密码
+[root@nfs1 ~]# echo &quot;dFHDSUAFHU&quot; &gt; /etc/rsync.pass
+[root@nfs1 ~]# chmod 600 /etc/rsync.passs
+
+#脚本
+[root@nfs1 ~]# cat /scripts/inotify-data.sh
+#!/bin/bash
+
+SRC=/data/
+DEST='rsyncuser@192.168.38.149::backup'
+
+/usr/bin/inotifywait -mrq --timefmt '%Y-%m-%d %H:%M' --format '%T %w %f' -e delete,moved_to,moved_from,close_write,isdir,attrib ${SRC} | \
+    while read DATE TIME DIR FILE;do
+        FILEPATH=${DIR}${FILE}
+        rsync -avz --delete --password-file=/etc/rsync.pass ${SRC}  ${DEST}   \
+            &amp;&amp; echo &quot;At ${TIME} on ${DATE}, file $FILEPATH was backuped up via rsync&quot; &gt;&gt; /var/log/changelist.log
+    done
+    
+#测试
+[root@nfs1 ~]# yum install screen -y
+[root@nfs1 ~]# screen -S inotify
+[root@nfs1 ~]# bash /scripts/inotify-data.sh
+</code></pre>
+<p><strong>测试没有问题：</strong></p>
+<pre><code class="language-bash">[root@nfs-backup ~]# ls /data/backup/ -l
+total 8
+drwxrwxr-x 13   1000   1000 4096 Oct 14 20:24 discuz
+drwx------  3 root   root     79 Oct 15 21:36 scripts
+drwxrwxr-x  5 nobody nobody 4096 Oct 15 21:56 wordpress
+
+
+[root@nfs1 log]# tail changelist.log 
+At 22:26 on 2019-10-15, file /data/wordpress/wp-content/uploads/2019 was backuped up via rsync
+At 22:26 on 2019-10-15, file /data/wordpress/wp-content/uploads/2019/10 was backuped up via rsync
+At 22:26 on 2019-10-15, file /data/wordpress/wp-content/uploads was backuped up via rsync
+At 22:26 on 2019-10-15, file /data/wordpress/wp-content/uploads/ was backuped up via rsync
+At 22:26 on 2019-10-15, file /data/wordpress/wp-content/uploads/2019 was backuped up via rsync
+At 22:26 on 2019-10-15, file /data/wordpress/wp-content/uploads/2019/ was backuped up via rsync
+At 22:26 on 2019-10-15, file /data/wordpress/wp-content/uploads/2019/10 was backuped up via rsync
+At 22:26 on 2019-10-15, file /data/wordpress/wp-content/uploads/2019/10/ was backuped up via rsync
+At 22:26 on 2019-10-15, file /data/wordpress/wp-content/uploads/2019/10/hello.txt was backuped up via rsync
+At 22:26 on 2019-10-15, file /data/wordpress/wp-content/uploads/2019/10/hello.txt was backuped up via rsync
+</code></pre>
+<h4 id="方案二-使用ssh方式来传输文件这样backup就不用启动rsyncd服务了">方案二、使用ssh方式来传输文件，这样backup就不用启动rsyncd服务了，</h4>
+<pre><code class="language-bash">#两个服务器都要安装rsync
+
+#NFS发送公钥
+[root@nfs1 ~]# ssh-keygen -f ~/.ssh/id_rsa -P ''
+[root@nfs1 ~]# ssh-copy-id root@192.168.38.149
+
+#写脚本
+[root@nfs1 ~]# cat /scripts/inotify-data2.sh 
+#!/bin/bash
+
+SRC=/data/
+DEST='root@192.168.38.149:/data/backup'
+# BACKDIR=/tmp/backup/
+
+/usr/bin/inotifywait -mrq --timefmt '%Y-%m-%d %H:%M' --format '%T %w %f %,e' -e delete,moved_to,moved_from,close_write,isdir,attrib ${SRC} | \
+    while read DATE TIME DIR FILE EVENT;do
+        FILEPATH=${DIR}${FILE}
+        # if echo $EVENT | grep -i delete;then
+        #     mkdir $BACKDIR -p &amp;&amp; \cp -a $FILEPATH $BACKDIR
+        #     rsync -avz --delete  ${SRC}  ${DEST} \
+        #         &amp;&amp; echo &quot;At ${TIME} on ${DATE}, file $FILEPATH was deleted via rsync&quot; &gt;&gt; /var/log/deletelist.log
+        # else
+            rsync -avz --delete  ${SRC}  ${DEST} \
+            &amp;&amp; echo &quot;At ${TIME} on ${DATE}, file $FILEPATH was backuped up via rsync&quot; &gt;&gt; /var/log/changelist.log
+        # fi
+    done
+
+#开启screen会话
+[root@nfs1 scripts]# screen -S inotify-sync
+[root@nfs1 scripts]# bash /scripts/inotify-data2.sh 
+</code></pre>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/8PJByz_ew/" class="tag">
+                    NFS
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/x8JEpfXOB/" class="tag">
+                    rsync
+                  </a>
+                
+                  <a href="https://kill0es.github.io/tag/yWrcibAHSC/" class="tag">
+                    inotify
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/20191014-zen-me-kan-na-ge-ip-lian-jie-de-mysql/">
+                  <h3 class="post-title">
+                    20191014怎么看哪个IP连接的mysql
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

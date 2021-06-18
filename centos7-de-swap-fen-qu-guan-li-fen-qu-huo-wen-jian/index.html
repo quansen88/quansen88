@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title>CentOS7的swap分区管理（分区或文件） | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="CentOS7的swap分区管理（分区或文件）
+
+1、swap可以在安装操作系统的时候划分单独分区创建；也可以安装好操作系统后划分剩余硬盘创建；还可以创建一个文件当swap分区使用
+2、建议创建一个新的分区当swap使用，如果想使用一个文件..." />
+    <meta name="keywords" content="" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title">CentOS7的swap分区管理（分区或文件）</h2>
+            <div class="post-date">2021-04-21</div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="centos7的swap分区管理分区或文件">CentOS7的swap分区管理（分区或文件）</h1>
+<blockquote>
+<p>1、swap可以在安装操作系统的时候划分单独分区创建；也可以安装好操作系统后划分剩余硬盘创建；还可以创建一个文件当swap分区使用</p>
+<p>2、建议创建一个新的分区当swap使用，如果想使用一个文件当swap分区用的话最好将文件放在固态硬盘上，使用文件充当swap的话可以随意变大变小，移动也方便，但性能不如分区好</p>
+</blockquote>
+<hr>
+<h2 id="创建分区来划分swap">创建分区来划分swap</h2>
+<p><strong>一、使用free -h查看当前swap</strong></p>
+<p><strong>当前系统有4G的swap空间</strong></p>
+<pre><code>[root@centos7 ~]# free -h
+              total        used        free      shared  buff/cache   available
+Mem:           1.9G        180M        1.2G         19M        545M        1.6G
+Swap:          4.0G         12M        4.0G
+</code></pre>
+<p><strong>使用swapon -s显示当前系统的swap</strong></p>
+<pre><code>[root@centos7 ~]# swapon -s
+Filename				Type		Size   Used	Priority
+/dev/dm-0                              	partition	419430012676	-2
+</code></pre>
+<p><strong>二、使用lsblk查看当前系统的硬盘</strong></p>
+<p>可以看到，sda总共200G，现在才划分了150多G，还有可以用的空间</p>
+<pre><code>[root@centos7 ~]# lsblk
+NAME    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda       8:0    0  200G  0 disk 
+├─sda1    8:1    0    1G  0 part /boot
+├─sda2    8:2    0  100G  0 part /
+├─sda3    8:3    0   50G  0 part /data
+├─sda4    8:4    0    1K  0 part 
+└─sda5    8:5    0    4G  0 part 
+  └─centos-swap
+        253:0    0    4G  0 lvm  [SWAP]
+sdb       8:16   0   20G  0 disk 
+└─sdb2    8:18   0    2G  0 part 
+</code></pre>
+<p><strong>三、使用fdisk对/dev/sda硬盘进行创建分区操作</strong></p>
+<pre><code>[root@centos7 ~]# fdisk /dev/sda
+Welcome to fdisk (util-linux 2.23.2).
+
+Changes will remain in memory only, until you decide to write them.
+Be careful before using the write command.
+
+
+Command (m for help): n
+All primary partitions are in use
+Adding logical partition 6
+First sector (325072896-419430399, default 325072896): 
+Using default value 325072896
+Last sector, +sectors or +size{K,M,G} (325072896-419430399, default 419430399): +2G
+Partition 6 of type Linux and of size 2 GiB is set
+
+Command (m for help): p
+
+Disk /dev/sda: 214.7 GB, 214748364800 bytes, 419430400 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disk label type: dos
+Disk identifier: 0x000f14f7
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sda1   *        2048     2099199     1048576   83  Linux
+/dev/sda2         2099200   211814399   104857600   83  Linux
+/dev/sda3       211814400   316671999    52428800   83  Linux
+/dev/sda4       316672000   419430399    51379200    5  Extended
+/dev/sda5       316674048   325070847     4198400   8e  Linux LVM
+/dev/sda6       325072896   329267199     2097152   83  Linux
+
+Command (m for help): w
+The partition table has been altered!
+
+Calling ioctl() to re-read partition table.
+
+WARNING: Re-reading the partition table failed with error 16: Device or resource busy.
+The kernel still uses the old table. The new table will be used at
+the next reboot or after you run partprobe(8) or kpartx(8)
+Syncing disks.
+</code></pre>
+<p><strong>四、执行两下partprobe(CentOS6执行part /dev/sda -a)</strong></p>
+<pre><code>[root@centos7 ~]# partprobe 
+Warning: Unable to open /dev/sr0 read-write (Read-only file system).  /dev/sr0 has been opened read-only.
+Error: Invalid partition table - recursive partition on /dev/sr0.
+Warning: Unable to open /dev/sr1 read-write (Read-only file system).  /dev/sr1 has been opened read-only.
+[root@centos7 ~]# partprobe 
+Warning: Unable to open /dev/sr0 read-write (Read-only file system).  /dev/sr0 has been opened read-only.
+Error: Invalid partition table - recursive partition on /dev/sr0.
+Warning: Unable to open /dev/sr1 read-write (Read-only file system).  /dev/sr1 has been opened read-only.
+</code></pre>
+<p><strong>五、创建文件系统</strong></p>
+<pre><code>[root@centos7 ~]# ls /dev/sda6
+/dev/sda6
+[root@centos7 ~]# mkswap /dev/sda6
+Setting up swapspace version 1, size = 2097148 KiB
+no label, UUID=b98996a2-a548-4266-b636-b2cb75cd0626
+</code></pre>
+<p><strong>六、写入/etc/fstab</strong>，<strong>并mount -a测试</strong></p>
+<pre><code>[root@centos7 ~]# blkid /dev/sda6
+/dev/sda6: UUID=&quot;b98996a2-a548-4266-b636-b2cb75cd0626&quot; TYPE=&quot;swap&quot;
+[root@centos7 ~]# vim /etc/fstab 
+[root@centos7 ~]# tail -1 /etc/fstab
+UUID=b98996a2-a548-4266-b636-b2cb75cd0626 swap swap defaults 0 0
+# 被挂载的设备名 挂载点 文件系统类型 挂载选项 转储频率 系统自检选项
+[root@centos7 ~]# mount -a
+</code></pre>
+<p><strong>七、swapon -a</strong></p>
+<p>此时执行free -h，swap分区还没显示出来，执行swapon -a，启用所有swap</p>
+<pre><code>[root@centos7 ~]# free -h
+              total        used        free      shared  buff/cache   available
+Mem:           1.9G        176M        1.2G         19M        547M        1.6G
+Swap:          4.0G         12M        4.0G
+# 执行swapon -a
+[root@centos7 ~]# swapon -a
+[root@centos7 ~]# free -h
+              total        used        free      shared  buff/cache   available
+Mem:           1.9G        178M        1.2G         19M        547M        1.6G
+Swap:          6.0G         12M        6.0G
+</code></pre>
+<p><strong>八、卸载这个swap</strong></p>
+<pre><code># 使用swapoff关闭/dev/sda6这个swap分区
+[root@centos7 ~]# swapoff /dev/sda6
+# 使用sed删除fstab最后加的一行
+[root@centos7 ~]# sed -ri '$d' /etc/fstab
+# mount -a
+[root@centos7 ~]# mount -a
+# 此时swap已变成原来的4G
+</code></pre>
+<hr>
+<h1 id="创建一个文件充当swap分区">创建一个文件充当swap分区</h1>
+<p><strong>一、使用dd命令创建一个文件100M，当swap用</strong></p>
+<pre><code>[root@centos7 data]# dd if=/dev/zero of=/data/swapfile bs=1M count=100
+100+0 records in
+100+0 records out
+104857600 bytes (105 MB) copied, 2.74665 s, 38.2 MB/s
+# swap文件权限修改为600，安全
+[root@centos7 data]# chmod 600 swapfile
+</code></pre>
+<p><strong>二、对该文件创建文件系统</strong></p>
+<pre><code>[root@centos7 data]# mkswap swapfile 
+Setting up swapspace version 1, size = 102396 KiB
+no label, UUID=a16538e7-685e-4141-aaeb-e1b7896cffdf
+</code></pre>
+<p><strong>三、写入/etc/fstab,挂载（这里要注意，挂载设备不能写UUID，只能写文件名）</strong></p>
+<pre><code>[root@centos7 data]# tail -1 /etc/fstab
+/data/swapfile 		swap			swap	defaults	0 0
+[root@centos7 data]# mount -a
+</code></pre>
+<p><strong>四、执行swapon -a 开启所有swap</strong></p>
+<pre><code>[root@centos7 data]# swapon -a
+[root@centos7 data]# swapon -s
+Filename				Type		Size	Used	Priority
+/dev/dm-0                              	partition	4194300	12672	-2
+/data/swapfile                         	file	102396	0	-3
+[root@centos7 data]# free -h
+              total        used        free      shared  buff/cache   available
+Mem:           1.9G        176M        1.1G         19M        650M        1.6G
+Swap:          4.1G         12M        4.1G
+</code></pre>
+<p><strong>五、增大swap，需要先取消挂载</strong></p>
+<pre><code># 必须先卸载，不然报错了
+[root@centos7 data]# dd if=/dev/zero of=/data/swapfile bs=1M count=200
+dd: failed to open ‘/data/swapfile’: Text file busy
+# 卸载
+[root@centos7 data]# swapoff /data/swapfile 
+[root@centos7 data]# dd if=/dev/zero of=/data/swapfile bs=1M count=200
+200+0 records in
+200+0 records out
+209715200 bytes (210 MB) copied, 3.23377 s, 64.9 MB/s
+# 创建文件系统
+[root@centos7 data]# mkswap swapfile 
+Setting up swapspace version 1, size = 204796 KiB
+no label, UUID=79d0f287-c998-42d3-aabc-b3b2d60b9cb2
+# 执行swapon -a启用所有swap
+[root@centos7 data]# swapon -a
+[root@centos7 data]# free -h
+              total        used        free      shared  buff/cache   available
+Mem:           1.9G        176M        1.0G         19M        752M        1.6G
+Swap:          4.2G         12M        4.2G
+</code></pre>
+<p><strong>六、卸载</strong></p>
+<pre><code># 取消挂载
+[root@centos7 data]# swapoff /data/swapfile 
+[root@centos7 data]# sed -ri '$d' /etc/fstab 
+[root@centos7 data]# mount -a
+[root@centos7 data]# rm -f swapfile 
+[root@centos7 data]# free -h
+              total        used        free      shared  buff/cache   available
+Mem:           1.9G        176M        1.2G         19M        547M        1.6G
+Swap:          4.0G         12M        4.0G
+</code></pre>
+
+            </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/mbr-fen-qu-biao-de-bei-fen-yu-huan-yuan/">
+                  <h3 class="post-title">
+                    MBR分区表的备份与还原
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>

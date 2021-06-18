@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" >
+
+<title> ubuntu16.04图形化基础配置 | quansen88.cn</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.2/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+<link rel="shortcut icon" href="https://kill0es.github.io/favicon.ico?v=1624021919499">
+<link rel="stylesheet" href="https://kill0es.github.io/styles/main.css">
+
+
+
+<link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+
+
+    <meta name="description" content="ubuntu16.04图形化基础配置
+一、安装：略
+二、环境配置
+2.1软件源
+参考server
+2.2安装常用命令
+
+2.3设置语言
+设置里
+2.4搜狗输入法
+官方网站
+2.5wps
+官网
+2.6ffmpeg转码器
+sudo apt-ge..." />
+    <meta name="keywords" content="ubuntu" />
+  </head>
+  <body>
+    <div id="app" class="main">
+
+      <div class="sidebar" :class="{ 'full-height': menuVisible }">
+  <div class="top-container" data-aos="fade-right">
+    <div class="top-header-container">
+      <a class="site-title-container" href="https://kill0es.github.io">
+        <img src="https://kill0es.github.io/images/avatar.png?v=1624021919499" class="site-logo">
+        <h1 class="site-title">quansen88.cn</h1>
+      </a>
+      <div class="menu-btn" @click="menuVisible = !menuVisible">
+        <div class="line"></div>
+      </div>
+    </div>
+    <div>
+      
+        
+          <a href="/" class="site-nav">
+            首页
+          </a>
+        
+      
+        
+          <a href="/archives" class="site-nav">
+            归档
+          </a>
+        
+      
+        
+          <a href="/tags" class="site-nav">
+            标签
+          </a>
+        
+      
+        
+          <a href="/post/about" class="site-nav">
+            关于
+          </a>
+        
+      
+    </div>
+  </div>
+  <div class="bottom-container" data-aos="flip-up" data-aos-offset="0">
+    <div class="social-container">
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    </div>
+    <div class="site-description">
+      linux运维
+    </div>
+    <div class="site-footer">
+      Powered by <a href="https://github.com/kill0es/" target="_blank">kill0es</a> | <a class="rss" href="https://kill0es.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+  </div>
+</div>
+
+
+      <div class="main-container">
+        <div class="content-container" data-aos="fade-up">
+          <div class="post-detail">
+            <h2 class="post-title"> ubuntu16.04图形化基础配置</h2>
+            <div class="post-date">2021-05-15</div>
+            
+              <div class="feature-container" style="background-image: url('https://assets.ubuntu.com/v1/630ab0c2-Ubuntu+Deep+tech+-+light.svg')">
+              </div>
+            
+            <div class="post-content" v-pre>
+              <h1 id="ubuntu1604图形化基础配置">ubuntu16.04图形化基础配置</h1>
+<h3 id="一-安装略">一、安装：略</h3>
+<h3 id="二-环境配置">二、环境配置</h3>
+<h4 id="21软件源">2.1软件源</h4>
+<p>参考server</p>
+<h4 id="22安装常用命令">2.2安装常用命令</h4>
+<figure data-type="image" tabindex="1"><img src="https://raw.githubusercontent.com/52cto/PictureGo/master/img/20191128112548.png" alt="" loading="lazy"></figure>
+<h4 id="23设置语言">2.3设置语言</h4>
+<p>设置里</p>
+<h4 id="24搜狗输入法">2.4搜狗输入法</h4>
+<p>官方网站</p>
+<h4 id="25wps">2.5wps</h4>
+<p>官网</p>
+<h4 id="26ffmpeg转码器">2.6ffmpeg转码器</h4>
+<pre><code class="language-bash">sudo apt-get install ffmpeg
+</code></pre>
+<h4 id="27播放器">2.7播放器</h4>
+<p>参考：https://www.jianshu.com/p/f24252c632d0</p>
+<pre><code class="language-bash">sudo apt-get install smplayer
+</code></pre>
+<h4 id="28单机vnc">2.8单机vnc</h4>
+<p>x11vnc</p>
+<h4 id="29real-vnc-v66">2.9real vnc v6.6</h4>
+<p>支持多用户连:https://www.realvnc.com/en/connect/download/vnc/linux/</p>
+<h4 id="210-文本编辑器">2.10 文本编辑器</h4>
+<p>vscode  notepad</p>
+<h4 id="211-markdown">2.11 markdown</h4>
+<p>trpora</p>
+<h4 id="212-3d特效">2.12 3D特效</h4>
+<pre><code class="language-bash">sudo apt-get install compiz-plugins compizconfig-setti ngs-manager
+
+</code></pre>
+<h4 id="213左边菜单栏在底部显示">2.13左边菜单栏在底部显示</h4>
+<pre><code class="language-bash">$ gsettings set com.canonical.Unity.Launcher launcher-position Bottom
+</code></pre>
+<h4 id="214-vmware桥接网卡配置">2.14 vmware桥接网卡配置</h4>
+<p>https://kb.vmware.com/s/article/287?lang=zh_CN</p>
+<pre><code class="language-bash">chmod a+rw /dev/vmnet0
+</code></pre>
+<h4 id="215-远程链接工具">2.15 远程链接工具</h4>
+<p>securecrt</p>
+<h4 id="216-python">2.16 python</h4>
+<p>pycharm</p>
+<h4 id="217-java">2.17 java</h4>
+<p>eclipse</p>
+<p>Intellij IDEA</p>
+<h3 id="三-基于ubuntu的系统">三、基于ubuntu的系统：</h3>
+<p>Elementary OS：很好看</p>
+<p>优麒麟，不好用</p>
+<h3 id="四-基于debian的deepin">四、基于debian的deepin</h3>
+<p>软件多，好看，华为linux笔记本自带此系统</p>
+<p>ubuntu官方有openstack，kubernetes解决方案</p>
+
+            </div>
+            
+              <div class="tag-container">
+                
+                  <a href="https://kill0es.github.io/tag/EygRD_8J4/" class="tag">
+                    ubuntu
+                  </a>
+                
+              </div>
+            
+            
+              <div class="next-post">
+                <div class="next">下一篇</div>
+                <a href="https://kill0es.github.io/P2z_fsOWw/">
+                  <h3 class="post-title">
+                     EFK教程三：ElasticSearch多实例部署
+                  </h3>
+                </a>
+              </div>
+            
+
+            
+
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+<script type="application/javascript">
+
+AOS.init();
+
+var app = new Vue({
+  el: '#app',
+  data: {
+    menuVisible: false,
+  },
+})
+
+</script>
+
+
+
+
+
+
+  </body>
+</html>
