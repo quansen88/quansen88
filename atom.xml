@@ -2,7 +2,7 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
     <id>https://quansen88.github.io</id>
     <title>quansen88.cn</title>
-    <updated>2021-06-18T13:29:22.467Z</updated>
+    <updated>2021-06-18T19:11:30.377Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
     <link rel="alternate" href="https://quansen88.github.io"/>
     <link rel="self" href="https://quansen88.github.io/atom.xml"/>
@@ -31,11 +31,13 @@
 </code></pre>
 <p>b. 得到对应key后，安装key</p>
 <p>[pro]</p>
-<pre><code>slmgr /ipk VK7JG-NPHTM-C97JM-9MPGT-3V66T
+<p>测试版居然能用win10的key</p>
+<p>意料之外情理之中</p>
+<pre><code>slmgr /ipk W269N-WFGWX-YVC9B-4J6C9-T83GX
 </code></pre>
 <blockquote>
 <p>官网key：https://technet.microsoft.com/en-us/library/jj612867.aspx</p>
-<p><a href="https://www.jb51.net/os/win11/779278.html">怎么激活win11系统?win11激活密钥+激活工具分享_windows11_Windows系列_操作系统_脚本之家 (jb51.net)</a></p>
+<p>经测密钥无法使用<a href="https://www.jb51.net/os/win11/779278.html">怎么激活win11系统?win11激活密钥+激活工具分享_windows11_Windows系列_操作系统_脚本之家 (jb51.net)</a></p>
 <p>或从下方查找</p>
 </blockquote>
 <ol start="2">
@@ -70,7 +72,7 @@
 </tr>
 <tr>
 <td>Windows 11 pro</td>
-<td style="text-align:left">VK7JG-NPHTM-C97JM-9MPGT-3V66T</td>
+<td style="text-align:left">[经测996测试版不能用但win10的可以]VK7JG-NPHTM-C97JM-9MPGT-3V66T</td>
 </tr>
 </tbody>
 </table>
