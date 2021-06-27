@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
-    <id>https://quansen88.github.io</id>
+    <id>https://qs8.quansen88.cn</id>
     <title>quansen88.cn</title>
-    <updated>2021-06-19T06:04:25.294Z</updated>
+    <updated>2021-06-27T16:54:04.075Z</updated>
     <generator>https://github.com/jpmonette/feed</generator>
-    <link rel="alternate" href="https://quansen88.github.io"/>
-    <link rel="self" href="https://quansen88.github.io/atom.xml"/>
-    <subtitle>linux运维</subtitle>
-    <logo>https://quansen88.github.io/images/avatar.png</logo>
-    <icon>https://quansen88.github.io/favicon.ico</icon>
+    <link rel="alternate" href="https://qs8.quansen88.cn"/>
+    <link rel="self" href="https://qs8.quansen88.cn/atom.xml"/>
+    <subtitle>学习交流，共同进步</subtitle>
+    <logo>https://qs8.quansen88.cn/images/avatar.png</logo>
+    <icon>https://qs8.quansen88.cn/favicon.ico</icon>
     <rights>All rights reserved 2021, quansen88.cn</rights>
     <entry>
         <title type="html"><![CDATA[kms激活win11 Pro]]></title>
-        <id>https://quansen88.github.io/xvRxb2T0y/</id>
-        <link href="https://quansen88.github.io/xvRxb2T0y/">
+        <id>https://qs8.quansen88.cn/xvRxb2T0y/</id>
+        <link href="https://qs8.quansen88.cn/xvRxb2T0y/">
         </link>
         <updated>2021-06-17T06:16:29.000Z</updated>
         <content type="html"><![CDATA[<h1 id="20210617kms激活win11-pro">20210617kms激活win11 Pro</h1>
@@ -377,8 +377,8 @@
     </entry>
     <entry>
         <title type="html"><![CDATA[ docker多阶段构建离线yum源(修改)]]></title>
-        <id>https://quansen88.github.io/b8x2Z_v5U/</id>
-        <link href="https://quansen88.github.io/b8x2Z_v5U/">
+        <id>https://qs8.quansen88.cn/b8x2Z_v5U/</id>
+        <link href="https://qs8.quansen88.cn/b8x2Z_v5U/">
         </link>
         <updated>2021-05-18T06:13:50.000Z</updated>
         <content type="html"><![CDATA[<h1 id="docker多阶段构建离线yum源修改">docker多阶段构建离线yum源(修改)</h1>
@@ -517,8 +517,8 @@ docker run -d --name offline-yum -p 80:80 offline-yum:v0.1
     </entry>
     <entry>
         <title type="html"><![CDATA[wsl 另一个程序正在使用此文件，进程无法访问。]]></title>
-        <id>https://quansen88.github.io/rev-xznuT/</id>
-        <link href="https://quansen88.github.io/rev-xznuT/">
+        <id>https://qs8.quansen88.cn/rev-xznuT/</id>
+        <link href="https://qs8.quansen88.cn/rev-xznuT/">
         </link>
         <updated>2021-05-17T05:48:44.000Z</updated>
         <content type="html"><![CDATA[<pre><code>wsl 另一个程序正在使用此文件，进程无法访问。
@@ -584,8 +584,8 @@ B. 重启电脑</p>
     </entry>
     <entry>
         <title type="html"><![CDATA[ K8S安装过程笔记]]></title>
-        <id>https://quansen88.github.io/f8YG9Dtq_/</id>
-        <link href="https://quansen88.github.io/f8YG9Dtq_/">
+        <id>https://qs8.quansen88.cn/f8YG9Dtq_/</id>
+        <link href="https://qs8.quansen88.cn/f8YG9Dtq_/">
         </link>
         <updated>2021-05-17T04:36:32.000Z</updated>
         <content type="html"><![CDATA[<h1 id="k8s安装过程笔记">K8S安装过程笔记</h1>
@@ -860,8 +860,8 @@ kubernetes-node-1   Ready      &lt;none&gt;   4d12h   v1.16.3   192.168.56.102  
     </entry>
     <entry>
         <title type="html"><![CDATA[ ubuntu16.04图形化基础配置]]></title>
-        <id>https://quansen88.github.io/f_vQ7vXqk/</id>
-        <link href="https://quansen88.github.io/f_vQ7vXqk/">
+        <id>https://qs8.quansen88.cn/f_vQ7vXqk/</id>
+        <link href="https://qs8.quansen88.cn/f_vQ7vXqk/">
         </link>
         <updated>2021-05-14T21:10:18.000Z</updated>
         <content type="html"><![CDATA[<h1 id="ubuntu1604图形化基础配置">ubuntu16.04图形化基础配置</h1>
@@ -920,8 +920,8 @@ kubernetes-node-1   Ready      &lt;none&gt;   4d12h   v1.16.3   192.168.56.102  
     </entry>
     <entry>
         <title type="html"><![CDATA[ EFK教程三：ElasticSearch多实例部署]]></title>
-        <id>https://quansen88.github.io/P2z_fsOWw/</id>
-        <link href="https://quansen88.github.io/P2z_fsOWw/">
+        <id>https://qs8.quansen88.cn/P2z_fsOWw/</id>
+        <link href="https://qs8.quansen88.cn/P2z_fsOWw/">
         </link>
         <updated>2021-05-13T20:14:48.000Z</updated>
         <content type="html"><![CDATA[<h1 id="efk教程三elasticsearch多实例部署">EFK教程三：ElasticSearch多实例部署</h1>
@@ -1610,8 +1610,8 @@ filebeat-7.3.2-2019.11.17-000001 0 r STARTED     0    283b 172.18.4.21 es-data1-
     </entry>
     <entry>
         <title type="html"><![CDATA[ 修改nginx镜像时区]]></title>
-        <id>https://quansen88.github.io/lg6bpjVDB/</id>
-        <link href="https://quansen88.github.io/lg6bpjVDB/">
+        <id>https://qs8.quansen88.cn/lg6bpjVDB/</id>
+        <link href="https://qs8.quansen88.cn/lg6bpjVDB/">
         </link>
         <updated>2021-05-09T14:36:06.000Z</updated>
         <content type="html"><![CDATA[<h1 id="修改nginx镜像时区">修改nginx镜像时区</h1>
@@ -1653,8 +1653,8 @@ $ docker logs -f nginx2
     </entry>
     <entry>
         <title type="html"><![CDATA[ ws+tls+web+cdn]]></title>
-        <id>https://quansen88.github.io/JgHhiXdnK/</id>
-        <link href="https://quansen88.github.io/JgHhiXdnK/">
+        <id>https://qs8.quansen88.cn/JgHhiXdnK/</id>
+        <link href="https://qs8.quansen88.cn/JgHhiXdnK/">
         </link>
         <updated>2021-05-08T11:51:11.000Z</updated>
         <content type="html"><![CDATA[<h1 id="wstlswebcdn">ws+tls+web+cdn</h1>
@@ -1763,8 +1763,8 @@ server {
     </entry>
     <entry>
         <title type="html"><![CDATA[ JS实现网站内容的禁止复制和粘贴、另存为]]></title>
-        <id>https://quansen88.github.io/0tPsmegXQ/</id>
-        <link href="https://quansen88.github.io/0tPsmegXQ/">
+        <id>https://qs8.quansen88.cn/0tPsmegXQ/</id>
+        <link href="https://qs8.quansen88.cn/0tPsmegXQ/">
         </link>
         <updated>2021-05-08T11:49:17.000Z</updated>
         <content type="html"><![CDATA[<h1 id="js实现网站内容的禁止复制和粘贴-另存为">JS实现网站内容的禁止复制和粘贴、另存为</h1>
@@ -1805,8 +1805,8 @@ server {
     </entry>
     <entry>
         <title type="html"><![CDATA[ 关于docker的scratch镜像与helloworld]]></title>
-        <id>https://quansen88.github.io/4ZumkVtyg/</id>
-        <link href="https://quansen88.github.io/4ZumkVtyg/">
+        <id>https://qs8.quansen88.cn/4ZumkVtyg/</id>
+        <link href="https://qs8.quansen88.cn/4ZumkVtyg/">
         </link>
         <updated>2021-05-07T11:31:29.000Z</updated>
         <content type="html"><![CDATA[<h1 id="关于docker的scratch镜像与helloworld">关于docker的scratch镜像与helloworld</h1>
