@@ -1,0 +1,2989 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="description" content="加密和安全
+selinux
+1、ssh非交互生成密钥
+[qqq@linux5 ~]$ ssh-keygen  -f ~/.ssh/id_rsa -P '' -C 'linux5'
+
+2、ssh -X
+支持x11转发，比如某些图形化东西，比如..." />
+    <meta name="keywords" content="ssh,sha,加密,linux" />
+    <link rel="stylesheet" href="http://quansen88.cn/media/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://quansen88.cn/styles/main.css">
+    <!-- 代码渲染风格css -->
+    
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.1/build/styles/default.min.css">
+    
+    <!-- 代码高亮插件 -->
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.1/build/highlight.min.js"></script>
+    <!-- 代码复制插件 -->
+    <script src="https://cdn.jsdelivr.net/gh/850552586/ericamcdn@0.1/js/clipboard.min.js"></script>
+    <!-- live2d插件 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/850552586/ericamcdn@0.1/css/live2d.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.13.1/css/all.min.css" rel="stylesheet">
+    <!-- 数学公式 -->
+    
+    <title>加密和安全（ssh等）</title>
+
+    <!-- 大纲索引css调整 -->
+    
+    <style>
+        .markdownIt-TOC {
+            margin-left: 28%;
+            padding-left: 2px;
+            width: 80%;
+        }
+
+        .markdownIt-TOC li {
+            padding-left: 8%;
+        }
+    </style>
+    
+</head>
+
+<body>
+    <div id="landlord">
+        <div class="message" style="opacity:0"></div>
+        <canvas id="live2d" width="240" height="250" class="live2d"></canvas>
+    </div>
+    <div id="domainname" style="display:none">http://quansen88.cn</div>
+    <div id="content">
+        <div>
+            <!----------- 移动端导航栏👇 ----------------->
+            <div id="bar">
+                <head>
+  <!-- 引入Bootstrap核心样式文件 -->
+  <link rel="stylesheet" href="http://quansen88.cn/media/css/bootstrap.min.css">
+</head>
+<style>
+  .navmobile {
+    z-index: 15;
+    max-height: 40vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+  }
+
+  @media screen and (max-width: 1200px) {
+    .navbar {
+      max-width: 100vw;
+    }
+  }
+
+  @media screen and (max-width:1200px) and (min-width: 768px) {
+    @media (min-width: 768px) {
+      .navbar-nav {
+        float: right;
+        margin: 0;
+      }
+    }
+  }
+
+  @media screen and (max-width:768px) {
+    .mbapspan {
+      padding: 0;
+    }
+  }
+</style>
+<div class="pjaxloading"  onclick="pjaxloadingClose()">
+  <div class="loadingbackground"></div>
+  <div id="loading">
+    <div class="loading">
+    </div>
+  </div>
+</div>
+<nav class="navbar navbar-inverse navbar-fixed-top navmobile">
+  <div class="container-fluid">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#barmenu"
+        aria-expanded="false" id="barbutton">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a data-pjax class="navbar-brand" href="http://quansen88.cn">quansen88.cn&nbsp;&nbsp;|</a>
+      <span class="navbar-brand mbapspan"><i id="mbaplayer" class="fa fa-play-circle-o" aria-hidden="true"
+          style="font-size: 28px;top: 12px;position: absolute;" onclick="aplayerPlay();"></i></span>
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="barmenu">
+      <ul class="nav navbar-nav">
+        
+        
+        <li>
+          <a data-pjax href="/">
+            首页
+          </a>
+        </li>
+        
+        
+        
+        <li>
+          <a data-pjax href="/archives">
+            归档
+          </a>
+        </li>
+        
+        
+        
+        <li>
+          <a data-pjax href="/tags">
+            标签
+          </a>
+        </li>
+        
+        
+        
+        <li>
+          <a data-pjax href="/about">
+            关于
+          </a>
+        </li>
+        
+        
+        
+          
+        <li><a data-pjax href="http://quansen88.cn/friends">友链</a></li>
+
+        
+        </ul>
+      </div><!-- /.navbar-collapse -->
+    </div><!-- /.container-fluid -->
+  </nav>
+
+
+  <!-- 引入jQuery核心js文件 -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
+  <script>
+    let btstate = false;
+    var bt = $("#barbutton");
+    var bm = $("#barmenu");
+    bt.click(function () {
+      dropdown();
+    })
+    function dropdown() {
+      console.log(btstate);
+      //下拉
+      if (btstate == false) {
+        bt.removeClass("collapsed");
+        bt.attr("aria-expanded", "true");
+        bm.attr("aria-expanded", "true")
+        bm.fadeIn(700);
+        btstate = true;
+      }
+      else {
+        bt.addClass("collapsed");
+        bt.attr("aria-expanded", "false");
+        bm.removeClass("in");
+        bm.hide();
+        bm.attr("aria-expanded", "false");
+        btstate = false;
+      }
+    }
+  </script> 
+            </div>
+            <!----------- 移动端导航栏👆 ----------------->
+
+            <!--------------- pc端菜单栏👇 ---------------->
+            <div class="side"><head>
+    <link rel="stylesheet" href="http://quansen88.cn/media/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://quansen88.cn/styles/main.css">
+    
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.1/build/styles/default.min.css">
+    
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.1/build/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/850552586/ericamcdn@0.1/js/clipboard.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/850552586/ericamcdn@0.1/css/live2d.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+    <!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/font-awesome/5.13.1/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- fancybox -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+    <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+    <!--------- 数学公式👇---- -->
+    
+    <!--------- 数学公式👆----------------- -->
+    <!--------- daovocie功能👇 ------------------->
+    
+    <!--------- daovocie功能👆 ------------------->
+    <!-- -----------------twikoo评论系统引入👇 --------->
+    <script src="https://cdn.jsdelivr.net/npm/twikoo@1.3.1/dist/twikoo.all.min.js"></script>
+    <!-- -----------------twikoo评论系统引入👆 --------->
+    <!---------------- leancloud api 功能依赖引入👇 -------->
+    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@3.13.0/dist/av-min.js"></script>
+    <!---------------- leancloud api 功能依赖引入👆 -------->
+    <!------------------ valine评论系统引入👇 ------------------>
+    <script src="http://quansen88.cn/media/js/valine.min.js"></script>
+    <!------------------ valine评论系统引入👆 ------------------>
+    <!---------------- 今日诗词api功能依赖👇 ----------------------->
+    <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
+    <!---------------- 今日诗词api功能依赖👆 ----------------------->
+</head>
+
+<style>
+    body {
+        overflow-x: hidden;
+        height: 100vh;
+        overflow-y: scroll;
+        cursor: url("http://quansen88.cn/media/images/mouse_cursor.png"), auto
+    }
+</style>
+
+<body>
+    <!--=------ 页面加载动态画面👇 --------------->
+    <div class="pjaxloading" onclick="pjaxloadingClose()">
+        <div class="loadingbackground"></div>
+        <div id="loading">
+            <div class="loading">
+            </div>
+        </div>
+    </div>
+    <!--=------ 页面加载动态画面👆 --------------->
+
+    <!--------------- 左侧菜单栏👇 ------------------------>
+    
+    <div id=side>
+        <div class="r_m_div">
+            <a onclick="showAaplayer()"><i style="font-size: 20px;"><img
+                        src='http://quansen88.cn/media/images/music.png' alt="音乐播放器" class="musicbtn"></i></a>
+        </div>
+        <div class="avatar-border">
+            <img src="http://quansen88.cn/images/avatar.png?v=1670578782637" class="avatar">
+        </div>
+        <div class="sitename">quansen88.cn</div>
+        <span class="description" data-text='["学习交流，共同进步"]'>&nbsp;</span>
+        <div class="siteinfocontainer">
+            <span class="siteinfo">文章</span>
+            <span class="siteinfo">标签</span>
+        </div>
+        <div class="siteinfocontainer">
+            <span class="siteinfo" id="siteinfo-postsnum"></span>
+            <span class="siteinfo">80</span>
+        </div>
+        
+        <div class="search">
+            <!-- <input type="text" class="search-input" placeholder="标题搜索(●'◡'●)" /> -->
+            <input type="text" class="search-input" placeholder="翻找一下 .。.....。oO.o.。............。......o............O">
+            <div class="search-results"></div>
+        </div>
+        
+    <div class="share-button">
+        <span>quansen88的更多数据流</span>
+        
+        <a href="https://github.com/850552586/gridea-theme-fog" target="_blank"><i style="font-size: 20px;"><img class="icon"
+                    src="http://quansen88.cn/media/images/github.png" alt=""></i></a>
+        
+        
+        
+        
+        
+        
+        
+        
+    </div>
+    <div id="qq" style="display:none"></div>
+    <!------------ 加载菜单按钮👇 ------------------------->
+    <div class="menucontainer">
+        
+        
+        <div class="mchocie description">
+            <a data-pjax href="/" class="menubutton" style="margin-right: 15px;">
+                <i><img class="icon menuicon" src="" alt="首页"></i>&nbsp;<span
+                    data-text="首页">首页</span>
+            </a>
+        </div>
+        
+        
+        
+        <div class="mchocie description">
+            <a data-pjax href="/archives" class="menubutton" style="margin-right: 15px;">
+                <i><img class="icon menuicon" src="" alt="归档"></i>&nbsp;<span
+                    data-text="归档">归档</span>
+            </a>
+        </div>
+        
+        
+        
+        <div class="mchocie description">
+            <a data-pjax href="/tags" class="menubutton" style="margin-right: 15px;">
+                <i><img class="icon menuicon" src="" alt="标签"></i>&nbsp;<span
+                    data-text="标签">标签</span>
+            </a>
+        </div>
+        
+        
+        
+        <div class="mchocie description">
+            <a data-pjax href="/about" class="menubutton" style="margin-right: 15px;">
+                <i><img class="icon menuicon" src="" alt="关于"></i>&nbsp;<span
+                    data-text="关于">关于</span>
+            </a>
+        </div>
+        
+        
+
+        
+            
+        <div class="mchocie description">
+            <a data-pjax href="http://quansen88.cn/friends" class="menubutton" style="margin-right: 15px;">
+                <i><img class="icon menuicon" src="" alt="彩【友-链】蛋"></i>&nbsp;<span data-text="彩【友-链】蛋">彩【友-链】蛋</span>
+            </a>
+        </div>
+        
+        
+        <div class="mchocie description">
+            <a data-pjax href="#terrestrial" id="fog_go" class="open-popup menubutton" style="margin-right: 15px;">
+                    <i><img class="icon menuicon" src="" alt="FooogGo[御风飞行]"></i>&nbsp;<span data-text="FooogGo[御风飞行]">FooogGo[御风飞行]</span>
+            </a>
+        </div>
+        
+    </div>
+    <!------------ 加载菜单按钮👆 ------------------------->
+    <hr>
+    <style>
+    .copyright {
+        font-size: 15px;
+        color: #d9d9d9;
+    }
+
+
+    @media screen and (min-width: 1200px) {
+        .foot {
+            width: 100%;
+            height: 130px;
+        }
+    }
+
+    @media screen and (max-width: 1200px) {
+        .foot {
+            display: none;
+        }
+    }
+</style>
+
+<body>
+    <div class="foot">
+        <div id="footinfo">Powered by <a href="https://github.com/quansen88/" target="_blank">quansen88</a> | Theme: <a
+                href="https://github.com/quansen88/fog">Fog</a>
+            <div>
+                
+                <div id="sitegotimeDate">载入天数...</div>
+                <div id="sitegotimes">载入时分秒...</div>
+                <div id="cussitetime" style="display:none">7/7/2020</div>
+                
+            </div>
+            <div>
+                
+                <script async
+                    src="https://cdn.jsdelivr.net/gh/850552586/ericamcdn@0.1/js/busuanzi.pure.mini.js"></script>
+                <div id="vistornum" style="margin:0">
+                    <span id="busuanzi_container_site_uv">
+                        <i class="fa fa-heart" aria-hidden="true" style="color: red;"></i> 总访问量:<span
+                            id="busuanzi_value_site_pv"></span>&nbsp;&nbsp;|&nbsp;&nbsp;
+                        <i class="fa fa-user-o" aria-hidden="true"></i> 访问人数:<span id="busuanzi_value_site_uv"></span>
+                    </span>
+                </div>
+                
+            </div>
+            <div class="copyright" style="color:white;text-align: center;">Copyright © 2020  备案号: 鄂ICP备...号
+            </div>
+        </div>
+
+
+
+    </div>
+</body>
+
+<script>
+    //----------------------站点运行时间
+    var now = new Date();
+
+    function createtime() {
+        var sitegotime = document.getElementById("cussitetime").innerHTML + " 00:00:00";
+        var grt = new Date(sitegotime); //此处修改你的建站时间或者网站上线时间 
+        now.setTime(now.getTime() + 250);
+        days = (now - grt) / 1000 / 60 / 60 / 24;
+        dnum = Math.floor(days);
+        hours = (now - grt) / 1000 / 60 / 60 - (24 * dnum);
+        hnum = Math.floor(hours);
+        if (String(hnum).length == 1) {
+            hnum = "0" + hnum;
+        }
+        minutes = (now - grt) / 1000 / 60 - (24 * 60 * dnum) - (60 * hnum);
+        mnum = Math.floor(minutes);
+        if (String(mnum).length == 1) {
+            mnum = "0" + mnum;
+        }
+        seconds = (now - grt) / 1000 - (24 * 60 * 60 * dnum) - (60 * 60 * hnum) - (60 * mnum);
+        snum = Math.round(seconds);
+        if (String(snum).length == 1) {
+            snum = "0" + snum;
+        }
+        document.getElementById("sitegotimeDate").innerHTML = "本站已安全运行 " + dnum + " 天 ";
+        document.getElementById("sitegotimes").innerHTML = hnum + " 小时 " + mnum + " 分 " + snum + " 秒";
+    }
+
+    let intervalId = setInterval("createtime()", 250);
+</script>
+
+    </div>
+
+
+    <script src="http://quansen88.cn/media/js/wordshow.js"></script>
+    
+    <!--------------- 左侧菜单栏👆 ------------------------>
+
+    <!----------------- 顶部菜单栏👇 ------------------------>
+    
+    <!----------------- 顶部菜单栏👆 ------------------------>
+
+<!--核心功能加载-->
+<script src="http://quansen88.cn/media/js/mainfunc.js"></script>
+
+<!------------- Fog1.0版本彩蛋👇 -------------->
+    <section id="terrestrial" class="popup">
+        <a href="#" class="back">&lt; back</a>
+    </section>
+
+    <div class="flycontainer">
+        <div class="flyword">FooogGo[御风飞行]中...</div>
+    </div>
+
+    <script>
+        $("#fog_go").click(function(){fog_go()});
+        async function fog_go(){
+            $(".bars").hide()
+            $("#live2d").hide()
+            await sleep(3000);
+            $(".flycontainer").css("display","flex");
+            $(".popup").fadeOut(500)
+            await sleep(2000);
+            var sitename = "quansen88.cn";
+            getFogUser(sitename);
+        }
+
+        function fog_goregis(){
+            var sitename = "quansen88.cn";
+            var siteurl = "http://quansen88.cn";
+            regisFogUser(sitename,siteurl);
+        }
+        fog_goregis();
+    </script>
+<!------------- Fog1.0版本彩蛋👆 -------------->
+
+
+<!------ 根据自定义配置声明变量👇 --------------------->
+    
+    <script>
+        let shareChoice = true
+    </script>
+    
+    
+    <script>
+        let donateChoice = true
+    </script>
+    
+    
+    <script>
+        let searchChoice = true
+    </script>
+    
+    <script>let postsnum = 0;</script>
+    <div id="side-posttitle" style="display: none;">
+    
+    
+    常见的网络排查工具和命令
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    计算机 linux 红帽认证 rhce证书 技术支持
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    计算机 linux 红帽认证 rhce证书 技术支持
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    Docker registry部署私有镜像仓库
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    kms激活win11 Pro
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     docker多阶段构建离线yum源(修改)
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    wsl 另一个程序正在使用此文件，进程无法访问。
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     K8S安装过程笔记
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     ubuntu16.04图形化基础配置
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     EFK教程三：ElasticSearch多实例部署
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     修改nginx镜像时区
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     ws+tls+web+cdn
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     JS实现网站内容的禁止复制和粘贴、另存为
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     关于docker的scratch镜像与helloworld
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    WDS部署
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     KVM实验（一）
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     kvm实战（二）
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     EFK教程 - EFK快速入门指南
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    vsphere6.7（EXSI）服务器版的vmware
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     windows server2016  kms激活
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    
+    
+     keepalived(一)知识点
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    小的网站结构【haproxy nginx】
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    lnmp+analyzer
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    haproxy
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     zabbix监控php
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    temp文档DOS简单攻击防御脚本1
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    rewrite
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    nginx神奇的斜线
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    nginx高级
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    nginx防盗链
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    auth_basic_module
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    nginx全站https
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    dockerfile中基本镜像apline添加glibc
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    alpine镜像支持中文字符
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    nginx配置TLS1.3
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    ngx_http_fastcgi_module 的那些事
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    nginx配置location总结及rewrite规则写法
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    nginx的try_files
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    制作离线docker安装源
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    dockerfile多阶段构建制作离线yum源
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    bash特性：cat的重定向问题
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    同步与异步，阻塞与非阻塞的区别
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    来自opendevops的系统调优脚本
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    编译安装php+apache环境
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    一键编译安装和卸载httpd-2.4.41
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    inotify+rsync备份NFS
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    Logrotate日志存储
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    将ssh日志发送到日志服务器（同样适用于其他程序）
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    CentOS7 yum部署lamp环境（wordpress,discuz,powerdns）
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    ansible知识点
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    httpd知识点
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    getopt：命令行选项、参数处理
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    mysql主从复制加密
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    mysql5.7.27主从复制加密实验2
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    快速yum安装mysql5.7
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    MySQL集群结构说明
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    MySQL的半同步复制
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    error &#39;Can&#39;t connect to local MySQL server through socket
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    数据库性能测试：sysbench用法详解
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    mysql5.7部署多实例踩坑记
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    mariadb10.2快速部署一主一从
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    一键自签CA证书脚本
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    mysql之慢查询
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    mysql5.7的GTID主从复制
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    MYSQL事务隔离级别
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    mysql 的二进制日志binlog
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    mysql小知识点
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    mysql的安装
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    mysql5.7忘记密码
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    docker socket设置监听在本地端口
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    DNS术语；主从DNS服务器配置；DNS综合实验
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    优盘全自动安装CentOS7
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    DNS实验一：搭建一个简单的DNS服务器
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    编译busybox
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    PXE+kickstart无人值守安装centos7
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    cobber web
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     cobbler无人值守批量安装Linux系统
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     加密，gpg加密，ssh三种转发，openssl，pam
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    ntp和chronyd 时间同步服务
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    编译安装httpd2.4.25并编写systemd脚本
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    tcp_wrapper过滤
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    inotify+rsync
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    加密和安全（ssh等）
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    谷歌身份验证器使用
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    openssl speed和openssl rand
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    openssl rsautl和openssl pkeyutl(文件的非对称加密)
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    openssl req（生成证书请求和自建CA）2
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    openssl rsapkey
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    openssl passwd
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    openssl genrsa
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    openssl enc对称加密
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    openssl dhparam
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    openssl dgst(生成和验证数字签名)
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    openssl ca(签署和自建CA)
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    制作一个最小的CentOS6系统
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    CentOS删vmlinuz玩
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    CentOS7删boot目录玩
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    CentOS7删bootloader玩
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    centos7内核升级
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    CentOS修改grub的背景图
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     CentOS删除fstab的恢复
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    CentOS7忘记密码与防密码破解
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    shell脚本之信号的捕捉
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    shell脚本进阶之字符串处理
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    SHELL脚本--shell数组基础
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     testsrv脚本（SysV脚本）
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     SHELL脚本PPT脚本
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    copycmd-拷贝命令及其依赖库
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     脚本进阶一
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     计划任务注意事项
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    进程管理
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     nmcli命令
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     实验：主机间跨网络通信
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     配置实现网桥
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     ubuntu18.04网络配置
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     bash环境配置文件加载顺序
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    LVM
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     20190811 RAID
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    文件系统管理
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     sed基本用法
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    CentOS7的swap分区管理（分区或文件）
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    MBR分区表的备份与还原
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    手动编译httpd-2.4.25
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    黑客屏幕cmaxtix编译安装
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    更新说明
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    zabbix监控入门基础，监控tomcat，主被动模式
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    zabbix规划及部署，语言修改
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    Vim编辑器与正则表达式实验手册
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     3.文件管理 实验手册
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    
+    
+    
+    
+    podman制作镜像
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    docker/podman一键部署postwoman
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    docker/podman快速部署jumpserver
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    制作我的世界服务器docker容器镜像
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    vmware-minecraft-server(我的世界服务器一)
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    ssh的优化
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    github-pages网页跳转（旧域名重定向到新域名）
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    
+    
+    磁盘清理
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    命令git开启代理加速
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    手把手从零安装win10-2004
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     更换内核
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    贪吃蛇静态网站
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    docker生成免费Ssl 证书
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    office下载到安装
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+     centos7安装zabbix5.0
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    nginx配置文件模版
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    
+    
+    AutoPiano：30s部署一个钢琴小程序
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    centos7安装docker
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    关于
+    <script>
+        postsnum += 1
+    </script>
+    
+    
+    
+    
+    </div>
+    
+        <script>
+            let menupos = 'left';
+            $("#siteinfo-postsnum").html(postsnum);
+        </script>
+    
+    <!------ 根据自定义配置声明变量👆 --------------------->
+
+
+    <!----------根据自定义配置设置图标信息👇---------->
+    <script>
+        var icondict = new Array();
+    </script>
+    
+    <!----------根据自定义配置设置图标信息👆---------->
+</body>
+
+<script src="http://quansen88.cn/media/share/dist/Share.js"></script>
+<!-- 页面pjax测试 -->
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery.pjax/2.0.1/jquery.pjax.js"></script>
+<!--确保jQuery已经在此之前加载-->
+<!-- <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script> -->
+<script src="http://quansen88.cn/media/js/all-pjax.js"></script>
+<script>
+    //-------------------------------说说功能👇--------------------------------------
+    let talksall = [];
+    let talks = [];
+    let talkindex = 0;
+    get();
+
+    function get() {
+        var t = JSON.parse('[]');
+        talkindex = t.length - 1;
+        for (var i = 0; i <= t.length - 1; i++) {
+            var d = {};
+            d["time"] = t[i].time;
+            d["author"] = t[i].author;
+            d["text"] = t[i].text;
+            d["img"] = t[i].img;
+            talksall.push(d);
+        }
+    }
+
+    function add() {
+        for (var i = talkindex; i >= 0 && i > talkindex - 3; i--) {
+            talks.push(talksall[i]);
+        }
+        talkindex = (talkindex - 3) >= 0 ? (talkindex - 3) : -1;
+        if (talkindex < 0) $("#getmorebt").hide();
+        show();
+    }
+
+    function show() {
+        var talkT = document.getElementById("talkContainer");
+        talkT.innerHTML = "";
+        for (var i = 0; i < talks.length; i++) {
+            if (talks[i].img != '') {
+                talkT.innerHTML += '\
+            <div class="talk" v-for="t in talks"> \
+                <span data-fancybox="images" href="' + talks[i].img + '"><img src="' + talks[i].img + '" class="talkimg"></span> \
+                <div class="ainfo">\
+                    <div class="ainfo-intro">\
+                        <div class="author">' + talks[i].author + '</div>·\
+                        <div class="time">' + talks[i].time + '</div>\
+                    </div>\
+                </div>\
+                <div class="talkcontent">' + talks[i].text + '\
+                </div\>\
+            ';
+            } else {
+                talkT.innerHTML += '\
+            <div class="talk" v-for="t in talks"> \
+                <div class="ainfo">\
+                    <div class="ainfo-intro">\
+                        <div class="author">' + talks[i].author + '</div>·\
+                        <div class="time">' + talks[i].time + '</div>\
+                    </div>\
+                </div>\
+                <div class="talkcontent">' + talks[i].text + '\
+                </div\>\
+            ';
+            }
+        }
+    }
+    //-------------------------------说说功能👆--------------------------------------
+</script>
+
+<!---->
+<script>
+    function replaceAvatar() {
+        twikoo_avatar = $(".tk-avatar-img");
+        for (var i = 0; i < twikoo_avatar.length; i++) {
+            var asrc = twikoo_avatar.eq(i).attr('src');
+            if (asrc.search('cn.gravatar.com') != -1) {
+                twikoo_avatar.eq(i).attr('src', 'http://quansen88.cn/media/images/comavatar.png');
+            }
+        }
+    }
+
+    function showWechat() {
+        var wechat = '';
+        alert("博主微信号：" + wechat);
+        return false;
+    }
+</script>
+
+<script>
+    /**
+     * https://github.com/tangkaichuan/gridea-search
+     */
+    // 检查缓存是否最新
+    function checkCache() {
+        var caches_postsnum = localStorage.getItem("postsnum");
+        var pt = document.getElementById("side-posttitle").innerHTML;
+        pt = pt.replace(/\s+/g, '').replace(/<script>.*?<\/script>/gi, "")
+        var ptlen = pt.length;
+        var ptlen_storage = localStorage.getItem("poststitlelen");
+        if (caches_postsnum != postsnum || ptlen != ptlen_storage) {
+            console.log("更新缓存");
+            return false
+        }
+        return true;
+    }
+
+    (function () {
+        var CACHES = checkCache()
+        if (!CACHES) {
+            var NOW = Date.now()
+            var API_CONTENT = '../api-content/index.html' + '?_=' + NOW
+            preload(API_CONTENT);
+            getContents(show_getContentresult);
+        }
+
+        function show_getContentresult(data) {
+            console.log("获取成功");
+            var postslen = data["posts"].length;
+            localStorage.setItem('postsnum', postslen);
+            var poststitlelen = 0;
+            var pt = document.getElementById("side-posttitle").innerHTML;
+            pt = pt.replace(/\s+/g, '').replace(/<script>.*?<\/script>/gi, "");
+            localStorage.setItem('poststitlelen', pt.length);
+        }
+
+
+
+        // preload
+        function preload(url) {
+            var preloadLink = document.createElement('link')
+            preloadLink.href = url
+            preloadLink.rel = 'preload'
+            preloadLink.as = 'fetch'
+            preloadLink.crossOrigin = 'anonymous'
+            document.head.appendChild(preloadLink)
+        }
+
+        // 异步 GET 请求
+        function get(obj) {
+            var xhr = new XMLHttpRequest()
+            xhr.open('get', obj.url, true)
+            xhr.send(null)
+            xhr.onreadystatechange = function () {
+                // 异步请求：响应状态为4，数据加载完毕
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        obj.success(xhr.responseText)
+                    } else {
+                        obj.error(xhr.status)
+                    }
+                }
+            }
+        }
+
+        // 获取博客全文 api
+        function getContents(callback) {
+            if (CACHES) {
+                callback(CACHES.contents)
+            } else {
+                get({
+                    url: API_CONTENT,
+                    success: function (data) {
+                        callback(JSON.parse(data));
+                        localStorage.setItem('ContentsCache', data);
+                        getStorageContent();
+                    }
+                })
+            }
+        }
+    })()
+    //------------------------核心功能--pjax全局渲染👇-------------------
+    let talkinit = false;
+    $(document).pjax('a[data-pjax]', '#main', {
+        fragment: '#main',
+        timeout: 8000
+    }).on('pjax:complete', function () {
+        //代码块高亮渲染
+        document.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightBlock(block);
+        });
+        //文章热度
+        getHotnum();
+        //文章索引
+        toginit();
+        //清空搜索栏
+        if (searchChoice) {
+            searchInit();
+            searchInput.value = "";
+        }
+        var pl = window.location.pathname;
+        //说说更新
+        if (pl.search("talk") != -1 && !talkinit) {
+            add();
+            talkinit = true;
+        } else if (pl.search("talk") != -1) {
+            show();
+        }
+        if (pl.search("post") != -1) {
+            if (shareChoice)
+                shareInit();
+            if (donateChoice)
+                donateInit();
+            imglazyloadinit();
+            lazyload();
+            codeinit();
+            if ("twikoo" == "twikoo") {
+                //twikoo头像更换
+                setTimeout(replaceAvatar, 3000);
+                setTimeout(replaceAvatar, 8000); //部分博主站点速度加载过慢，再添加一个延迟
+            }
+        }
+        if (btstate == true)
+            dropdown();
+    }).on('pjax:start', function () {
+        $(".pjaxloading").fadeIn(50);
+    }).on('pjax:end', function () {
+        $(".pjaxloading").fadeOut(50);
+    });
+    //------------------------核心功能--pjax全局渲染👆-------------------
+
+    //-------------------------------------------------搜索
+    // 获取搜索框、搜索按钮、清空搜索、结果输出对应的元素
+    if (searchChoice) {
+        var searchInput = document.querySelector('.search-input');
+        var searchResults = document.querySelector('.search-results');
+    }
+    // 申明保存文章的标题、链接、内容的数组变量
+    var searchValue = '',
+        arrItems = [],
+        arrLinks = [],
+        arrTitles = [],
+        arrContents = [],
+        arrResults = [],
+        indexItem = [],
+        itemLength = 0;
+    var tmpDiv = document.createElement('div');
+    tmpDiv.className = 'result-item';
+
+
+    function getStorageContent() {
+        var data = localStorage.getItem('ContentsCache');
+        data = JSON.parse(data);
+        posts = data["posts"];
+        for (var i = 0; i < posts.length; i++) {
+            arrLinks[i] = posts[i].link;
+            arrTitles[i] = posts[i].title;
+            arrContents[i] = posts[i].content;
+            itemLength++;
+        }
+    }
+    if (checkCache())
+        getStorageContent();
+    // 输入框内容变化后就开始匹配，可以不用点按钮
+    // 经测试，onkeydown, onchange 等方法效果不太理想，
+    // 存在输入延迟等问题，最后发现触发 input 事件最理想，
+    // 并且可以处理中文输入法拼写的变化
+    searchInput.oninput = function () {
+        setTimeout(searchConfirm, 0);
+    }
+    searchInput.onfocus = function () {
+        searchResults.style.display = 'block';
+    }
+
+    function searchConfirm() {
+        if (searchInput.value == '') {
+            searchResults.style.display = 'none';
+        } else if (searchInput.value.search(/^\s+$/) >= 0) {
+            // 检测输入值全是空白的情况
+            searchInit();
+            var itemDiv = tmpDiv.cloneNode(true);
+            itemDiv.innerText = '请输入有效内容...';
+            searchResults.appendChild(itemDiv);
+        } else {
+            // 合法输入值的情况
+            searchInit();
+            searchValue = searchInput.value;
+            // 在标题、内容中查找
+            searchMatching(arrTitles, arrContents, searchValue);
+        }
+    }
+
+    // 每次搜索完成后的初始化
+    function searchInit() {
+        arrResults = [];
+        indexItem = [];
+        searchResults.innerHTML = '';
+        searchResults.style.display = 'block';
+    }
+
+    function searchMatching(arr1, arr2, input) {
+        // 忽略输入大小写
+        input = new RegExp(input, 'i');
+        var step = 10;
+        // 在所有文章标题、内容中匹配查询值
+        for (i = 0; i < itemLength; i++) {
+            var indexContent = arr2[i].search(input);
+            //标题匹配
+            if (arr1[i].search(input) != -1) {
+                indexItem.push(i); // 保存匹配值的索引
+                if (indexContent != -1) {
+                    startindex = (indexContent - step) >= 0 ? (indexContent - step) : 0;
+                    var searchcontent = arr2[i].slice(indexContent - step, indexContent + 5)
+                    arrResults.push("....." + searchcontent + ".....");
+                } else
+                    arrResults.push("");
+            }
+            //内容匹配
+            else if (indexContent != -1) {
+                indexItem.push(i); // 保存匹配值的索引
+
+                startindex = (indexContent - step) >= 0 ? (indexContent - step) : 0;
+                var searchcontent = arr2[i].slice(indexContent - step, indexContent + 5)
+                arrResults.push("....." + searchcontent + ".....");
+            }
+        }
+
+        // 输出总共匹配到的数目
+        var totalDiv = tmpDiv.cloneNode(true);
+        totalDiv.innerHTML = '<b>总匹配：' + indexItem.length + ' 项<hr></b>';
+        searchResults.appendChild(totalDiv);
+
+        // 未匹配到内容的情况
+        if (indexItem.length == 0) {
+            var itemDiv = tmpDiv.cloneNode(true);
+            itemDiv.innerText = '未匹配到内容...';
+            searchResults.appendChild(itemDiv);
+        }
+
+        // 将所有匹配内容进行组合
+        for (i = 0; i < arrResults.length; i++) {
+            var itemDiv = tmpDiv.cloneNode(true);
+            itemDiv.innerHTML = '<a data-pjax class="searchresults" href="' + arrLinks[indexItem[i]] + '"><b>[' +
+                arrTitles[indexItem[i]] +
+                ']</b><p>' + arrResults[i] + '</p></a><hr />';
+            searchResults.appendChild(itemDiv);
+        }
+    }
+</script>
+
+
+
+<!--------------------- 菜单栏图标加载功能👇 ----------------------->
+<script>
+var menulist = $(".menuicon");
+var menulength = menulist.length;
+for (var i = 0; i < menulength; i++) {
+    var altname = menulist.eq(i).attr("alt");
+    var iconurl = icondict[altname];
+    if (iconurl == undefined || iconurl == '')
+        continue;
+    if (iconurl == 'Home') {
+        menulist.eq(i).attr("src", "http://quansen88.cn/media/images/Home.png");
+menulist.eq(i).show();
+} else if (iconurl == 'Archive') {
+menulist.eq(i).attr("src", "http://quansen88.cn/media/images/Archive.png");
+menulist.eq(i).show();
+} else if (iconurl == 'Tag') {
+menulist.eq(i).attr("src", "http://quansen88.cn/media/images/Tag.png");
+menulist.eq(i).show();
+} else if (iconurl == 'About') {
+menulist.eq(i).attr("src", "http://quansen88.cn/media/images/About.png");
+menulist.eq(i).show();
+} else if (iconurl == 'Talk') {
+menulist.eq(i).attr("src", "http://quansen88.cn/media/images/Talk.png");
+menulist.eq(i).show();
+} else if (iconurl == 'Friends') {
+menulist.eq(i).attr("src", "http://quansen88.cn/media/images/Friends.png");
+menulist.eq(i).show();
+} else if (iconurl == 'Fly') {
+menulist.eq(i).attr("src", "http://quansen88.cn/media/images/wind.png");
+menulist.eq(i).show();
+} else {
+menulist.eq(i).attr("src", iconurl);
+menulist.eq(i).show();
+}
+}
+</script>
+<!--------------------- 菜单栏图标加载功能👆 -----------------------></div>
+            <!--------------- pc端菜单栏👆 ---------------->
+
+            <!-- ----------------左侧菜单栏html 👇-------------------------------------->
+            
+            <div>
+                <div id="tab1" class="tab">
+                    <div class="bars">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                    <div class="close"></div>
+                </div>
+                <div class="col-md-1 col-lg-3"></div>
+                <!-- main标签，pjax渲染时加载以下内容👇 -->
+                <div id="main" class="col-xs-12 col-sm-12 col-md-12 col-lg-7" style="padding:0;">
+                    <link rel="stylesheet" href="http://quansen88.cn/media/css/font-awesome.css">
+
+<body>
+    <div class="allcontent" id="postdetail">
+        <div class="postshow postpadding" style="padding-bottom: 0;">
+            
+            <div class="postdetailimg">
+                <img src="https://res.cloudinary.com/canonical/image/fetch/f_auto,q_auto,fl_sanitize,w_116,h_70/https://assets.ubuntu.com/v1/2f1934f0-Liberty-Global-Logo.svg" class="postimage" style="cursor:auto">
+            </div>
+            <div class="postinfo-detail">
+                <div class="postdate"><i class="fa fa-calendar"></i>2021-04-25</div>
+                <div class="poststatus postdate"><i class="fa fa-clock-o"></i> 36 min read</div>
+                <div class="posttag">
+                    
+                    <a data-pjax href="http://quansen88.cn/tag/0Jn19faEr/" class="postlink">
+                        <i class="fa fa-tag"></i> ssh
+                    </a>
+                    
+                    <a data-pjax href="http://quansen88.cn/tag/jfuARlPE18/" class="postlink">
+                        <i class="fa fa-tag"></i> sha
+                    </a>
+                    
+                    <a data-pjax href="http://quansen88.cn/tag/y-Ok13laTf/" class="postlink">
+                        <i class="fa fa-tag"></i> 加密
+                    </a>
+                    
+                    <a data-pjax href="http://quansen88.cn/tag/AC8O9n6Cj/" class="postlink">
+                        <i class="fa fa-tag"></i> linux
+                    </a>
+                    
+                </div>
+            </div>
+            
+        <div id="articlecontent">
+            <div id="texttitle" style="text-align: center">
+                <h2 id="ptitle">加密和安全（ssh等）</h2>
+                <!-- id 将作为查询条件 -->
+                <div id="pl" style="display:none">http://quansen88.cn/20190902-jia-mi-he-an-quan-ssh-deng/</div>
+                <div id="rootaddr" style="display:none">http://quansen88.cn</div>
+                
+                    <span id="hotnum">
+                        <h4><i class="fa fa-eye" aria-hidden="true" style="color: #FF8C00;"></i>&nbsp;&nbsp;热度</i>: <i
+                                class="hotnum">loading...</i></h4>
+                    </span>
+                
+            </div>
+            <div class="text ">
+                <h1 id="加密和安全">加密和安全</h1>
+<h4 id="selinux">selinux</h4>
+<h4 id="1-ssh非交互生成密钥"><strong>1、ssh非交互生成密钥</strong></h4>
+<pre><code class="language-bash">[qqq@linux5 ~]$ ssh-keygen  -f ~/.ssh/id_rsa -P '' -C 'linux5'
+</code></pre>
+<h4 id="2-ssh-x"><strong>2、ssh -X</strong></h4>
+<p>支持x11转发，比如某些图形化东西，比如xclock</p>
+<h4 id="3-xstart"><strong>3、xstart</strong></h4>
+<p>xshell的工具，可以连接虚拟机的图形化，比如桌面，firefox，xclock等，具体百度</p>
+<p><a href="https://blog.csdn.net/yimenren/article/details/85328574">用xstart打开centos7图形化界面</a></p>
+<p><a href="https://www.cnblogs.com/tibit/p/6134150.html">xmanager 打开centos7图形化窗口</a></p>
+<h4 id="4-xmanager"><strong>4、xmanager</strong></h4>
+<p>自行百度</p>
+<h4 id="5-ssh各种文件分布"><strong>5、ssh各种文件分布</strong></h4>
+<p><a href="http://www.jinbuguo.com/openssh/sshd_config.html">sshd_config中文手册</a></p>
+<pre><code class="language-bash">以主机A连接主机B为例，主机A为SSH客户端，主机B为SSH服务端。
+
+在服务端即主机B上：
+
+/etc/ssh/sshd_config  ：ssh服务程序sshd的配置文件。
+/etc/ssh/ssh_host_*   ：服务程序sshd启动时生成的服务端公钥和私钥文件。如ssh_host_rsa_key和ssh_host_rsa_key.pub。
+                                  ：其中.pub文件是主机验证时的host key，将写入到客户端的~/.ssh/known_hosts文件中。
+                                  ：其中私钥文件严格要求权限为600，若不是则sshd服务可能会拒绝启动。
+~/.ssh/authorized_keys：保存的是基于公钥认证机制时来自于客户端的公钥。在基于公钥认证机制认证时，服务端将读取该文件。
+在客户端即主机A上：
+
+/etc/ssh/ssh_config    ：客户端的全局配置文件。
+~/.ssh/config              ：客户端的用户配置文件，生效优先级高于全局配置文件。一般该文件默认不存在。该文件对权限有严
+                                  ：格要求只对所有者有读/写权限，对其他人完全拒绝写权限。
+~/.ssh/known_hosts   ：保存主机验证时服务端主机host key的文件。文件内容来源于服务端的ssh_host_rsa_key.pub文件。
+/etc/ssh/known_hosts：全局host key保存文件。作用等同于~/.ssh/known_hosts。
+~/.ssh/id_rsa              ：客户端生成的私钥。由ssh-keygen生成。该文件严格要求权限，当其他用户对此文件有可读权限时，
+                                  ：ssh将直接忽略该文件。
+~/.ssh/id_rsa.pub       ：私钥id_rsa的配对公钥。对权限不敏感。当采用公钥认证机制时，该文件内容需要复制到服务端的
+                                  ：~/.ssh/authorized_keys文件中。
+~/.ssh/rc                     ：保存的是命令列表，这些命令在ssh连接到远程主机成功时将第一时间执行，执行完这些命令之后才
+                                  ：开始登陆或执行ssh命令行中的命令。
+/etc/ssh/rc                  ：作用等同于~/.ssh/rc。
+</code></pre>
+<h4 id="6-一键shell脚本"><strong>6、一键shell脚本</strong></h4>
+<pre><code class="language-bash">#!/bin/bash
+
+privkey=&quot;$HOME/.ssh/id_rsa&quot;
+publickey=&quot;$HOME/.ssh/id_rsa.pub&quot;
+ 
+# Usage help
+if [ $# -ne 1 ];then
+   echo &quot;Usage:$0 [user@]hostname&quot;
+   exit 1
+fi
+ 
+# test private/publick key exist or not, and the privilege 600 or not
+if [ -f &quot;$privkey&quot; -a -f &quot;$publickey&quot; ];then
+   privkey_priv=`stat -c %a $privkey`
+   if [ &quot;$privkey_priv&quot; -ne 600 ];then
+       echo &quot;The privilege of private key ~/.ssh/id_rsa is not 600, exit now.&quot;
+       exit 1
+   fi
+else
+   echo &quot;private/public key is not exist, it will create it&quot;
+   ssh-keygen -t rsa -f $privkey -N ''
+   echo &quot;keys created over, it located on $HOME/.ssh/&quot;
+fi
+ 
+ssh-copy-id &quot;-o StrictHostKeyChecking=no $1&quot;
+ 
+if [ $? -eq 0 ];then
+   echo -e &quot;\e[31m publickey copy over \e[0m&quot;
+else
+   echo &quot;ssh can't to the remote host&quot;
+   exit 1
+fi
+</code></pre>
+<h4 id="7-ssh-agent"><strong>7、ssh-agent</strong></h4>
+<p>管理密钥登陆还要手动输密码的问题</p>
+<h4 id="8-scp自动应答"><strong>8、scp自动应答</strong></h4>
+<pre><code class="language-bash">[root@xuexi ~]# cat autoscp.exp
+#!/usr/bin/expect
+
+set timeout 10
+set user_hostname [lindex $argv 0]
+set src_file [lindex $argv 1]
+set dest_file [lindex $argv 2]
+set password [lindex $argv 3]
+spawn scp $src_file $user_hostname:$dest_file
+    expect {
+        &quot;(yes/no)?&quot;
+        {
+            send &quot;yes\n&quot;
+            expect &quot;*assword:&quot; { send &quot;$password\n&quot;}
+        }
+        &quot;*assword:&quot;
+        {
+            send &quot;$password\n&quot;
+        }
+    }
+expect &quot;100%&quot;
+expect eof
+</code></pre>
+<h4 id="9-ssh-copy-id自动应答脚本"><strong>9、ssh-copy-id自动应答脚本</strong></h4>
+<pre><code class="language-bash">[root@xuexi ~]# cat /tmp/autocopy.exp
+#!/usr/bin/expect
+
+set timeout 10
+set user_hostname [lindex $argv 0]
+set password [lindex $argv 1]
+spawn ssh-copy-id $user_hostname
+    expect {
+        &quot;(yes/no)?&quot;
+        {
+            send &quot;yes\n&quot;
+            expect &quot;*assword:&quot; { send &quot;$password\n&quot;}
+        }
+        &quot;*assword:&quot;
+        {
+            send &quot;$password\n&quot;
+        }
+    }
+expect eof
+</code></pre>
+<h4 id="10-ssh连接速度慢的几个原因和解决办法"><strong>10、ssh连接速度慢的几个原因和解决办法</strong></h4>
+<pre><code class="language-bash">sshd_config:
+UseDNS no
+GSSAPIAuthentication no
+</code></pre>
+<h4 id="11-ssh安全隧道一本地端口转发"><strong>11、ssh安全隧道一（本地端口转发）</strong></h4>
+<pre><code class="language-bash">#在本机监听9527端口，当访问本机的9527端口时，将数据包加密后转发给172.18.146.117的22端口，再解密转发到192.168.38.155:80
+[root@internet ~]# ssh -L 9527:192.168.38.155:80 172.18.146.117 -fNg
+root@172.18.146.117's password: 
+[root@internet ~]# ss -ltn | grep 9527
+LISTEN     0      128          *:9527                     *:*                  
+LISTEN     0      128         :::9527                    :::* 
+</code></pre>
+<h4 id="12-pssh批量管理"><strong>12、pssh批量管理</strong></h4>
+<pre><code class="language-bash">#安装
+yum install pssh -y
+#管理单台主机，执行命令
+[root@linux1 data]# pssh -H qqq@192.168.38.155 -i 'ls /tmp'	# -i：每个服务器内部处理信息输出 
+[1] 15:13:07 [SUCCESS] qqq@192.168.38.155
+install.sh
+#将信息输出到文件目录：
+[root@linux1 data]# pssh -H qqq@192.168.38.155 -i -o /tmp 'ls /tmp'
+[1] 15:15:43 [SUCCESS] qqq@192.168.38.155
+install.sh
+[root@linux1 data]# ls /tmp
+qqq@192.168.38.155
+#默认pssh使用密钥认证，想使用密码认证使用-A
+[root@linux1 data]# pssh -H qqq@192.168.38.155 -A -i -o /tmp 'ls /tmp'
+#-e 指定错误输出的目录
+[root@linux1 data]# pssh -H qqq@192.168.38.155  -i -o /tmp -e /tmp 'ls /tmp'
+#批量管理主机使用-h
+[root@linux1 data]# cat hosts.txt
+qqq@192.168.38.155
+root@172.18.144.228
+[root@linux1 data]# pssh -h hosts.txt -i 'hostname'
+[1] 15:21:48 [SUCCESS] qqq@192.168.38.155
+qqq
+[2] 15:21:48 [SUCCESS] root@172.18.144.228
+localhost.localdomain
+
+</code></pre>
+<h4 id="13-pscppssh命令">**13、pscp.pssh命令 **</h4>
+<p>pscp.pssh功能是将本地文件批量复制到远程主机</p>
+<pre><code class="language-bash">#可以基于密钥或密码，不管基于那种，都要先ssh连一下，因为pscp.pssh不能自动确认yes
+#复制本地文件到远端主机
+[root@linux1 data]# pscp.pssh -H qqq@192.168.38.155 install.sh  /tmp/
+[1] 15:23:57 [SUCCESS] qqq@192.168.38.155
+[root@linux1 data]# pssh -H qqq@192.168.38.155 -i 'ls /tmp'
+[1] 15:24:21 [SUCCESS] qqq@192.168.38.155
+install.sh
+#复制目录到远程主机，-H指定主机，-h指定一个文件
+[root@centos7 ~]# pscp.pssh -H  root@192.168.38.123 -A -r google-authenticator-libpam/ /tmp/
+Warning: do not enter your password if anyone else has superuser
+privileges or access to your account.
+Password: 
+[1] 21:01:20 [SUCCESS] root@192.168.38.123
+[root@centos7 ~]# pssh -H root@192.168.38.123 -A -i 'ls /tmp -l'
+Warning: do not enter your password if anyone else has superuser
+privileges or access to your account.
+Password: 
+[1] 21:03:50 [SUCCESS] root@192.168.38.123
+total 8
+drwxr-xr-x. 12 root root 4096 Sep  2 21:01 google-authenticator-libpam
+-rw-r--r--.  1 root root   11 Sep  2 15:18 qqq@192.168.38.155
+</code></pre>
+<h4 id="14-pslurp将远端文件复制到本地"><strong>14、pslurp将远端文件复制到本地</strong></h4>
+<pre><code class="language-bash">#同样，需要先连一次，它不能自动输入yes
+#和pssh，pscp一样，-h指定hosts文件，-A使用密码登陆，-r递归，-L /tmp表示本地存储目录，/etc/fstab表示远端要获取的文件 passwd表示将fstab改名为passwd保存到本地
+[root@centos7 ~]# pslurp -h hosts.txt -ArL  /tmp/  /etc/fstab passwd
+Warning: do not enter your password if anyone else has superuser
+privileges or access to your account.
+Password: 
+[1] 21:13:31 [SUCCESS] root@192.168.38.123
+[root@centos7 ~]# tree -C /tmp
+/tmp
+└── 192.168.38.123
+    └── passwd
+#将root@192.168.38.123主机的/etc/目录复制到本地的/tmp目录下面，并将etc改名为google
+[root@centos7 ~]# pslurp -H root@192.168.38.123 -ArL /tmp/ /etc/ google
+Warning: do not enter your password if anyone else has superuser
+privileges or access to your account.
+Password: 
+[1] 21:18:15 [SUCCESS] root@192.168.38.123    
+[root@centos7 ~]# ls /tmp/192.168.38.123 -l
+total 16
+drwxr-xr-x. 87 root root 8192 Sep  2 21:18 google
+-rw-r--r--.  1 root root  541 Sep  2 21:13 passwd
+</code></pre>
+<h4 id="15-ssh端口本地转发"><strong>15、SSH端口本地转发</strong></h4>
+<pre><code class="language-bash">#在本机监听9527端口，当访问本机的9527端口时，将数据包加密后转发给172.18.146.117的22端口，再解密转发到192.168.38.155:80 -N不打开远程shell，-f后台启用，-g启用网关功能，-L指定相关端口和IP，可自行man
+
+#这样就可以用本机（172.18.144.228）的9527端口访问到192.168.38.155:80了，注意各个机器的selinux和iptables
+[root@internet ~]# ssh -L 9527:192.168.38.155:80 172.18.146.117 -fNg
+root@172.18.146.117's password: 
+[root@internet ~]# ss -ltn | grep 9527
+LISTEN     0      128          *:9527                     *:*                  
+LISTEN     0      128         :::9527                    :::* 
+</code></pre>
+<h4 id="16-ssh做跳板机"><strong>16、SSH做跳板机</strong></h4>
+<pre><code class="language-bash">#本地监听2222端口，当访问本机2222端口时，将数据包加密后转发给172.18.146.117的22端口，再解密到192.168.38.155:22 -N不打开远程shell，-f后台启用，-g启用网关功能，
+[root@internet ~]# ssh -g -L 2222:192.168.38.155:22 172.18.146.117 -fN
+root@172.18.146.117's password: 
+</code></pre>
+<p><strong>现在就可以通过</strong>172.18.144.228的2222端口连接到192.168.38.155:22了</p>
+<pre><code class="language-bash">[root@testbox ~]# ssh root@172.18.144.228 -p2222
+Password: 
+Verification code: 
+Welcome to Ubuntu 18.04.3 LTS (GNU/Linux 5.0.0-27-generic x86_64)
+</code></pre>
+<p>缺点：中间机器172.18.146.117使用的22端口</p>
+<h4 id="17-ssh端口远程转发有点像vpn在家里连自己公网服务器的指定端口就链接到公司内部网络了">17、SSH端口远程转发(有点像VPN，在家里连自己公网服务器的指定端口，就链接到公司内部网络了)</h4>
+<p>将远程端口的数据转发到本地</p>
+<pre><code class="language-bash">#lanserver是本地的一个虚拟机172.18.146.230，172.18.144.228是另一台虚拟机，67.230.174.208是一个公网虚拟机（ssh端口修改为32568），
+#我使用wang用户身份连接67.230.174.208的32568ssh端口，并在该机器上监听33333端口，当我访问67.230.174.208的33333端口时，将数据转发给172.18.144.228:22
+#这条命令实现了远程连接67.230.174.208的33333端口，可以直接连到我的虚拟机172.18.144.228:22，有点像vpn
+root@lanserver:~# ssh  -R 33333:172.18.144.228:22 wang@67.230.174.208 -p32568
+</code></pre>
+<p><strong>但这条命令只是这样还不够，还达不到目的。会发现33333端口监听在127.0.0.1上，而不是0.0.0.0上，此处需要：</strong></p>
+<pre><code class="language-bash">#监听在本地
+State      Recv-Q Send-Q              Local Address:Port                             Peer Address:Port              
+LISTEN     0      128                     127.0.0.1:33333                                       *:*   
+#修改67.230.174.208的/etc/ssh/sshd_config,将GatewayPorts修改为yes
+[root@glowing-bliss-1 ~]# sed '$a GatewayPorts yes' /etc/ssh/sshd_config -i
+[root@glowing-bliss-1 ~]# systemctl restart sshd
+#启动该选项后，不给定bind_addr或bind_addr设置为&quot;*&quot;都表示绑定在所有地址上，如下
+root@lanserver:~# ssh  -fgN -R 33333:172.18.144.228:22 wang@67.230.174.208 -p32568
+wang@67.230.174.208's password: 
+</code></pre>
+<p><strong>然后就监听在所有地址上了</strong></p>
+<pre><code class="language-bash">[root@glowing-bliss-1 ~]# ss -ltn | grep :33333
+LISTEN     0      128          *:33333                    *:*                  
+LISTEN     0      128         :::33333                   :::*     
+</code></pre>
+<p><strong>然后连接67.230.174.208:33333</strong></p>
+<p><strong>理论上是可以的，我这里卡住了,明天高</strong></p>
+<pre><code class="language-bash">[root@internet ~]# ssh wang@67.230.174.208 -p33333 -vvv
+</code></pre>
+<p><strong>今天第二天，搞了个香港的服务器试试：</strong></p>
+<p>首先lanserver是本地的一个虚拟机，IP：172.18.146.224</p>
+<p>testbox是本地另一个虚拟机，IP：172.18.146.230</p>
+<p>香港服务器IP为47.75.165.238</p>
+<p>在lanserver上操作</p>
+<pre><code class="language-bash">root@lanserver:~# ssh  -fgN -R 12345:172.18.146.230:22 root@47.75.165.238
+The authenticity of host '47.75.165.238 (47.75.165.238)' can't be established.
+ECDSA key fingerprint is SHA256:qaV50sxlVPSq9ER0NA+3YGCAUbonmPKzSbVhDJ+wqQY.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '47.75.165.238' (ECDSA) to the list of known hosts.
+root@47.75.165.238's password: 
+root@lanserver:~# 
+</code></pre>
+<p>输入香港服务器密码，此时香港服务器已经监听12345端口了</p>
+<pre><code class="language-bash">#香港服务器也要开启GatewayPorts
+[root@hk-server ~]# sed '$a GatewayPorts yes' /etc/ssh/sshd_config -i
+[root@hk-server ~]#  systemctl restart sshd
+[root@hk-server ~]# ss -ltn
+State      Recv-Q Send-Q              Local Address:Port                             Peer Address:Port              
+LISTEN     0      128                             *:22                                          *:*                  
+LISTEN     0      128                             *:12345                                       *:*                
+</code></pre>
+<p>此时连接香港服务器的12345端口，会将流量转发到本地的172.18.146.230:22（testbox）上，直接输入172.18.146.230（testbox）服务器密码即可</p>
+<pre><code class="language-bash">[C:\Users\24305]$ ssh root@47.75.165.238 12345
+
+Connecting to 47.75.165.238:12345...
+Connection established.
+To escape to local shell, press 'Ctrl+Alt+]'.
+
+Last failed login: Tue Sep  3 17:23:07 CST 2019 from 172.18.146.224 on ssh:notty
+There were 2 failed login attempts since the last successful login.
+Last login: Tue Sep  3 17:18:58 2019 from 172.18.28.28
+[root@testbox ~]#
+</code></pre>
+<h4 id="18-ssh安全隧道三动态端口转发socks代理"><strong>18、ssh安全隧道(三)：动态端口转发(SOCKS代理)</strong></h4>
+<p>有点像科学上网的意思</p>
+<p>首先lanserver是本地的一个虚拟机，IP：172.18.146.224</p>
+<p>testbox是本地另一个虚拟机，IP：172.18.146.230</p>
+<p>香港服务器IP为47.75.165.238</p>
+<p>在lanserver上操作</p>
+<pre><code class="language-bash">root@lanserver:~# ssh -Nfg -D 2222 root@47.75.165.238
+root@47.75.165.238's password: 
+</code></pre>
+<p>执行完上面的命令，lanserver将在本地开启SOCKS4或SOCKS5服务来监听2222端口。只要客户端程序工具(隐含了使用的应用层协议类型)将其自身的代理设置为lanserver:2222，则该程序所有产生的数据都将转发到lanserver:2222，再由lanserver:2222将数据通过隧道转发给香港服务器，最后由lanserver和互联网或lanserver上对应客户端工具的应用层协议的端口进行通信。</p>
+<p><strong>现在设置浏览器代理为172.18.146.224:2222（lanserver）然后访问google试试</strong></p>
+<h4 id="19-只在在香港服务器上配置实现科学上网失败了成功了"><strong>19、只在在香港服务器上配置，实现科学上网（<s>失败了</s>成功了）</strong></h4>
+<p><strong>经过不懈努力，终于成功了，不能访问google的原因是DNS问题，国内DNS被污染了，需要改个小东西</strong></p>
+<p>参考：https://blog.csdn.net/mergerly/article/details/50908128</p>
+<pre><code class="language-bash"># 香港服务器既做
+[root@hk-server ~]# ssh -gD 1723 127.0.0.1 -Nf
+root@127.0.0.1's password: 
+[root@hk-server ~]# ss -ltn
+State      Recv-Q Send-Q              Local Address:Port                             Peer Address:Port              
+LISTEN     0      128                             *:22                                          *:*                  
+LISTEN     0      128                             *:12345                                       *:*                  
+LISTEN     0      128                             *:1723                                        *:*                  
+LISTEN     0      128                            :::1723                                       :::*         
+</code></pre>
+<p>上面命令意思：在本地监听1723端口，将1723端口的请求转发给本机127.0.0.1:22端口</p>
+<p>应该是成功了，但是不能访问google</p>
+<figure data-type="image" tabindex="1"><img src="https://gitee.com/kill0es/blogimage/raw/master/img/1567481959741.png" alt="1567481959741" loading="lazy"></figure>
+<p>总结：科学上网的步骤：</p>
+<p>1、香港服务器开启转发：ssh -fND 127.0.0.1 -g</p>
+<p>2、火狐浏览器设置代理，SOcket代理</p>
+<p>3、火狐浏览器打开about:config将network.proxy.socks_remote_dns改为true，打开远程DNS功能</p>
+<h4 id="20-sshd_config"><strong>20、sshd_config</strong></h4>
+<pre><code class="language-bash">[root@xuexi ~]# cat /etc/ssh/sshd_config
+
+#Port 22                # 服务端SSH端口，可以指定多条表示监听在多个端口上
+#ListenAddress 0.0.0.0  # 监听的IP地址。0.0.0.0表示监听所有IP
+Protocol 2              # 使用SSH 2版本
+ 
+#####################################
+#          私钥保存位置               #
+#####################################
+# HostKey for protocol version 1
+#HostKey /etc/ssh/ssh_host_key      # SSH 1保存位置/etc/ssh/ssh_host_key
+# HostKeys for protocol version 2
+#HostKey /etc/ssh/ssh_host_rsa_key  # SSH 2保存RSA位置/etc/ssh/ssh_host_rsa _key
+#HostKey /etc/ssh/ssh_host_dsa_key  # SSH 2保存DSA位置/etc/ssh/ssh_host_dsa _key
+ 
+ 
+###################################
+#           杂项配置               #
+###################################
+#PidFile /var/run/sshd.pid        # 服务程序sshd的PID的文件路径
+#ServerKeyBits 1024               # 服务器生成的密钥长度
+#SyslogFacility AUTH              # 使用哪个syslog设施记录ssh日志。日志路径默认为/var/log/secure
+#LogLevel INFO                    # 记录SSH的日志级别为INFO
+ 
+###################################
+#   以下项影响认证速度               #
+###################################
+#UseDNS yes                       # 指定是否将客户端主机名解析为IP，以检查此主机名是否与其IP地址真实对应。默认yes。
+                                  # 由此可知该项影响的是主机验证阶段。建议在未配置DNS解析时，将其设置为no，否则主机验证阶段会很慢
+ 
+###################################
+#   以下是和安全有关的配置           #
+###################################
+#PermitRootLogin yes              # 是否允许root用户登录
+#GSSAPIAuthentication no          # 是否开启GSSAPI身份认证机制，默认为yes
+#PubkeyAuthentication yes         # 是否开启基于公钥认证机制
+#AuthorizedKeysFile  .ssh/authorized_keys  # 基于公钥认证机制时，来自客户端的公钥的存放位置
+PasswordAuthentication yes        # 是否使用密码验证，如果使用密钥对验证可以关了它
+#PermitEmptyPasswords no          # 是否允许空密码，如果上面的那项是yes，这里最好设置no
+#MaxSessions 10                   # 最大客户端连接数量
+#LoginGraceTime 2m                # 身份验证阶段的超时时间，若在此超时期间内未完成身份验证将自动断开
+#MaxAuthTries 6                   # 指定每个连接最大允许的认证次数。默认值是6。
+                                  # 如果失败认证次数超过该值一半，将被强制断开，且生成额外日志消息。
+MaxStartups 10                    # 最大允许保持多少个未认证的连接。默认值10。
+
+###################################
+#   以下可以自行添加到配置文件        #
+###################################
+DenyGroups  hellogroup testgroup  # 表示hellogroup和testgroup组中的成员不允许使用sshd服务，即拒绝这些用户连接
+DenyUsers   hello test            # 表示用户hello和test不能使用sshd服务，即拒绝这些用户连接
+ 
+###################################
+#   以下一项和远程端口转发有关        #
+###################################
+#GatewayPorts no                  # 设置为yes表示sshd允许被远程主机所设置的本地转发端口绑定在非环回地址上
+                                  # 默认值为no，表示远程主机设置的本地转发端口只能绑定在环回地址上，见后文&quot;远程端口转发&quot;
+</code></pre>
+<h4 id="21-ssh_config配置"><strong>21、ssh_config配置</strong></h4>
+<pre><code class="language-bash"># Host *                              # Host指令是ssh_config中最重要的指令，只有ssh连接的目标主机名能匹配此处给定模式时，
+                                      # 下面一系列配置项直到出现下一个Host指令才对此次连接生效
+#   ForwardAgent no
+#   ForwardX11 no
+#   RhostsRSAAuthentication no
+#   RSAAuthentication yes
+#   PasswordAuthentication yes     # 是否启用基于密码的身份认证机制
+#   HostbasedAuthentication no     # 是否启用基于主机的身份认证机制
+#   GSSAPIAuthentication no        # 是否启用基于GSSAPI的身份认证机制
+#   GSSAPIDelegateCredentials no
+#   GSSAPIKeyExchange no
+#   GSSAPITrustDNS no
+#   BatchMode no                   # 如果设置为&quot;yes&quot;，将禁止passphrase/password询问。比较适用于在那些不需要询问提供密
+                                   # 码的脚本或批处理任务任务中。默认为&quot;no&quot;。
+#   CheckHostIP yes
+#   AddressFamily any
+#   ConnectTimeout 0
+#   StrictHostKeyChecking ask        # 设置为&quot;yes&quot;，ssh将从不自动添加host key到~/.ssh/known_hosts文件，
+                                     # 且拒绝连接那些未知的主机(即未保存host key的主机或host key已改变的主机)。
+                                     # 它将强制用户手动添加host key到~/.ssh/known_hosts中。
+                                     # 设置为ask将询问是否保存到~/.ssh/known_hosts文件。
+                                     # 设置为no将自动添加到~/.ssh/known_hosts文件。
+#   IdentityFile ~/.ssh/identity     # ssh v1版使用的私钥文件
+#   IdentityFile ~/.ssh/id_rsa       # ssh v2使用的rsa算法的私钥文件
+#   IdentityFile ~/.ssh/id_dsa       # ssh v2使用的dsa算法的私钥文件
+#   Port 22                          # 当命令行中不指定端口时，默认连接的远程主机上的端口
+#   Protocol 2,1
+#   Cipher 3des                      # 指定ssh v1版本中加密会话时使用的加密协议
+#   Ciphers aes128-ctr,aes192-ctr,aes256-ctr,arcfour256,arcfour128,aes128-cbc,3des-cbc  # 指定ssh v1版本中加密会话时使用的加密协议
+#   MACs hmac-md5,hmac-sha1,umac-64@openssh.com,hmac-ripemd160
+#   EscapeChar ~
+#   Tunnel no
+#   TunnelDevice any:any
+#   PermitLocalCommand no    # 功能等价于~/.ssh/rc，表示是否允许ssh连接成功后在本地执行LocalCommand指令指定的命令。
+#   LocalCommand             # 指定连接成功后要在本地执行的命令列表，当PermitLocalCommand设置为no时将自动忽略该配置
+                             # %d表本地用户家目录，%h表示远程主机名，%l表示本地主机名，%n表示命令行上提供的主机名，
+                             # p%表示远程ssh端口，r%表示远程用户名，u%表示本地用户名。
+#   VisualHostKey no         # 是否开启主机验证阶段时host key的图形化指纹
+Host *
+        GSSAPIAuthentication yes
+</code></pre>
+<h4 id="22-curl命令的选项-socks5"><strong>22、curl命令的选项--socks5</strong></h4>
+<pre><code class="language-bash">curl --socks 47.75.165.238:1723 www.google.com
+</code></pre>
+<h4 id="23-ssh服务的最佳实战"><strong>23、ssh服务的最佳实战</strong></h4>
+<pre><code class="language-bash">建议使用非默认端口 
+禁止使用protocol version 1 
+限制可登录用户 
+设定空闲会话超时时长 
+利用防火墙设置ssh访问策略 
+仅监听特定的IP地址 
+基于口令认证时，使用强密码策略     tr -dc A-Za-z0-9_ &lt; /dev/urandom | head -c 12| xargs 
+使用基于密钥的认证 
+禁止使用空密码 
+禁止root用户直接登录 
+限制ssh的访问频度和并发在线数 
+经常分析日志
+</code></pre>
+<h4 id="24-脚本每天晚上对登陆日志分析将失败ip大于5的放到防火墙"><strong>24、脚本：每天晚上对登陆日志分析，将失败IP大于5的放到防火墙</strong></h4>
+<pre><code class="language-bash">#发起错误密码攻击
+root@lanserver:~# for i in `seq 100`;do sshpass -p 12345 ssh root@192.168.38.154 -o StrictHostKeyChecking=no;done
+#btmb日志切割脚本
+[root@imooc-nginx scripts]# cat btmp_logrotate.sh 
+#!/bin/bash
+cp /var/log/btmp /data/btmp-`date +%Y%m%d -d yesterday`
+&gt; /var/log/btmp
+#自动将IP加入防火墙
+[root@imooc-nginx scripts]# cat deny_dos.sh 
+#!/bin/bash
+. /etc/profile
+FILE=/data/btmp-`date +%Y%m%d -d yesterday`
+lastb -f $FILE | awk '{ip[$3]++} END {for(i in ip){if(ip[i]&gt;5)system(&quot;iptables -A INPUT -s &quot;i&quot; -j REJECT&quot;)}}'
+#将二者加入计划任务
+[root@imooc-nginx scripts]#  echo '0 0 * * * /bin/bash /root/scripts/btmp_logrotate.sh' &gt;&gt; /var/spool/cron/root
+[root@imooc-nginx scripts]#  echo '0 10 * * * /bin/bash /root/scripts/deny_dos.sh' &gt;&gt; /var/spool/cron/root
+#修改时间测试
+[root@imooc-nginx scripts]# date -s '2019-09-03 23:59:30'
+#查看防火墙规则，成功
+[root@imooc-nginx ~]# iptables -vnL
+Chain INPUT (policy ACCEPT 7 packets, 951 bytes)
+ pkts bytes target     prot opt in     out     source               destination         
+   55  3256 REJECT     all  --  *      *       192.168.38.155       0.0.0.0/0            reject-with icmp-port-unreachable
+</code></pre>
+<h4 id="25-rsync同步文件"><strong>25、rsync同步文件</strong></h4>
+<p>--exclude排除原则</p>
+<p>--exclude选项指定排除规则，排除那些不需要传输的文件</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -r -v --exclude=&quot;anaconda/*.log&quot; /var/log/anaconda /var/log/audit /tmp
+sending incremental file list
+anaconda/
+anaconda/syslog
+audit/
+audit/audit.log
+
+sent 506,720 bytes  received 66 bytes  1,013,572.00 bytes/sec
+total size is 506,359  speedup is 1.00
+[root@testbox tmp]# tree -C .
+.
+├── anaconda
+│   └── syslog
+└── audit
+    └── audit.log
+
+2 directories, 2 files
+</code></pre>
+<p>​		上例中只排除了anaconda目录中的log文件，但是audit目录中的log文件是正常传输的。</p>
+<p>​		注意，一个&quot;--exclude&quot;只能指定一条规则，要指定多条排除规则，需要使用多个&quot;--exclude&quot;选项，或者将排除规则写入到文件中，然后使用&quot;--exclude-from&quot;选项读取该规则文件。</p>
+<p>​		另外，除了&quot;--exclude&quot;排除规则，还有&quot;--include&quot;包含规则，顾名思义，它就是筛选出要进行传输的文件，所以include规则也称为传输规则。它的使用方法和&quot;--exclude&quot;一样。如果一个文件即能匹配排除规则，又能匹配包含规则，则先匹配到的立即生效，生效后就不再进行任何匹配。</p>
+<p>​		最后，关于规则，最重要的一点是它的作用时间。**当发送端敲出rsync命令后，rsync将立即扫描命令行中给定的文件和目录(扫描过程中还会按照目录进行排序，将同一个目录的文件放在相邻的位置)，这称为拷贝树(copy tree)，扫描完成后将待传输的文件或目录记录到文件列表中，然后将文件列表传输给接收端。而筛选规则的作用时刻是在扫描拷贝树时，所以会根据规则来匹配并决定文件是否记录到文件列表中(严格地说是会记录到文件列表中的，只不过排除的文件会被标记为hide隐藏起来)，只有记录到了文件列表中的文件或目录才是真正需要传输的内容。换句话说，筛选规则的生效时间在rsync整个同步过程中是非常靠前的，它会影响很多选项的操作对象，最典型的如&quot;--delete&quot;。**也许，你看完这一整篇文章都没感觉到这一点的重要性，但如果你阅读rsync的man文档或者学习rsync的原理，你一定会深有体会。</p>
+<p>​		实际上，排除规则和包含规则都只是&quot;--filter&quot;筛选规则的两种特殊规则。&quot;--filter&quot;比较复杂，它有自己的规则语法和匹配模式，由于篇幅有限，以及考虑到本文的难度定位，&quot;--filter&quot;规则不便在此多做解释，仅简单说明下规则类，帮助理解下文的&quot;--delete&quot;。</p>
+<p>​		以下是rsync中的规则种类，不解之处请结合下文的&quot;--delete&quot;分析：</p>
+<p>​		(1).exclude规则：即排除规则，只作用于发送端，被排除的文件不会进入文件列表(实际上是加上隐藏规则进行隐藏)。</p>
+<p>​		(2).include规则：即包含规则，也称为传输规则，只作用于发送端，被包含的文件将明确记录到文件列表中。</p>
+<p>​		(3).hide规则：即隐藏规则，只作用于发送端，隐藏后的文件对于接收端来说是看不见的，也就是说接收端会认为它不存在于源端。</p>
+<p>​		(4).show规则：即显示规则，只作用于发送端，是隐藏规则的反向规则。</p>
+<p>​		(5).protect规则：即保护规则，该规则只作用于接收端，被保护的文件不会被删除掉。</p>
+<p>​		(6).risk规则：即取消保护规则。是protect的反向规则。</p>
+<p>​		除此之外，还有一种规则是&quot;clear规则&quot;，作用是删除include/exclude规则列表。</p>
+<h4 id="26-rsync如何一次写对exclude规则"><strong>26、rsync如何一次写对exclude规则</strong></h4>
+<p>​		很多人写不来规则，总发现写出来后没有生效，要写成功一次规则得要不断地进行调试、调试、调试，令人无比心烦。</p>
+<p>​		其实很多工具的规则写法是类似的，比如tar也一样。规则写好后不生效的原因一般有两种：绝对路径和相对路径的问题、尾随斜线的问题。</p>
+<p>​		一般来说，操作的路径是绝对路径，那么规则里必须也写绝对路径，而且必须写完整的绝对路径。操作的路径是相对路径，那么规则里必须写相对路径，从哪里开始相对可能和工具有关。比如要操作路径&quot;/abc/def&quot;，想要筛选def下的所有txt文件，必须写成&quot;/abc/def/*.txt&quot;，如果操作路径是&quot;abc/def&quot;，那么要筛选这个目录下的所有txt文件，可能需要写成&quot;abc/def/*.txt&quot;，也有可能写成&quot;*.txt&quot;，甚至写成&quot;def/*.txt&quot;，写成哪种形式依赖于这个软件如何解析相对路径。</p>
+<p>​		对于rsync来说，要更复杂一些，因为除了bash的相对路径外，它自身还提供了一个相对路径的解析规则，而且尾随斜线也会影响规则的写法。这就是为什么写rsync规则非常麻烦的原因。</p>
+<p>​		我这里提供一个判断规则写法的方式，纯属我个人的经验总结：<strong>使用&quot;-n&quot;选项是dry run模式，也就是只测试不传输，&quot;-i&quot;选项是输出要传输文件的路径</strong>。&quot;-i&quot;只是一个便捷性选项，可以替换成其它选项来自定义输出格式，有时候通过这些信息来做一些判断是非常有用的，具体的可以翻man手册。</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -nr -i /var/log/anaconda /tmp/
+&gt;f+++++++++ anaconda/X.log
+&gt;f+++++++++ anaconda/anaconda.log
+&gt;f+++++++++ anaconda/ifcfg.log
+&gt;f+++++++++ anaconda/journal.log
+&gt;f+++++++++ anaconda/ks-script-9uRtfE.log
+&gt;f+++++++++ anaconda/packaging.log
+&gt;f+++++++++ anaconda/program.log
+&gt;f+++++++++ anaconda/storage.log
+&gt;f..T...... anaconda/syslog
+</code></pre>
+<p>这里已经显示了传输文件的路径&quot;anaconda/*&quot;，也就是说包括了目录anaconda，且是相对路径的。所以要写规则时，需要加上这个anaconda路径，比如下面的排除规则。</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -nr -i --exclude='anaconda/*.log' /var/log/anaconda /tmp
+&gt;f..T...... anaconda/syslog
+</code></pre>
+<p>如果上面的传输路径anaconda加上尾随斜线，再看-i的输出路径信息，发现已经改变了：</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -nr -i /var/log/anaconda/ /tmp
+&gt;f+++++++++ X.log
+&gt;f+++++++++ anaconda.log
+&gt;f+++++++++ ifcfg.log
+&gt;f+++++++++ journal.log
+&gt;f+++++++++ ks-script-9uRtfE.log
+&gt;f+++++++++ packaging.log
+&gt;f+++++++++ program.log
+&gt;f+++++++++ storage.log
+&gt;f+++++++++ syslog
+</code></pre>
+<p>所以这时的排除规则中不应该包含anaconda目录前缀：</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -nr -i --exclude='*.log' /var/log/anaconda/ /tmp
+&gt;f+++++++++ syslog
+</code></pre>
+<h4 id="27-rsync的-delete解释"><strong>27、rsync的--delete解释</strong></h4>
+<p>使用&quot;--delete&quot;选项，这时会将目标端多出的文件给删除掉，然后进行同步。</p>
+<pre><code class="language-bash">[root@testbox tmp]# ls /tmp/cron.d/
+0hourly  fstab
+[root@testbox tmp]# ls /etc/cron.d
+0hourly
+[root@testbox tmp]# rsync -r -v /etc/cron.d /tmp --delete
+sending incremental file list
+deleting cron.d/fstab
+cron.d/0hourly
+
+sent 248 bytes  received 52 bytes  600.00 bytes/sec
+total size is 128  speedup is 0.43
+</code></pre>
+<p>​		这样的行为实现了远程删除的功能，对于作用于本地的rsync，也就实现了rm的本地删除功能。而且，如果使用空目录作为源目录，则它的作用是清空目录上的整个目录。</p>
+<p>​		如果将&quot;--delete&quot;选项和&quot;--exclude&quot;选项一起使用，则被排除的文件不会被删除。例如：</p>
+<pre><code class="language-bash">[root@testbox tmp]# rsync -r /var/log/anaconda /tmp
+[root@testbox tmp]# cp /etc/fstab /tmp/anaconda/
+[root@testbox tmp]# rsync -r -v --exclude=&quot;anaconda/*.log&quot; /var/log/anaconda /var/log/audit /tmp --delete
+sending incremental file list
+deleting anaconda/fstab
+anaconda/syslog
+audit/
+audit/audit.log
+
+sent 506,717 bytes  received 81 bytes  1,013,596.00 bytes/sec
+total size is 506,359  speedup is 1.00
+</code></pre>
+<p>​		结果发现只删除了&quot;anaconda/fstab&quot;文件，被&quot;--exclude&quot;规则匹配的anaconda/*.log文件都没有被删除。也就是网上所说的言论：exclude排除的文件不会被删除。</p>
+<p>​		结论是没错的，但我想很多人不知道为何会如此，也可能从来没想过为何会如此，所以我简单地做个说明。</p>
+<p>​		**在发送端将文件列表发送给接收端后，接收端的generator(要是不知道，你认为是某个就好了)进程会扫描每个文件列表中的信息，然后对列表中的每个信息条目都计算数据块校验码，最后将数据库校验码发给发送端，发送端通过校验码来匹配哪些数据块是需要传输的，这样就实现了增量传输的功能——只传输改变的部分，不会传输整个文件。而delete删除的时间点是generator进程处理每个文件列表时、生成校验码之前进行的，**先将目标上存在但源上不存在的多余文件删除，这样就无需为多余的文件生成校验码。</p>
+<p>​		所以，delete动作是比&quot;--exclude&quot;规则更晚执行的，被&quot;--exclude&quot;规则排除的文件不会进入文件列表中，在执行了delete时会认为该文件不存在于源端，从而导致目标端将这些文件删除。但这是想当然的，尽管理论上确实是这样的，但是rsync为了防止众多误删除情况，提供了两种规则：保护规则(protect)和取消保护规则(risk)。默认情况下，&quot;--delete&quot;和&quot;--exclude&quot;一起使用时，虽然发送端的exclude规则将文件标记为隐藏，使得接收端认为这些被排除文件在源端不存在，但rsync会将这些隐藏文件标记为保护文件，使得它们不受delete行为的影响，这样delete就删除不了这些被排除的文件。如果还是想要强行删除被exclude排除的文件，可以使用&quot;--delete-excluded&quot;选项强制取消保护，这样即使被排除的文件也会被删除。</p>
+<p>​		那么现在，是否理解了网上的言论&quot;exclude排除的文件不会被删除&quot;？</p>
+<p>​		除了&quot;--delete&quot;，相关的选项还有&quot;--delete-before&quot;、&quot;--delete-during&quot;、&quot;--delete-delay&quot;等，它们都隐含了&quot;--delete&quot;选项，它们分别表示generator处理各个文件列表之前一次性全部删除待删除文件、处理文件列表时处理到哪个文件列表就删除该文件列表中的待删除文件，以及同步完所有数据后一次性删除所有待删除文件。</p>
+<p>​		举个例子，假如源端要传输3个目录a、b、c，在目标端a目录中有a1、a2、a3共3个文件需要被删除，b目录中有b1、b2、b3需要删除，同理c目录也一样c1、c2、c3需要被删除。</p>
+<p>​		如果是&quot;--delete-before&quot;，则在目标端rsync刚启动时，就会把a1-a3、b1-b3、c1-c3一次性删除，然后才会处理文件列表中的a目录，处理完a后处理b，再是c。</p>
+<p>如果是&quot;--delete-during&quot;，则在目标端rsync刚启动时，先处理文件列表中的a目录，处理a目录时发现此目录中有待删除文件a1-a3，顺手就删除它们，然后完成a目录的相关操作，再处理文件列表中的b目录，发现也有待删除文件b1-b3，顺手删除它们，同理c1-c3也如此。</p>
+<p>​		如果是&quot;--delete-delay&quot;，则同步完文件列表中的a/b/c目录后，最后一次性删除a1-a3、b1-b3、c1-c3。</p>
+<p>​		其实&quot;--delete&quot;选项大多数情况下默认采用的就是&quot;--delete-during&quot;。</p>
+<h4 id="28-dropbear使用">28、dropbear使用</h4>
+<p>和ssh一类的</p>
+<pre><code class="language-bash">#dropbear也是22端口，查看/lib/systemd/system/dropbear.service发现它依赖/lib/systemd/system/dropbear-keygen.service，而这个文件就是先判断密钥存在否，不存在则生成
+yum install dropbear
+/usr/bin/dropbearkey -t rsa -f /etc/dropbear/dropbear_rsa_host_key
+/usr/bin/dropbearkey -t dss -f /etc/dropbear/dropbear_dss_host_key
+[root@textbox ~]# dropbear -p :2222
+</code></pre>
+<h4 id="29-aidelinux的入侵检测软件">29、aide（linux的入侵检测软件）</h4>
+<pre><code class="language-bash">#使用方法，现在/etc/aide.conf中定义要监控的文件，aide会对文件的各种属性，md5监控
+[root@textbox ~]# yum install aide -y
+[root@textbox ~]# rpm -ql aide | grep -v '^/usr'
+/etc/aide.conf
+/etc/logrotate.d/aide
+/var/lib/aide
+/var/log/aide
+#手动在aide.conf中饭添加监控规则
+TEST = p+u+g+sha512
+#手动添加要监控的目录或文件：监控/tmp,使用TEST规则
+/tmp TEST
+#生成数据库
+[root@textbox ~]# aide -i
+### AIDE database at /var/lib/aide/aide.db.new.gz initialized.
+#/tmp下修改个文件的属性，然后检测看下，其实就是收集现有文件信息，对比下
+[root@textbox ~]# chown qqq /tmp/1.log
+[root@textbox ~]# mv /var/lib/aide/aide.db.new.gz  /var/lib/aide/aide.db.gz
+[root@textbox ~]# aide -C
+AIDE 0.15.1 found differences between database and filesystem!!
+Start timestamp: 2019-09-05 11:02:20
+
+Summary:
+  Total number of files:	130
+  Added files:			0
+  Removed files:		0
+  Changed files:		1
+
+
+---------------------------------------------------
+Changed files:
+---------------------------------------------------
+
+changed: /tmp/1.log
+
+---------------------------------------------------
+Detailed information about changes:
+---------------------------------------------------
+
+
+File: /tmp/1.log
+ Uid      : 0                                , 1000
+</code></pre>
+
+            </div>
+            <hr style="width: 80%;">
+            
+            <div class="donateContainer">
+                <span class="donatebtn">赏</span>
+            </div>
+            <div class="donateContainer">
+                <img src="https://gitee.com/kill0es/blogimage/raw/master/img/20201012082100.png" alt="" class="donate">
+            </div>
+            
+            <div class="postfooter">
+                <ul class="post-copyright">
+                    <li><strong>文章作者：</strong>quansen88</li>
+            <li><strong>原文链接：</strong>http://quansen88.cn/20190902-jia-mi-he-an-quan-ssh-deng/</li>
+            <li><strong>版权声明：</strong>本博客所有文章除特别声明外，均采用<i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA
+                许可协议。转载请注明出处！</li>
+            </ul>
+        </div>
+        
+            <div class="shareContainer">
+                <div class="share" style="height:30px;background: white;">
+                    <a class="qq" href=""><i><img class="shareicon"
+                                src="http://quansen88.cn/media/images/qqs.png" alt=""></i></a>
+                    <a class="wechat" href=""><i><img class="shareicon"
+                                src="http://quansen88.cn/media/images/wechats.png" alt=""></i></a>
+                    <a class="weibo" href=""><i><img class="shareicon"
+                                src="http://quansen88.cn/media/images/weibos.png" alt=""></i></a>
+                    <a class="qzone" href=""><i><img class="shareicon"
+                                src="http://quansen88.cn/media/images/qzones.png" alt=""></i></a>
+                    <a class="douban" href=""><i><img class="shareicon"
+                                src="http://quansen88.cn/media/images/doubans.png" alt=""></i></a>
+                    <a class="facebook" href=""><i><img class="shareicon"
+                                src="http://quansen88.cn/media/images/facebooks.png" alt=""></i></a>
+                    <a class="twitter" href=""><i><img class="shareicon"
+                                src="http://quansen88.cn/media/images/twitter.png" alt=""></i></a>
+                </div>
+            </div>
+            
+        <div id="otherpost">
+            
+            <a  data-pjax class="prev-post-pc" href="http://quansen88.cn/20190903inotifyrsync/"  style="color: black;">
+                <div id="ppcontainer">
+                    
+                    <img src="https://res.cloudinary.com/canonical/image/fetch/f_auto,q_auto,fl_sanitize,w_266,h_200/https://assets.ubuntu.com/v1/f129afea-Save+Money-Yen-Euro-Dollar-2020.svg" style="width: 100%;" class="opimg">
+                    
+                    <h4 class="optitle">inotify+rsync</h4>
+                </div>
+            </a>
+            <div class="prev-post">
+                上一篇 <a  data-pjax href="http://quansen88.cn/20190903inotifyrsync/">inotify+rsync</a>
+            </div>
+            
+            
+            <a data-pjax class="next-post-pc" href="http://quansen88.cn/20190902-gu-ge-shen-fen-yan-zheng-qi-shi-yong/"  style="color: black;">
+                <div id="npcontainer">
+                    
+                    <img src="https://assets.ubuntu.com/v1/8114528b-picto-ubuntu-orange.png" style="width: 100%;" class="opimg">
+                    
+                    <h4 class="optitle">谷歌身份验证器使用</h4>
+                </div>
+            </a>
+            <div class="next-post">
+                下一篇 <a  data-pjax href="http://quansen88.cn/20190902-gu-ge-shen-fen-yan-zheng-qi-shi-yong/">谷歌身份验证器使用</a>
+            </div>
+            
+        </div>
+    </div>
+    </div>
+    </div>
+    <!-- 弹窗 -->
+    <div id="myModal" class="modal">
+        <img class="modal-content" id="img01">
+    </div>
+</body>
+<script>
+    //文章阅读热度
+    var pl = $("#pl").html();
+    var rootaddr = $("#rootaddr").html();
+    pl = pl.replace(rootaddr, "");
+    $("#hotnum").attr('id', pl);
+</script>
+                    <div class="toc-container">
+                        <ul class="markdownIt-TOC">
+<li><a href="#%E5%8A%A0%E5%AF%86%E5%92%8C%E5%AE%89%E5%85%A8">加密和安全</a><br>
+*<br>
+*<br>
+* <a href="#selinux">selinux</a><br>
+* <a href="#1-ssh%E9%9D%9E%E4%BA%A4%E4%BA%92%E7%94%9F%E6%88%90%E5%AF%86%E9%92%A5"><strong>1、ssh非交互生成密钥</strong></a><br>
+* <a href="#2-ssh-x"><strong>2、ssh -X</strong></a><br>
+* <a href="#3-xstart"><strong>3、xstart</strong></a><br>
+* <a href="#4-xmanager"><strong>4、xmanager</strong></a><br>
+* <a href="#5-ssh%E5%90%84%E7%A7%8D%E6%96%87%E4%BB%B6%E5%88%86%E5%B8%83"><strong>5、ssh各种文件分布</strong></a><br>
+* <a href="#6-%E4%B8%80%E9%94%AEshell%E8%84%9A%E6%9C%AC"><strong>6、一键shell脚本</strong></a><br>
+* <a href="#7-ssh-agent"><strong>7、ssh-agent</strong></a><br>
+* <a href="#8-scp%E8%87%AA%E5%8A%A8%E5%BA%94%E7%AD%94"><strong>8、scp自动应答</strong></a><br>
+* <a href="#9-ssh-copy-id%E8%87%AA%E5%8A%A8%E5%BA%94%E7%AD%94%E8%84%9A%E6%9C%AC"><strong>9、ssh-copy-id自动应答脚本</strong></a><br>
+* <a href="#10-ssh%E8%BF%9E%E6%8E%A5%E9%80%9F%E5%BA%A6%E6%85%A2%E7%9A%84%E5%87%A0%E4%B8%AA%E5%8E%9F%E5%9B%A0%E5%92%8C%E8%A7%A3%E5%86%B3%E5%8A%9E%E6%B3%95"><strong>10、ssh连接速度慢的几个原因和解决办法</strong></a><br>
+* <a href="#11-ssh%E5%AE%89%E5%85%A8%E9%9A%A7%E9%81%93%E4%B8%80%E6%9C%AC%E5%9C%B0%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91"><strong>11、ssh安全隧道一（本地端口转发）</strong></a><br>
+* <a href="#12-pssh%E6%89%B9%E9%87%8F%E7%AE%A1%E7%90%86"><strong>12、pssh批量管理</strong></a><br>
+* <a href="#13-pscppssh%E5%91%BD%E4%BB%A4">**13、pscp.pssh命令 **</a><br>
+* <a href="#14-pslurp%E5%B0%86%E8%BF%9C%E7%AB%AF%E6%96%87%E4%BB%B6%E5%A4%8D%E5%88%B6%E5%88%B0%E6%9C%AC%E5%9C%B0"><strong>14、pslurp将远端文件复制到本地</strong></a><br>
+* <a href="#15-ssh%E7%AB%AF%E5%8F%A3%E6%9C%AC%E5%9C%B0%E8%BD%AC%E5%8F%91"><strong>15、SSH端口本地转发</strong></a><br>
+* <a href="#16-ssh%E5%81%9A%E8%B7%B3%E6%9D%BF%E6%9C%BA"><strong>16、SSH做跳板机</strong></a><br>
+* <a href="#17-ssh%E7%AB%AF%E5%8F%A3%E8%BF%9C%E7%A8%8B%E8%BD%AC%E5%8F%91%E6%9C%89%E7%82%B9%E5%83%8Fvpn%E5%9C%A8%E5%AE%B6%E9%87%8C%E8%BF%9E%E8%87%AA%E5%B7%B1%E5%85%AC%E7%BD%91%E6%9C%8D%E5%8A%A1%E5%99%A8%E7%9A%84%E6%8C%87%E5%AE%9A%E7%AB%AF%E5%8F%A3%E5%B0%B1%E9%93%BE%E6%8E%A5%E5%88%B0%E5%85%AC%E5%8F%B8%E5%86%85%E9%83%A8%E7%BD%91%E7%BB%9C%E4%BA%86">17、SSH端口远程转发(有点像VPN，在家里连自己公网服务器的指定端口，就链接到公司内部网络了)</a><br>
+* <a href="#18-ssh%E5%AE%89%E5%85%A8%E9%9A%A7%E9%81%93%E4%B8%89%E5%8A%A8%E6%80%81%E7%AB%AF%E5%8F%A3%E8%BD%AC%E5%8F%91socks%E4%BB%A3%E7%90%86"><strong>18、ssh安全隧道(三)：动态端口转发(SOCKS代理)</strong></a><br>
+* <a href="#19-%E5%8F%AA%E5%9C%A8%E5%9C%A8%E9%A6%99%E6%B8%AF%E6%9C%8D%E5%8A%A1%E5%99%A8%E4%B8%8A%E9%85%8D%E7%BD%AE%E5%AE%9E%E7%8E%B0%E7%A7%91%E5%AD%A6%E4%B8%8A%E7%BD%91%E5%A4%B1%E8%B4%A5%E4%BA%86%E6%88%90%E5%8A%9F%E4%BA%86"><strong>19、只在在香港服务器上配置，实现科学上网（<s>失败了</s>成功了）</strong></a><br>
+* <a href="#20-sshd_config"><strong>20、sshd_config</strong></a><br>
+* <a href="#21-ssh_config%E9%85%8D%E7%BD%AE"><strong>21、ssh_config配置</strong></a><br>
+* <a href="#22-curl%E5%91%BD%E4%BB%A4%E7%9A%84%E9%80%89%E9%A1%B9-socks5"><strong>22、curl命令的选项--socks5</strong></a><br>
+* <a href="#23-ssh%E6%9C%8D%E5%8A%A1%E7%9A%84%E6%9C%80%E4%BD%B3%E5%AE%9E%E6%88%98"><strong>23、ssh服务的最佳实战</strong></a><br>
+* <a href="#24-%E8%84%9A%E6%9C%AC%E6%AF%8F%E5%A4%A9%E6%99%9A%E4%B8%8A%E5%AF%B9%E7%99%BB%E9%99%86%E6%97%A5%E5%BF%97%E5%88%86%E6%9E%90%E5%B0%86%E5%A4%B1%E8%B4%A5ip%E5%A4%A7%E4%BA%8E5%E7%9A%84%E6%94%BE%E5%88%B0%E9%98%B2%E7%81%AB%E5%A2%99"><strong>24、脚本：每天晚上对登陆日志分析，将失败IP大于5的放到防火墙</strong></a><br>
+* <a href="#25-rsync%E5%90%8C%E6%AD%A5%E6%96%87%E4%BB%B6"><strong>25、rsync同步文件</strong></a><br>
+* <a href="#26-rsync%E5%A6%82%E4%BD%95%E4%B8%80%E6%AC%A1%E5%86%99%E5%AF%B9exclude%E8%A7%84%E5%88%99"><strong>26、rsync如何一次写对exclude规则</strong></a><br>
+* <a href="#27-rsync%E7%9A%84-delete%E8%A7%A3%E9%87%8A"><strong>27、rsync的--delete解释</strong></a><br>
+* <a href="#28-dropbear%E4%BD%BF%E7%94%A8">28、dropbear使用</a><br>
+* <a href="#29-aidelinux%E7%9A%84%E5%85%A5%E4%BE%B5%E6%A3%80%E6%B5%8B%E8%BD%AF%E4%BB%B6">29、aide（linux的入侵检测软件）</a></li>
+</ul>
+
+                    </div>
+                    <div class="tog">
+                        <div class="toggleContainer">
+                            <div class="toggle">
+                                <i class="fas fa-angle-double-up"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <!---------------------------- 评论系统👇 ------------------------->
+                    <div id="comment" class="comment">
+                        <div class="commentcontainer">
+                            
+                                
+                                    <!-- 文章热度功能和评论整合 -->
+<style>
+  .twikoo p {text-align: left;}
+</style>
+<body>
+<div id="tcomment"></div>
+</body>
+<script>
+twikoo.init({
+  envId: 'blog-2gx6wylo0e359cdd',
+  el: '#tcomment',
+  // region: 'ap-guangzhou', // 环境地域，默认为 ap-shanghai，如果您的环境地域不是上海，需传此参数
+  // path: 'window.location.pathname', // 用于区分不同文章的自定义 js 路径，如果您的文章路径不是 location.pathname，需传此参数
+})
+</script>
+
+<script>
+  var appid = '';
+  var appkey = '';
+  if(typeof(AVinit)=="undefined"){
+    AV.init({
+      appId: appid,
+      appKey: appkey
+  });
+  AVinit = true;
+}
+</script>
+                                    <div class="clear"></div>
+                                
+                            
+                        </div>
+                    </div>
+                    <!---------------------------- 评论系统👆 ------------------------->
+                </div>
+                <!-- main标签，pjax渲染时加载以上内容👆 -->
+                <div class="col-md-1 col-lg-2"></div>
+                <div id="bg">
+                </div>
+            </div>
+            <!-- ----------------左侧菜单栏html 👆-------------------------------------->
+            
+        </div>
+        <!-- aplayer播放器加载👇 -->
+            
+            <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css">
+</head>
+
+<body>
+    <div class="miniMode">
+        <meting-js id="myaplayer" server="netease" type="playlist" fixed="true" order="default" muted="muted">
+        </meting-js>
+    </div>
+</body>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
+<script>
+    function aplayerInit() {
+        var aplayerid = "7628431170";
+        var aplayerserver = "netease";
+        var aplayerorder = "random";
+        var aplayerautoplay = "true";
+        var aplayer = $("#myaplayer");
+        aplayer.attr("server", aplayerserver);
+        aplayer.attr("id", aplayerid);
+        aplayer.attr("order", aplayerorder);
+        if (aplayerautoplay == "true")
+            aplayer.attr("autoplay", "true");
+    }
+    aplayerInit();
+</script>
+
+<script src="https://cdn.jsdelivr.net/gh/850552586/ericamcdn@0.1/js/Aplayer.min.js"></script>
+<!-- require MetingJS -->
+<script src="https://cdn.jsdelivr.net/npm/meting@2/dist/Meting.min.js"></script>
+
+<script>
+    function aplayerbtnInit() {
+        var player = document.querySelectorAll('meting-js')[0].aplayer;
+        if(player==undefined)return false;
+        player.lrc.hide();
+        var mbabtn = $("#mbaplayer");
+        if (player.paused == false) {
+            mbabtn.removeClass("fa-play-circle-o");
+            mbabtn.addClass("fa-pause-circle");
+        } else {
+            mbabtn.addClass("fa-play-circle-o");
+            mbabtn.removeClass("fa-pause-circle");
+        }
+    }
+
+    function aplayerPlay() {
+        var player = document.querySelectorAll('meting-js')[0].aplayer;
+        var mbabtn = $("#mbaplayer");
+        if (player.paused == true) {
+            player.play();
+            mbabtn.removeClass("fa-play-circle-o");
+            mbabtn.addClass("fa-pause-circle");
+        } else {
+            player.pause();
+            mbabtn.addClass("fa-play-circle-o");
+            mbabtn.removeClass("fa-pause-circle");
+        }
+    }
+</script>
+            
+        <!-- aplayer播放器加载👆 -->
+    </div>
+    
+
+    <!-- 背景图加载方式👇 -->
+    <div id="bgchoice" style="display: none">link
+                </div>
+                
+                <div id="bgurl" style="display:none">https://compass-ssl.xbox.com/assets/cb/de/cbde57e8-d72d-4c4d-a78e-1ee31cdf2fb5.jpg?n=Scarlet-Nexus_Large-tout-0_1083x1222.jpg</div>
+                
+    <!-- 背景图加载方式👆 -->
+</body>
+
+<script>
+    //初始化
+    //更换twikoo头像
+    setTimeout(replaceAvatar,1000);
+    setTimeout(replaceAvatar,2000);
+    setTimeout(replaceAvatar,8000);
+    // --------为每张图片添加懒加载（lazyload）标签-->懒加载功能 👇------------
+    imglazyloadinit()
+    lazyload();
+    //为文章内所有代码块添加代码复制功能 👇
+    codeinit();
+    // ------代码高亮显示功能-------------
+    hljs.initHighlightingOnLoad();
+    if (shareChoice)
+        shareInit();
+    if (donateChoice)
+        donateInit();
+</script>
+
+<!------------------ 加载live2d模型功能（看板娘）👇 ---------------->
+
+<script type="text/javascript">
+    var message_Path = '/live2d/'
+    var home_Path = document.getElementById("domainname").innerHTML + "/"; //此处修改为你的域名，必须带斜杠
+</script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/850552586/ericamcdn@0.1/js/live2d.js"></script>
+<script type="text/javascript" src="http://quansen88.cn/media/live2d/js/message.js"></script>
+<script type="text/javascript">
+    loadlive2d("live2d", "http://quansen88.cn/media/live2d/assets/tororo.model.json");
+</script>
+
+<!------------------ 加载live2d模型功能（看板娘）👆 ---------------->
+
+
+<!----------------------- 返回顶部按钮功能👇 --------------------->
+<script>
+    $(function () {
+        $('.toggleContainer').click(function () {
+            $('html,body').animate({
+                scrollTop: '0px'
+            }, 800);
+        });
+        $(window).scroll(function () {
+            var st = $(window).scrollTop();
+            if (st > 30) {
+                $(".toggleContainer").fadeIn(400);
+            } else {
+                $(".toggleContainer").fadeOut(100);
+            }
+        });
+    });
+</script>
+<!----------------------- 返回顶部按钮功能👆 --------------------->
+
+
+<!------------ 加载全局背景图功能👇（开始时没有写好，这功能有点鸡肋/(ㄒoㄒ)/~~） -->
+<script>
+    var bgchoice = $('#bgchoice').html();
+    var bg = $('#bg');
+    var bgurl = document.getElementById("bgurl").innerHTML;
+    if (bgchoice == 'default')
+        for (var i = 0; i < 3; i++)
+            bgurl = bgurl.replace("\\", "/");
+    bg.css("background", "url('" + bgurl + "')");
+</script>
+<!------------ 加载全局背景图功能👆（开始时没有写好，这功能有点鸡肋/(ㄒoㄒ)/~~） -->
+
+
+
+
+<script src="http://quansen88.cn/media/js/index.js"></script>
+
+
+<script>
+    //加载后的事件同步（阅读量、移动端评论等
+    window.onload = function () {
+    //代码块高亮渲染
+    document.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightBlock(block);
+    });
+    alert("hljs load ok")
+        getHotnum();
+        var sharepc = $(".share").eq(0).html();
+        $(".share").eq(1).html(sharepc);   //插件只会寻找一个分享标签渲染，所以需要手动添加到移动端
+        aplayerbtnInit();
+        $(".hljs").css({
+            "padding": "20px"
+        })
+    }
+</script>
+
+<!-- <script src="http://quansen88.cn/media/js/av-min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@3.13.0/dist/av-min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.6.1/dist/av-live-query-min.js"></script> -->
